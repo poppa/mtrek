@@ -20,7 +20,7 @@ export const load: PageServerLoad = async (event) => {
 	const trekId = requireTrekParam(event.params.trekId);
 
 	return {
-		...getTrekDetail(trekId, userId),
+		...(await getTrekDetail(trekId, userId)),
 		spotifySearchConfigured: hasSpotifySearchConfig()
 	};
 };
@@ -32,7 +32,7 @@ export const actions: Actions = {
 		const formData = await event.request.formData();
 
 		try {
-			updateTrekTitle({
+			await updateTrekTitle({
 				trekId,
 				userId,
 				name: readString(formData, 'name')
@@ -55,7 +55,7 @@ export const actions: Actions = {
 		const formData = await event.request.formData();
 
 		try {
-			selectAlbum(trekId, userId, {
+			await selectAlbum(trekId, userId, {
 				spotifyAlbumId: readString(formData, 'spotifyAlbumId'),
 				albumName: readString(formData, 'albumName'),
 				artistName: readString(formData, 'artistName'),
@@ -80,7 +80,7 @@ export const actions: Actions = {
 		const trekId = requireTrekParam(event.params.trekId);
 
 		try {
-			deleteOwnSelection({ trekId, userId });
+			await deleteOwnSelection({ trekId, userId });
 		} catch (deleteError) {
 			return fail(400, {
 				actionError:
@@ -99,7 +99,7 @@ export const actions: Actions = {
 		const formData = await event.request.formData();
 
 		try {
-			rateSelection({
+			await rateSelection({
 				trekId,
 				userId,
 				selectionId: readString(formData, 'selectionId'),
@@ -123,7 +123,7 @@ export const actions: Actions = {
 		const trekId = requireTrekParam(event.params.trekId);
 
 		try {
-			advanceTrek(trekId, userId);
+			await advanceTrek(trekId, userId);
 		} catch (advanceError) {
 			return fail(400, {
 				actionError:
@@ -142,7 +142,7 @@ export const actions: Actions = {
 		const formData = await event.request.formData();
 
 		try {
-			removeParticipant({
+			await removeParticipant({
 				trekId,
 				ownerId,
 				participantId: readString(formData, 'participantId')
@@ -164,7 +164,7 @@ export const actions: Actions = {
 		const trekId = requireTrekParam(event.params.trekId);
 
 		try {
-			deleteTrek({ trekId, userId });
+			await deleteTrek({ trekId, userId });
 		} catch (deleteError) {
 			return fail(400, {
 				actionError:

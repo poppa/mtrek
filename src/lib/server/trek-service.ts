@@ -96,8 +96,8 @@ export function getProviderName(user: {
 	return user.name ?? user.email ?? 'Unknown listener';
 }
 
-export function listTreksForUser(userId: string) {
-	const rows = db
+export async function listTreksForUser(userId: string) {
+	const rows = await db
 		.select({
 			trek: treks,
 			role: trekParticipants.role
@@ -105,31 +105,34 @@ export function listTreksForUser(userId: string) {
 		.from(trekParticipants)
 		.innerJoin(treks, eq(trekParticipants.trekId, treks.id))
 		.where(eq(trekParticipants.userId, userId))
-		.orderBy(desc(treks.createdAt))
-		.all();
+		.orderBy(desc(treks.createdAt));
 
-	return rows.map(({ trek, role }) => {
-		const rounds = getRounds(trek.id);
-		const participantCount = getParticipantCount(trek.id);
-		const activeRound =
-			rounds.find((round) => round.status !== 'completed') ?? null;
-		const completedYears = rounds.filter(
-			(round) => round.status === 'completed'
-		).length;
-		const totalYears = getYearRange(trek).length;
+	return Promise.all(
+		rows.map(async ({ trek, role }) => {
+			const [rounds, participantCount] = await Promise.all([
+				getRounds(trek.id),
+				getParticipantCount(trek.id)
+			]);
+			const activeRound =
+				rounds.find((round) => round.status !== 'completed') ?? null;
+			const completedYears = rounds.filter(
+				(round) => round.status === 'completed'
+			).length;
+			const totalYears = getYearRange(trek).length;
 
-		return {
-			...trek,
-			role,
-			participantCount,
-			activeYear: activeRound?.year ?? null,
-			completedYears,
-			totalYears
-		};
-	});
+			return {
+				...trek,
+				role,
+				participantCount,
+				activeYear: activeRound?.year ?? null,
+				completedYears,
+				totalYears
+			};
+		})
+	);
 }
 
-export function createTrek(input: {
+export async function createTrek(input: {
 	name: string;
 	startYear: number;
 	endYear: number;
@@ -145,47 +148,46 @@ export function createTrek(input: {
 
 	const trekId = crypto.randomUUID();
 
-	db.transaction((tx) => {
-		tx.insert(treks)
-			.values({
-				id: trekId,
-				name,
-				startYear: input.startYear,
-				endYear: input.endYear,
-				inviteCode: generateInviteCode(),
-				createdBy: input.userId
-			})
-			.run();
+	await db.transaction(async (tx) => {
+		await tx.insert(treks).values({
+			id: trekId,
+			name,
+			startYear: input.startYear,
+			endYear: input.endYear,
+			inviteCode: generateInviteCode(),
+			createdBy: input.userId
+		});
 
-		tx.insert(trekParticipants)
-			.values({
-				trekId,
-				userId: input.userId,
-				role: 'owner'
-			})
-			.run();
+		await tx.insert(trekParticipants).values({
+			trekId,
+			userId: input.userId,
+			role: 'owner'
+		});
 	});
 
-	startNextRound(trekId);
+	await startNextRound(trekId);
 
 	return trekId;
 }
 
-export function getTrekByInviteCode(inviteCode: string) {
-	return (
-		db.select().from(treks).where(eq(treks.inviteCode, inviteCode)).get() ??
-		null
-	);
+export async function getTrekByInviteCode(inviteCode: string) {
+	const rows = await db
+		.select()
+		.from(treks)
+		.where(eq(treks.inviteCode, inviteCode))
+		.limit(1);
+
+	return rows[0] ?? null;
 }
 
-export function joinTrek(inviteCode: string, userId: string) {
-	const trek = getTrekByInviteCode(inviteCode);
+export async function joinTrek(inviteCode: string, userId: string) {
+	const trek = await getTrekByInviteCode(inviteCode);
 
 	if (!trek) {
 		throw error(404, 'Invite not found.');
 	}
 
-	const existingMembership = getMembership(trek.id, userId);
+	const existingMembership = await getMembership(trek.id, userId);
 
 	if (existingMembership) {
 		return trek.id;
@@ -195,61 +197,61 @@ export function joinTrek(inviteCode: string, userId: string) {
 		throw error(409, 'This trek has already completed.');
 	}
 
-	const activeRound = getActiveRound(trek.id);
+	const activeRound = await getActiveRound(trek.id);
 
 	if (activeRound && activeRound.status !== 'selecting') {
 		throw error(409, 'New participants can join after the current year wraps.');
 	}
 
-	db.insert(trekParticipants)
+	await db
+		.insert(trekParticipants)
 		.values({
 			trekId: trek.id,
 			userId,
 			role: 'participant'
 		})
-		.onConflictDoNothing()
-		.run();
+		.onConflictDoNothing();
 
 	return trek.id;
 }
 
-export function getTrekDetail(trekId: string, userId: string) {
-	const trek = getTrek(trekId);
+export async function getTrekDetail(trekId: string, userId: string) {
+	const trek = await getTrek(trekId);
 
 	if (!trek) {
 		throw error(404, 'Trek not found.');
 	}
 
-	const membership = getMembership(trekId, userId);
+	const membership = await getMembership(trekId, userId);
 
 	if (!membership) {
 		throw error(403, 'You need to join this trek first.');
 	}
 
-	const participants = db
-		.select({
-			userId: users.id,
-			name: users.name,
-			email: users.email,
-			image: users.image,
-			role: trekParticipants.role,
-			joinedAt: trekParticipants.joinedAt
-		})
-		.from(trekParticipants)
-		.innerJoin(users, eq(trekParticipants.userId, users.id))
-		.where(eq(trekParticipants.trekId, trekId))
-		.orderBy(asc(trekParticipants.joinedAt))
-		.all()
-		.map((participant) => ({
-			...participant,
-			displayName: getProviderName(participant)
-		}));
+	const participants = (
+		await db
+			.select({
+				userId: users.id,
+				name: users.name,
+				email: users.email,
+				image: users.image,
+				role: trekParticipants.role,
+				joinedAt: trekParticipants.joinedAt
+			})
+			.from(trekParticipants)
+			.innerJoin(users, eq(trekParticipants.userId, users.id))
+			.where(eq(trekParticipants.trekId, trekId))
+			.orderBy(asc(trekParticipants.joinedAt))
+	).map((participant) => ({
+		...participant,
+		displayName: getProviderName(participant)
+	}));
 
-	const rounds = getRounds(trekId);
+	const rounds = await getRounds(trekId);
 	const currentRound =
 		rounds.find((round) => round.status !== 'completed') ?? null;
 	const selections = currentRound
-		? getSelectionsForRound(currentRound.id, userId)
+		? await getSelectionsForRound(currentRound.id, userId)
 		: [];
 	const completedYears = rounds.filter(
 		(round) => round.status === 'completed'
@@ -283,37 +285,39 @@ export function getTrekDetail(trekId: string, userId: string) {
 	};
 }
 
-export function getConcludedYearDetail(input: {
+export async function getConcludedYearDetail(input: {
 	trekId: string;
 	userId: string;
 	year: number;
 }) {
-	const trek = getTrek(input.trekId);
+	const trek = await getTrek(input.trekId);
 
 	if (!trek) {
 		throw error(404, 'Trek not found.');
 	}
 
-	assertMember(input.trekId, input.userId);
+	await assertMember(input.trekId, input.userId);
 
 	const round =
-		db
-			.select()
-			.from(trekRounds)
-			.where(
-				and(
-					eq(trekRounds.trekId, input.trekId),
-					eq(trekRounds.year, input.year),
-					eq(trekRounds.status, 'completed')
+		(
+			await db
+				.select()
+				.from(trekRounds)
+				.where(
+					and(
+						eq(trekRounds.trekId, input.trekId),
+						eq(trekRounds.year, input.year),
+						eq(trekRounds.status, 'completed')
+					)
 				)
-			)
-			.get() ?? null;
+				.limit(1)
+		)[0] ?? null;
 
 	if (!round) {
 		throw error(404, 'Concluded year not found.');
 	}
 
-	const selections = getSelectionsForConcludedRound(round.id);
+	const selections = await getSelectionsForConcludedRound(round.id);
 	const scoreValues = selections.flatMap((selection) =>
 		selection.ratings.map((rating) => rating.scoreTenth)
 	);
@@ -334,12 +338,12 @@ export function getConcludedYearDetail(input: {
 	};
 }
 
-export function updateTrekTitle(input: {
+export async function updateTrekTitle(input: {
 	trekId: string;
 	userId: string;
 	name: string;
 }) {
-	assertOwner(input.trekId, input.userId);
+	await assertOwner(input.trekId, input.userId);
 
 	const name = input.name.trim();
 
@@ -347,21 +351,21 @@ export function updateTrekTitle(input: {
 		throw new Error('Trek title is required.');
 	}
 
-	db.update(treks).set({ name }).where(eq(treks.id, input.trekId)).run();
+	await db.update(treks).set({ name }).where(eq(treks.id, input.trekId));
 }
 
-export function removeParticipant(input: {
+export async function removeParticipant(input: {
 	trekId: string;
 	ownerId: string;
 	participantId: string;
 }) {
-	assertOwner(input.trekId, input.ownerId);
+	await assertOwner(input.trekId, input.ownerId);
 
 	if (input.ownerId === input.participantId) {
 		throw new Error('The owner cannot be removed from the trek.');
 	}
 
-	const participant = getMembership(input.trekId, input.participantId);
+	const participant = await getMembership(input.trekId, input.participantId);
 
 	if (!participant) {
 		throw error(404, 'Participant not found.');
@@ -371,58 +375,62 @@ export function removeParticipant(input: {
 		throw new Error('The owner cannot be removed from the trek.');
 	}
 
-	const activeRound = getActiveRound(input.trekId);
+	const activeRound = await getActiveRound(input.trekId);
 
-	if (activeRound && getRatingCountForRound(activeRound.id) > 0) {
+	if (activeRound && (await getRatingCountForRound(activeRound.id)) > 0) {
 		throw new Error(
 			'Participants can be removed after the current year wraps.'
 		);
 	}
 
-	db.transaction((tx) => {
+	await db.transaction(async (tx) => {
 		if (activeRound) {
-			tx.delete(albumSelections)
+			await tx
+				.delete(albumSelections)
 				.where(
 					and(
 						eq(albumSelections.roundId, activeRound.id),
 						eq(albumSelections.userId, input.participantId)
 					)
-				)
-				.run();
+				);
 		}
 
-		tx.delete(trekParticipants)
+		await tx
+			.delete(trekParticipants)
 			.where(
 				and(
 					eq(trekParticipants.trekId, input.trekId),
 					eq(trekParticipants.userId, input.participantId)
 				)
-			)
-			.run();
+			);
 	});
 
 	if (activeRound) {
-		refreshRoundState(input.trekId, activeRound.id);
+		await refreshRoundState(input.trekId, activeRound.id);
 	}
 }
 
-export function deleteTrek(input: { trekId: string; userId: string }) {
-	assertOwner(input.trekId, input.userId);
+export async function deleteTrek(input: { trekId: string; userId: string }) {
+	await assertOwner(input.trekId, input.userId);
 
-	if (getParticipantCount(input.trekId) > 1) {
+	if ((await getParticipantCount(input.trekId)) > 1) {
 		throw new Error(
 			'A trek can only be deleted before other participants join.'
 		);
 	}
 
-	db.delete(treks).where(eq(treks.id, input.trekId)).run();
+	await db.delete(treks).where(eq(treks.id, input.trekId));
 }
 
-export function selectAlbum(trekId: string, userId: string, input: AlbumInput) {
-	assertMember(trekId, userId);
+export async function selectAlbum(
+	trekId: string,
+	userId: string,
+	input: AlbumInput
+) {
+	await assertMember(trekId, userId);
 	validateAlbumInput(input);
 
-	const round = getActiveRound(trekId);
+	const round = await getActiveRound(trekId);
 
 	if (!round) {
 		throw error(409, 'Randomize the next year before selecting an album.');
@@ -432,7 +440,8 @@ export function selectAlbum(trekId: string, userId: string, input: AlbumInput) {
 		throw error(409, 'Album selections are locked once rating starts.');
 	}
 
-	db.insert(albumSelections)
+	await db
+		.insert(albumSelections)
 		.values({
 			roundId: round.id,
 			userId,
@@ -453,26 +462,28 @@ export function selectAlbum(trekId: string, userId: string, input: AlbumInput) {
 				imageUrl: cleanOptional(input.imageUrl),
 				externalUrl: cleanOptional(input.externalUrl)
 			}
-		})
-		.run();
+		});
 
-	refreshRoundState(trekId, round.id);
+	await refreshRoundState(trekId, round.id);
 }
 
-export function deleteOwnSelection(input: { trekId: string; userId: string }) {
-	assertMember(input.trekId, input.userId);
+export async function deleteOwnSelection(input: {
+	trekId: string;
+	userId: string;
+}) {
+	await assertMember(input.trekId, input.userId);
 
-	const round = getActiveRound(input.trekId);
+	const round = await getActiveRound(input.trekId);
 
 	if (!round) {
 		throw error(409, 'There is no active year selection to delete.');
 	}
 
-	if (getRatingCountForRound(round.id) > 0) {
+	if ((await getRatingCountForRound(round.id)) > 0) {
 		throw new Error('Album selections are locked after ratings begin.');
 	}
 
-	const result = db
+	const deletedRows = await db
 		.delete(albumSelections)
 		.where(
 			and(
@@ -480,43 +491,45 @@ export function deleteOwnSelection(input: { trekId: string; userId: string }) {
 				eq(albumSelections.userId, input.userId)
 			)
 		)
-		.run();
+		.returning({ id: albumSelections.id });
 
-	if (result.changes === 0) {
+	if (deletedRows.length === 0) {
 		throw error(404, 'Album selection not found.');
 	}
 
-	refreshRoundState(input.trekId, round.id);
+	await refreshRoundState(input.trekId, round.id);
 }
 
-export function rateSelection(input: {
+export async function rateSelection(input: {
 	trekId: string;
 	userId: string;
 	selectionId: string;
 	scoreTenth: number;
 	note?: string | null;
 }) {
-	assertMember(input.trekId, input.userId);
+	await assertMember(input.trekId, input.userId);
 
 	if (input.scoreTenth < 0 || input.scoreTenth > 50) {
 		throw new Error('Rating must be between 0 and 5.');
 	}
 
-	const selection = db
-		.select({
-			selectionId: albumSelections.id,
-			roundId: albumSelections.roundId,
-			roundStatus: trekRounds.status
-		})
-		.from(albumSelections)
-		.innerJoin(trekRounds, eq(albumSelections.roundId, trekRounds.id))
-		.where(
-			and(
-				eq(albumSelections.id, input.selectionId),
-				eq(trekRounds.trekId, input.trekId)
+	const selection = (
+		await db
+			.select({
+				selectionId: albumSelections.id,
+				roundId: albumSelections.roundId,
+				roundStatus: trekRounds.status
+			})
+			.from(albumSelections)
+			.innerJoin(trekRounds, eq(albumSelections.roundId, trekRounds.id))
+			.where(
+				and(
+					eq(albumSelections.id, input.selectionId),
+					eq(trekRounds.trekId, input.trekId)
+				)
 			)
-		)
-		.get();
+			.limit(1)
+	)[0];
 
 	if (!selection) {
 		throw error(404, 'Album selection not found.');
@@ -531,7 +544,8 @@ export function rateSelection(input: {
 
 	const now = new Date();
 
-	db.insert(ratings)
+	await db
+		.insert(ratings)
 		.values({
 			selectionId: input.selectionId,
 			userId: input.userId,
@@ -546,43 +560,42 @@ export function rateSelection(input: {
 				note: cleanOptional(input.note),
 				updatedAt: now
 			}
-		})
-		.run();
+		});
 
-	refreshRoundState(input.trekId, selection.roundId);
+	await refreshRoundState(input.trekId, selection.roundId);
 }
 
-export function advanceTrek(trekId: string, userId: string) {
-	assertMember(trekId, userId);
+export async function advanceTrek(trekId: string, userId: string) {
+	await assertMember(trekId, userId);
 
 	return startNextRound(trekId);
 }
 
-export function startNextRound(trekId: string) {
-	const trek = getTrek(trekId);
+export async function startNextRound(trekId: string) {
+	const trek = await getTrek(trekId);
 
 	if (!trek) {
 		throw error(404, 'Trek not found.');
 	}
 
-	const activeRound = getActiveRound(trekId);
+	const activeRound = await getActiveRound(trekId);
 
 	if (activeRound) {
 		return activeRound;
 	}
 
-	const rounds = getRounds(trekId);
+	const rounds = await getRounds(trekId);
 	const remainingYears = getRemainingYears(trek, rounds);
 
 	if (remainingYears.length === 0) {
-		completeTrek(trekId);
+		await completeTrek(trekId);
 		return null;
 	}
 
 	const year =
 		remainingYears[Math.floor(Math.random() * remainingYears.length)];
 
-	return db
+	const insertedRounds = await db
 		.insert(trekRounds)
 		.values({
 			trekId,
@@ -590,12 +603,13 @@ export function startNextRound(trekId: string) {
 			year,
 			status: 'selecting'
 		})
-		.returning()
-		.get();
+		.returning();
+
+	return insertedRounds[0] ?? null;
 }
 
-function assertMember(trekId: string, userId: string) {
-	const membership = getMembership(trekId, userId);
+async function assertMember(trekId: string, userId: string) {
+	const membership = await getMembership(trekId, userId);
 
 	if (!membership) {
 		throw error(403, 'You are not a participant in this trek.');
@@ -604,8 +618,8 @@ function assertMember(trekId: string, userId: string) {
 	return membership;
 }
 
-function assertOwner(trekId: string, userId: string) {
-	const membership = assertMember(trekId, userId);
+async function assertOwner(trekId: string, userId: string) {
+	const membership = await assertMember(trekId, userId);
 
 	if (membership.role !== 'owner') {
 		throw error(403, 'Only the trek owner can do that.');
@@ -614,80 +628,85 @@ function assertOwner(trekId: string, userId: string) {
 	return membership;
 }
 
-function getTrek(trekId: string) {
-	return db.select().from(treks).where(eq(treks.id, trekId)).get() ?? null;
+async function getTrek(trekId: string) {
+	const rows = await db
+		.select()
+		.from(treks)
+		.where(eq(treks.id, trekId))
+		.limit(1);
+
+	return rows[0] ?? null;
 }
 
-function getMembership(trekId: string, userId: string) {
-	return (
-		db
-			.select()
-			.from(trekParticipants)
-			.where(
-				and(
-					eq(trekParticipants.trekId, trekId),
-					eq(trekParticipants.userId, userId)
-				)
+async function getMembership(trekId: string, userId: string) {
+	const rows = await db
+		.select()
+		.from(trekParticipants)
+		.where(
+			and(
+				eq(trekParticipants.trekId, trekId),
+				eq(trekParticipants.userId, userId)
 			)
-			.get() ?? null
-	);
+		)
+		.limit(1);
+
+	return rows[0] ?? null;
 }
 
-function getParticipantCount(trekId: string) {
-	return (
-		db
-			.select({ value: count() })
-			.from(trekParticipants)
-			.where(eq(trekParticipants.trekId, trekId))
-			.get()?.value ?? 0
-	);
+async function getParticipantCount(trekId: string) {
+	const rows = await db
+		.select({ value: count() })
+		.from(trekParticipants)
+		.where(eq(trekParticipants.trekId, trekId))
+		.limit(1);
+
+	return rows[0]?.value ?? 0;
 }
 
-function getRounds(trekId: string) {
+async function getRounds(trekId: string) {
 	return db
 		.select()
 		.from(trekRounds)
 		.where(eq(trekRounds.trekId, trekId))
+		.orderBy(asc(trekRounds.position));
+}
+
+async function getActiveRound(trekId: string) {
+	const rows = await db
+		.select()
+		.from(trekRounds)
+		.where(
+			and(eq(trekRounds.trekId, trekId), ne(trekRounds.status, 'completed'))
+		)
 		.orderBy(asc(trekRounds.position))
-		.all();
+		.limit(1);
+
+	return rows[0] ?? null;
 }
 
-function getActiveRound(trekId: string) {
-	return (
-		db
-			.select()
-			.from(trekRounds)
-			.where(
-				and(eq(trekRounds.trekId, trekId), ne(trekRounds.status, 'completed'))
-			)
-			.orderBy(asc(trekRounds.position))
-			.get() ?? null
-	);
-}
-
-function getRatingCountForRound(roundId: string) {
-	const selectionIds = db
-		.select({ id: albumSelections.id })
-		.from(albumSelections)
-		.where(eq(albumSelections.roundId, roundId))
-		.all()
-		.map((selection) => selection.id);
+async function getRatingCountForRound(roundId: string) {
+	const selectionIds = (
+		await db
+			.select({ id: albumSelections.id })
+			.from(albumSelections)
+			.where(eq(albumSelections.roundId, roundId))
+	).map((selection) => selection.id);
 
 	if (selectionIds.length === 0) {
 		return 0;
 	}
 
-	return (
-		db
-			.select({ value: count() })
-			.from(ratings)
-			.where(inArray(ratings.selectionId, selectionIds))
-			.get()?.value ?? 0
-	);
+	const rows = await db
+		.select({ value: count() })
+		.from(ratings)
+		.where(inArray(ratings.selectionId, selectionIds))
+		.limit(1);
+
+	return rows[0]?.value ?? 0;
 }
 
-function getSelectionsForRound(roundId: string, userId: string) {
-	const selections = db
+async function getSelectionsForRound(roundId: string, userId: string) {
+	const selections = await db
 		.select({
 			id: albumSelections.id,
 			roundId: albumSelections.roundId,
@@ -706,13 +725,12 @@ function getSelectionsForRound(roundId: string, userId: string) {
 		.from(albumSelections)
 		.innerJoin(users, eq(albumSelections.userId, users.id))
 		.where(eq(albumSelections.roundId, roundId))
-		.orderBy(asc(albumSelections.createdAt))
-		.all();
+		.orderBy(asc(albumSelections.createdAt));
 
 	const selectionIds = selections.map((selection) => selection.id);
 	const ratingRows =
 		selectionIds.length > 0
-			? db
+			? await db
 					.select({
 						selectionId: ratings.selectionId,
 						userId: ratings.userId,
@@ -721,7 +739,6 @@ function getSelectionsForRound(roundId: string, userId: string) {
 					})
 					.from(ratings)
 					.where(inArray(ratings.selectionId, selectionIds))
-					.all()
 			: [];
 
 	return selections.map((selection) => {
@@ -756,8 +773,8 @@ function getSelectionsForRound(roundId: string, userId: string) {
 	});
 }
 
-function getSelectionsForConcludedRound(roundId: string) {
-	const selections = db
+async function getSelectionsForConcludedRound(roundId: string) {
+	const selections = await db
 		.select({
 			id: albumSelections.id,
 			roundId: albumSelections.roundId,
@@ -776,13 +793,12 @@ function getSelectionsForConcludedRound(roundId: string) {
 		.from(albumSelections)
 		.innerJoin(users, eq(albumSelections.userId, users.id))
 		.where(eq(albumSelections.roundId, roundId))
-		.orderBy(asc(albumSelections.createdAt))
-		.all();
+		.orderBy(asc(albumSelections.createdAt));
 
 	const selectionIds = selections.map((selection) => selection.id);
 	const ratingRows =
 		selectionIds.length > 0
-			? db
+			? await db
 					.select({
 						selectionId: ratings.selectionId,
 						userId: ratings.userId,
@@ -796,7 +812,6 @@ function getSelectionsForConcludedRound(roundId: string) {
 					.innerJoin(users, eq(ratings.userId, users.id))
 					.where(inArray(ratings.selectionId, selectionIds))
 					.orderBy(asc(users.name), asc(users.email))
-					.all()
 			: [];
 
 	return selections.map((selection) => {
@@ -831,25 +846,27 @@ function getSelectionsForConcludedRound(roundId: string) {
 	});
 }
 
-function refreshRoundState(trekId: string, roundId: string) {
-	const participantCount = getParticipantCount(trekId);
-	const selectionIds = db
-		.select({ id: albumSelections.id })
-		.from(albumSelections)
-		.where(eq(albumSelections.roundId, roundId))
-		.all()
-		.map((selection) => selection.id);
+async function refreshRoundState(trekId: string, roundId: string) {
+	const participantCount = await getParticipantCount(trekId);
+	const selectionIds = (
+		await db
+			.select({ id: albumSelections.id })
+			.from(albumSelections)
+			.where(eq(albumSelections.roundId, roundId))
+	).map((selection) => selection.id);
 
 	let nextStatus: RoundStatus = 'selecting';
 
 	if (participantCount > 0 && selectionIds.length >= participantCount) {
 		const ratingCount =
 			selectionIds.length > 0
-				? (db
-						.select({ value: count() })
-						.from(ratings)
-						.where(inArray(ratings.selectionId, selectionIds))
-						.get()?.value ?? 0)
+				? ((
+						await db
+							.select({ value: count() })
+							.from(ratings)
+							.where(inArray(ratings.selectionId, selectionIds))
+							.limit(1)
+					)[0]?.value ?? 0)
 				: 0;
 
 		nextStatus =
@@ -860,32 +877,34 @@ function refreshRoundState(trekId: string, roundId: string) {
 
 	const now = new Date();
 
-	db.update(trekRounds)
+	await db
+		.update(trekRounds)
 		.set({
 			status: nextStatus,
 			completedAt: nextStatus === 'completed' ? now : null
 		})
-		.where(eq(trekRounds.id, roundId))
-		.run();
+		.where(eq(trekRounds.id, roundId));
 
 	if (nextStatus === 'completed') {
-		const trek = getTrek(trekId);
-		const rounds = getRounds(trekId);
+		const [trek, rounds] = await Promise.all([
+			getTrek(trekId),
+			getRounds(trekId)
+		]);
 
 		if (trek && getRemainingYears(trek, rounds).length === 0) {
-			completeTrek(trekId);
+			await completeTrek(trekId);
 		}
 	}
 }
 
-function completeTrek(trekId: string) {
-	db.update(treks)
+async function completeTrek(trekId: string) {
+	await db
+		.update(treks)
 		.set({
 			status: 'completed',
 			completedAt: new Date()
 		})
-		.where(eq(treks.id, trekId))
-		.run();
+		.where(eq(treks.id, trekId));
 }
 
 function getYearRange(trek: Pick<Trek, 'startYear' | 'endYear'>) {

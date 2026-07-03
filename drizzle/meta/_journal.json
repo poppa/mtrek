@@ -1,12 +1,12 @@
 {
 	"version": "7",
-	"dialect": "sqlite",
+	"dialect": "postgresql",
 	"entries": [
 		{
 			"idx": 0,
-			"version": "6",
-			"when": 1782899681370,
-			"tag": "0000_damp_rumiko_fujikawa",
+			"version": "7",
+			"when": 1783060826639,
+			"tag": "0000_rapid_lady_bullseye",
 			"breakpoints": true
 		}
 	]

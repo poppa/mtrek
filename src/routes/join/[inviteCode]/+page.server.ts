@@ -7,7 +7,7 @@ import type { PageServerLoad } from './$types';
 export const load: PageServerLoad = async (event) => {
 	const session = await event.locals.auth();
 	const inviteCode = requireInviteCode(event.params.inviteCode);
-	const trek = getTrekByInviteCode(inviteCode);
+	const trek = await getTrekByInviteCode(inviteCode);
 
 	return {
 		authProviders: getAuthProviderStatus(),
@@ -29,7 +29,7 @@ export const actions: Actions = {
 		let trekId: string;
 
 		try {
-			trekId = joinTrek(inviteCode, userId);
+			trekId = await joinTrek(inviteCode, userId);
 		} catch (joinError) {
 			return fail(400, {
 				joinError:

@@ -1,22 +1,48 @@
-import Database from 'better-sqlite3';
-import { drizzle } from 'drizzle-orm/better-sqlite3';
-import { mkdirSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
 
 import { env } from '$env/dynamic/private';
 
 import * as schema from './schema';
 
-const databaseUrl = env.DATABASE_URL ?? './data/mtrek.db';
-const databasePath = databaseUrl.startsWith('file:')
-	? databaseUrl.slice(5)
-	: databaseUrl;
-const resolvedDatabasePath = resolve(databasePath);
+const localDatabaseUrl = 'postgres://postgres:postgres@localhost:5432/mtrek';
+const databaseUrl = getDatabaseUrl();
 
-mkdirSync(dirname(resolvedDatabasePath), { recursive: true });
+export const pool = new Pool({
+	connectionString: databaseUrl,
+	max: getPoolMax()
+});
 
-const sqlite = new Database(resolvedDatabasePath);
-sqlite.pragma('journal_mode = WAL');
-sqlite.pragma('foreign_keys = ON');
+export const db = drizzle(pool, { schema });
 
-export const db = drizzle(sqlite, { schema });
+function getDatabaseUrl() {
+	if (env.DATABASE_URL) {
+		return env.DATABASE_URL;
+	}
+
+	if (isVercelRuntime()) {
+		throw new Error('DATABASE_URL is required when deploying MTrek to Vercel.');
+	}
+
+	return localDatabaseUrl;
+}
+
+function getPoolMax() {
+	const value = env.DATABASE_POOL_MAX;
+
+	if (!value) {
+		return isVercelRuntime() ? 1 : 10;
+	}
+
+	const parsed = Number(value);
+
+	if (!Number.isInteger(parsed) || parsed <= 0) {
+		throw new Error('DATABASE_POOL_MAX must be a positive whole number.');
+	}
+
+	return parsed;
+}
+
+function isVercelRuntime() {
+	return env.VERCEL === '1' || env.VERCEL === 'true';
+}

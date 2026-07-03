@@ -9,7 +9,7 @@ export const load: PageServerLoad = async (event) => {
 	const trekId = requireTrekParam(event.params.trekId);
 	const year = requireYearParam(event.params.year);
 
-	return getConcludedYearDetail({
+	return await getConcludedYearDetail({
 		trekId,
 		userId,
 		year

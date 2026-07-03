@@ -1,95 +1,95 @@
 {
-	"version": "6",
-	"dialect": "sqlite",
-	"id": "983fcd45-a8a1-4178-a1d1-236c2a516e48",
+	"id": "f9fde90d-b781-4aaa-b74f-861c3c8ed0fb",
 	"prevId": "00000000-0000-0000-0000-000000000000",
+	"version": "7",
+	"dialect": "postgresql",
 	"tables": {
-		"account": {
+		"public.account": {
 			"name": "account",
+			"schema": "",
 			"columns": {
 				"userId": {
 					"name": "userId",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"type": {
 					"name": "type",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"provider": {
 					"name": "provider",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"providerAccountId": {
 					"name": "providerAccountId",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"refresh_token": {
 					"name": "refresh_token",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": false,
-					"autoincrement": false
+					"notNull": false
 				},
 				"access_token": {
 					"name": "access_token",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": false,
-					"autoincrement": false
+					"notNull": false
 				},
 				"expires_at": {
 					"name": "expires_at",
 					"type": "integer",
 					"primaryKey": false,
-					"notNull": false,
-					"autoincrement": false
+					"notNull": false
 				},
 				"token_type": {
 					"name": "token_type",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": false,
-					"autoincrement": false
+					"notNull": false
 				},
 				"scope": {
 					"name": "scope",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": false,
-					"autoincrement": false
+					"notNull": false
 				},
 				"id_token": {
 					"name": "id_token",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": false,
-					"autoincrement": false
+					"notNull": false
 				},
 				"session_state": {
 					"name": "session_state",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": false,
-					"autoincrement": false
+					"notNull": false
 				}
 			},
 			"indexes": {
 				"account_user_id_idx": {
 					"name": "account_user_id_idx",
-					"columns": ["userId"],
-					"isUnique": false
+					"columns": [
+						{
+							"expression": "userId",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
 				}
 			},
 			"foreignKeys": {
@@ -105,102 +105,132 @@
 			},
 			"compositePrimaryKeys": {
 				"account_provider_providerAccountId_pk": {
-					"columns": ["provider", "providerAccountId"],
-					"name": "account_provider_providerAccountId_pk"
+					"name": "account_provider_providerAccountId_pk",
+					"columns": ["provider", "providerAccountId"]
 				}
 			},
 			"uniqueConstraints": {},
-			"checkConstraints": {}
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
 		},
-		"album_selection": {
+		"public.album_selection": {
 			"name": "album_selection",
+			"schema": "",
 			"columns": {
 				"id": {
 					"name": "id",
 					"type": "text",
 					"primaryKey": true,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"roundId": {
 					"name": "roundId",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"userId": {
 					"name": "userId",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"spotifyAlbumId": {
 					"name": "spotifyAlbumId",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": false,
-					"autoincrement": false
+					"notNull": false
 				},
 				"albumName": {
 					"name": "albumName",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"artistName": {
 					"name": "artistName",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"releaseDate": {
 					"name": "releaseDate",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": false,
-					"autoincrement": false
+					"notNull": false
 				},
 				"imageUrl": {
 					"name": "imageUrl",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": false,
-					"autoincrement": false
+					"notNull": false
 				},
 				"externalUrl": {
 					"name": "externalUrl",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": false,
-					"autoincrement": false
+					"notNull": false
 				},
 				"createdAt": {
 					"name": "createdAt",
-					"type": "integer",
+					"type": "timestamp",
 					"primaryKey": false,
 					"notNull": true,
-					"autoincrement": false
+					"default": "now()"
 				}
 			},
 			"indexes": {
 				"album_selection_round_user_idx": {
 					"name": "album_selection_round_user_idx",
-					"columns": ["roundId", "userId"],
-					"isUnique": true
+					"columns": [
+						{
+							"expression": "roundId",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						},
+						{
+							"expression": "userId",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
 				},
 				"album_selection_round_id_idx": {
 					"name": "album_selection_round_id_idx",
-					"columns": ["roundId"],
-					"isUnique": false
+					"columns": [
+						{
+							"expression": "roundId",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
 				},
 				"album_selection_user_id_idx": {
 					"name": "album_selection_user_id_idx",
-					"columns": ["userId"],
-					"isUnique": false
+					"columns": [
+						{
+							"expression": "userId",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
 				}
 			},
 			"foreignKeys": {
@@ -225,75 +255,64 @@
 			},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {},
-			"checkConstraints": {}
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
 		},
-		"authenticator": {
+		"public.authenticator": {
 			"name": "authenticator",
+			"schema": "",
 			"columns": {
 				"credentialID": {
 					"name": "credentialID",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"userId": {
 					"name": "userId",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"providerAccountId": {
 					"name": "providerAccountId",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"credentialPublicKey": {
 					"name": "credentialPublicKey",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"counter": {
 					"name": "counter",
 					"type": "integer",
 					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"credentialDeviceType": {
 					"name": "credentialDeviceType",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"credentialBackedUp": {
 					"name": "credentialBackedUp",
-					"type": "integer",
+					"type": "boolean",
 					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"transports": {
 					"name": "transports",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": false,
-					"autoincrement": false
+					"notNull": false
 				}
 			},
-			"indexes": {
-				"authenticator_credentialID_unique": {
-					"name": "authenticator_credentialID_unique",
-					"columns": ["credentialID"],
-					"isUnique": true
-				}
-			},
+			"indexes": {},
 			"foreignKeys": {
 				"authenticator_userId_user_id_fk": {
 					"name": "authenticator_userId_user_id_fk",
@@ -307,81 +326,121 @@
 			},
 			"compositePrimaryKeys": {
 				"authenticator_userId_credentialID_pk": {
-					"columns": ["userId", "credentialID"],
-					"name": "authenticator_userId_credentialID_pk"
+					"name": "authenticator_userId_credentialID_pk",
+					"columns": ["userId", "credentialID"]
 				}
 			},
-			"uniqueConstraints": {},
-			"checkConstraints": {}
+			"uniqueConstraints": {
+				"authenticator_credentialID_unique": {
+					"name": "authenticator_credentialID_unique",
+					"nullsNotDistinct": false,
+					"columns": ["credentialID"]
+				}
+			},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
 		},
-		"rating": {
+		"public.rating": {
 			"name": "rating",
+			"schema": "",
 			"columns": {
 				"id": {
 					"name": "id",
 					"type": "text",
 					"primaryKey": true,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"selectionId": {
 					"name": "selectionId",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"userId": {
 					"name": "userId",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"scoreTenth": {
 					"name": "scoreTenth",
 					"type": "integer",
 					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"note": {
 					"name": "note",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": false,
-					"autoincrement": false
+					"notNull": false
 				},
 				"createdAt": {
 					"name": "createdAt",
-					"type": "integer",
+					"type": "timestamp",
 					"primaryKey": false,
 					"notNull": true,
-					"autoincrement": false
+					"default": "now()"
 				},
 				"updatedAt": {
 					"name": "updatedAt",
-					"type": "integer",
+					"type": "timestamp",
 					"primaryKey": false,
 					"notNull": true,
-					"autoincrement": false
+					"default": "now()"
 				}
 			},
 			"indexes": {
 				"rating_selection_user_idx": {
 					"name": "rating_selection_user_idx",
-					"columns": ["selectionId", "userId"],
-					"isUnique": true
+					"columns": [
+						{
+							"expression": "selectionId",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						},
+						{
+							"expression": "userId",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
 				},
 				"rating_selection_id_idx": {
 					"name": "rating_selection_id_idx",
-					"columns": ["selectionId"],
-					"isUnique": false
+					"columns": [
+						{
+							"expression": "selectionId",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
 				},
 				"rating_user_id_idx": {
 					"name": "rating_user_id_idx",
-					"columns": ["userId"],
-					"isUnique": false
+					"columns": [
+						{
+							"expression": "userId",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
 				}
 			},
 			"foreignKeys": {
@@ -406,38 +465,48 @@
 			},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {},
-			"checkConstraints": {}
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
 		},
-		"session": {
+		"public.session": {
 			"name": "session",
+			"schema": "",
 			"columns": {
 				"sessionToken": {
 					"name": "sessionToken",
 					"type": "text",
 					"primaryKey": true,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"userId": {
 					"name": "userId",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"expires": {
 					"name": "expires",
-					"type": "integer",
+					"type": "timestamp",
 					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				}
 			},
 			"indexes": {
 				"session_user_id_idx": {
 					"name": "session_user_id_idx",
-					"columns": ["userId"],
-					"isUnique": false
+					"columns": [
+						{
+							"expression": "userId",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
 				}
 			},
 			"foreignKeys": {
@@ -453,46 +522,56 @@
 			},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {},
-			"checkConstraints": {}
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
 		},
-		"trek_participant": {
+		"public.trek_participant": {
 			"name": "trek_participant",
+			"schema": "",
 			"columns": {
 				"trekId": {
 					"name": "trekId",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"userId": {
 					"name": "userId",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"role": {
 					"name": "role",
 					"type": "text",
 					"primaryKey": false,
 					"notNull": true,
-					"autoincrement": false,
 					"default": "'participant'"
 				},
 				"joinedAt": {
 					"name": "joinedAt",
-					"type": "integer",
+					"type": "timestamp",
 					"primaryKey": false,
 					"notNull": true,
-					"autoincrement": false
+					"default": "now()"
 				}
 			},
 			"indexes": {
 				"trek_participant_user_id_idx": {
 					"name": "trek_participant_user_id_idx",
-					"columns": ["userId"],
-					"isUnique": false
+					"columns": [
+						{
+							"expression": "userId",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
 				}
 			},
 			"foreignKeys": {
@@ -517,82 +596,121 @@
 			},
 			"compositePrimaryKeys": {
 				"trek_participant_trekId_userId_pk": {
-					"columns": ["trekId", "userId"],
-					"name": "trek_participant_trekId_userId_pk"
+					"name": "trek_participant_trekId_userId_pk",
+					"columns": ["trekId", "userId"]
 				}
 			},
 			"uniqueConstraints": {},
-			"checkConstraints": {}
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
 		},
-		"trek_round": {
+		"public.trek_round": {
 			"name": "trek_round",
+			"schema": "",
 			"columns": {
 				"id": {
 					"name": "id",
 					"type": "text",
 					"primaryKey": true,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"trekId": {
 					"name": "trekId",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"position": {
 					"name": "position",
 					"type": "integer",
 					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"year": {
 					"name": "year",
 					"type": "integer",
 					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"status": {
 					"name": "status",
 					"type": "text",
 					"primaryKey": false,
 					"notNull": true,
-					"autoincrement": false,
 					"default": "'selecting'"
 				},
 				"createdAt": {
 					"name": "createdAt",
-					"type": "integer",
+					"type": "timestamp",
 					"primaryKey": false,
 					"notNull": true,
-					"autoincrement": false
+					"default": "now()"
 				},
 				"completedAt": {
 					"name": "completedAt",
-					"type": "integer",
+					"type": "timestamp",
 					"primaryKey": false,
-					"notNull": false,
-					"autoincrement": false
+					"notNull": false
 				}
 			},
 			"indexes": {
 				"trek_round_trek_year_idx": {
 					"name": "trek_round_trek_year_idx",
-					"columns": ["trekId", "year"],
-					"isUnique": true
+					"columns": [
+						{
+							"expression": "trekId",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						},
+						{
+							"expression": "year",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
 				},
 				"trek_round_trek_position_idx": {
 					"name": "trek_round_trek_position_idx",
-					"columns": ["trekId", "position"],
-					"isUnique": true
+					"columns": [
+						{
+							"expression": "trekId",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						},
+						{
+							"expression": "position",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
 				},
 				"trek_round_trek_id_idx": {
 					"name": "trek_round_trek_id_idx",
-					"columns": ["trekId"],
-					"isUnique": false
+					"columns": [
+						{
+							"expression": "trekId",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
 				}
 			},
 			"foreignKeys": {
@@ -608,86 +726,101 @@
 			},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {},
-			"checkConstraints": {}
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
 		},
-		"trek": {
+		"public.trek": {
 			"name": "trek",
+			"schema": "",
 			"columns": {
 				"id": {
 					"name": "id",
 					"type": "text",
 					"primaryKey": true,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"name": {
 					"name": "name",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"startYear": {
 					"name": "startYear",
 					"type": "integer",
 					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"endYear": {
 					"name": "endYear",
 					"type": "integer",
 					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"status": {
 					"name": "status",
 					"type": "text",
 					"primaryKey": false,
 					"notNull": true,
-					"autoincrement": false,
 					"default": "'active'"
 				},
 				"inviteCode": {
 					"name": "inviteCode",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"createdBy": {
 					"name": "createdBy",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"createdAt": {
 					"name": "createdAt",
-					"type": "integer",
+					"type": "timestamp",
 					"primaryKey": false,
 					"notNull": true,
-					"autoincrement": false
+					"default": "now()"
 				},
 				"completedAt": {
 					"name": "completedAt",
-					"type": "integer",
+					"type": "timestamp",
 					"primaryKey": false,
-					"notNull": false,
-					"autoincrement": false
+					"notNull": false
 				}
 			},
 			"indexes": {
 				"trek_invite_code_idx": {
 					"name": "trek_invite_code_idx",
-					"columns": ["inviteCode"],
-					"isUnique": true
+					"columns": [
+						{
+							"expression": "inviteCode",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
 				},
 				"trek_created_by_idx": {
 					"name": "trek_created_by_idx",
-					"columns": ["createdBy"],
-					"isUnique": false
+					"columns": [
+						{
+							"expression": "createdBy",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
 				}
 			},
 			"foreignKeys": {
@@ -703,104 +836,105 @@
 			},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {},
-			"checkConstraints": {}
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
 		},
-		"user": {
+		"public.user": {
 			"name": "user",
+			"schema": "",
 			"columns": {
 				"id": {
 					"name": "id",
 					"type": "text",
 					"primaryKey": true,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"name": {
 					"name": "name",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": false,
-					"autoincrement": false
+					"notNull": false
 				},
 				"email": {
 					"name": "email",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": false,
-					"autoincrement": false
+					"notNull": false
 				},
 				"emailVerified": {
 					"name": "emailVerified",
-					"type": "integer",
+					"type": "timestamp",
 					"primaryKey": false,
-					"notNull": false,
-					"autoincrement": false
+					"notNull": false
 				},
 				"image": {
 					"name": "image",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": false,
-					"autoincrement": false
+					"notNull": false
 				}
 			},
-			"indexes": {
-				"user_email_unique": {
-					"name": "user_email_unique",
-					"columns": ["email"],
-					"isUnique": true
-				}
-			},
+			"indexes": {},
 			"foreignKeys": {},
 			"compositePrimaryKeys": {},
-			"uniqueConstraints": {},
-			"checkConstraints": {}
+			"uniqueConstraints": {
+				"user_email_unique": {
+					"name": "user_email_unique",
+					"nullsNotDistinct": false,
+					"columns": ["email"]
+				}
+			},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
 		},
-		"verificationToken": {
+		"public.verificationToken": {
 			"name": "verificationToken",
+			"schema": "",
 			"columns": {
 				"identifier": {
 					"name": "identifier",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"token": {
 					"name": "token",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				},
 				"expires": {
 					"name": "expires",
-					"type": "integer",
+					"type": "timestamp",
 					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
+					"notNull": true
 				}
 			},
 			"indexes": {},
 			"foreignKeys": {},
 			"compositePrimaryKeys": {
 				"verificationToken_identifier_token_pk": {
-					"columns": ["identifier", "token"],
-					"name": "verificationToken_identifier_token_pk"
+					"name": "verificationToken_identifier_token_pk",
+					"columns": ["identifier", "token"]
 				}
 			},
 			"uniqueConstraints": {},
-			"checkConstraints": {}
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
 		}
 	},
-	"views": {},
 	"enums": {},
+	"schemas": {},
+	"sequences": {},
+	"roles": {},
+	"policies": {},
+	"views": {},
 	"_meta": {
+		"columns": {},
 		"schemas": {},
-		"tables": {},
-		"columns": {}
-	},
-	"internal": {
-		"indexes": {}
+		"tables": {}
 	}
 }

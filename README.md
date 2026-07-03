@@ -6,7 +6,7 @@ MTrek is a SvelteKit music exploration app. Participants create a trek over a co
 
 - SvelteKit, Svelte 5, TypeScript
 - Auth.js for Google and Spotify OAuth sign-in
-- Drizzle ORM with local SQLite
+- Drizzle ORM with PostgreSQL
 - Spotify Web API album search through client credentials
 - ESLint and Prettier
 
@@ -19,7 +19,16 @@ npm run db:push
 npm run dev
 ```
 
-`DATABASE_URL` defaults to `./data/mtrek.db`. `AUTH_SECRET` must be at least 32 random characters for real use.
+`DATABASE_URL` defaults to `postgres://postgres:postgres@localhost:5432/mtrek`. `AUTH_SECRET` must be at least 32 random characters for real use.
+
+Create the local database before pushing the schema:
+
+```sh
+createdb -h localhost -p 5432 -U postgres mtrek
+npm run db:push
+```
+
+For Vercel or another hosted environment, set `DATABASE_URL` to a managed PostgreSQL database connection string. `DATABASE_POOL_MAX` can be used to cap the connection pool; it defaults to `10` locally and `1` on Vercel.
 
 To run the development server over HTTPS, set `MTREK_CERT` to a combined PEM file containing both the private key and certificate:
 

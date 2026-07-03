@@ -1,29 +1,31 @@
 import type { AdapterAccountType } from '@auth/core/adapters';
 import { relations } from 'drizzle-orm';
 import {
+	boolean,
 	index,
 	integer,
+	pgTable,
 	primaryKey,
-	sqliteTable,
 	text,
+	timestamp,
 	uniqueIndex
-} from 'drizzle-orm/sqlite-core';
+} from 'drizzle-orm/pg-core';
 
 export type TrekStatus = 'active' | 'completed';
 export type ParticipantRole = 'owner' | 'participant';
 export type RoundStatus = 'selecting' | 'rating' | 'completed';
 
-export const users = sqliteTable('user', {
+export const users = pgTable('user', {
 	id: text('id')
 		.primaryKey()
 		.$defaultFn(() => crypto.randomUUID()),
 	name: text('name'),
 	email: text('email').unique(),
-	emailVerified: integer('emailVerified', { mode: 'timestamp_ms' }),
+	emailVerified: timestamp('emailVerified', { mode: 'date' }),
 	image: text('image')
 });
 
-export const accounts = sqliteTable(
+export const accounts = pgTable(
 	'account',
 	{
 		userId: text('userId')
@@ -48,26 +50,26 @@ export const accounts = sqliteTable(
 	})
 );
 
-export const sessions = sqliteTable(
+export const sessions = pgTable(
 	'session',
 	{
 		sessionToken: text('sessionToken').primaryKey(),
 		userId: text('userId')
 			.notNull()
 			.references(() => users.id, { onDelete: 'cascade' }),
-		expires: integer('expires', { mode: 'timestamp_ms' }).notNull()
+		expires: timestamp('expires', { mode: 'date' }).notNull()
 	},
 	(session) => ({
 		userIdIdx: index('session_user_id_idx').on(session.userId)
 	})
 );
 
-export const verificationTokens = sqliteTable(
+export const verificationTokens = pgTable(
 	'verificationToken',
 	{
 		identifier: text('identifier').notNull(),
 		token: text('token').notNull(),
-		expires: integer('expires', { mode: 'timestamp_ms' }).notNull()
+		expires: timestamp('expires', { mode: 'date' }).notNull()
 	},
 	(verificationToken) => ({
 		compositePk: primaryKey({
@@ -76,7 +78,7 @@ export const verificationTokens = sqliteTable(
 	})
 );
 
-export const authenticators = sqliteTable(
+export const authenticators = pgTable(
 	'authenticator',
 	{
 		credentialID: text('credentialID').notNull().unique(),
@@ -87,9 +89,7 @@ export const authenticators = sqliteTable(
 		credentialPublicKey: text('credentialPublicKey').notNull(),
 		counter: integer('counter').notNull(),
 		credentialDeviceType: text('credentialDeviceType').notNull(),
-		credentialBackedUp: integer('credentialBackedUp', {
-			mode: 'boolean'
-		}).notNull(),
+		credentialBackedUp: boolean('credentialBackedUp').notNull(),
 		transports: text('transports')
 	},
 	(authenticator) => ({
@@ -99,7 +99,7 @@ export const authenticators = sqliteTable(
 	})
 );
 
-export const treks = sqliteTable(
+export const treks = pgTable(
 	'trek',
 	{
 		id: text('id')
@@ -113,10 +113,8 @@ export const treks = sqliteTable(
 		createdBy: text('createdBy')
 			.notNull()
 			.references(() => users.id, { onDelete: 'cascade' }),
-		createdAt: integer('createdAt', { mode: 'timestamp_ms' })
-			.notNull()
-			.$defaultFn(() => new Date()),
-		completedAt: integer('completedAt', { mode: 'timestamp_ms' })
+		createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
+		completedAt: timestamp('completedAt', { mode: 'date' })
 	},
 	(trek) => ({
 		inviteCodeIdx: uniqueIndex('trek_invite_code_idx').on(trek.inviteCode),
@@ -124,7 +122,7 @@ export const treks = sqliteTable(
 	})
 );
 
-export const trekParticipants = sqliteTable(
+export const trekParticipants = pgTable(
 	'trek_participant',
 	{
 		trekId: text('trekId')
@@ -137,9 +135,7 @@ export const trekParticipants = sqliteTable(
 			.$type<ParticipantRole>()
 			.notNull()
 			.default('participant'),
-		joinedAt: integer('joinedAt', { mode: 'timestamp_ms' })
-			.notNull()
-			.$defaultFn(() => new Date())
+		joinedAt: timestamp('joinedAt', { mode: 'date' }).notNull().defaultNow()
 	},
 	(participant) => ({
 		compositePk: primaryKey({
@@ -149,7 +145,7 @@ export const trekParticipants = sqliteTable(
 	})
 );
 
-export const trekRounds = sqliteTable(
+export const trekRounds = pgTable(
 	'trek_round',
 	{
 		id: text('id')
@@ -161,10 +157,8 @@ export const trekRounds = sqliteTable(
 		position: integer('position').notNull(),
 		year: integer('year').notNull(),
 		status: text('status').$type<RoundStatus>().notNull().default('selecting'),
-		createdAt: integer('createdAt', { mode: 'timestamp_ms' })
-			.notNull()
-			.$defaultFn(() => new Date()),
-		completedAt: integer('completedAt', { mode: 'timestamp_ms' })
+		createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
+		completedAt: timestamp('completedAt', { mode: 'date' })
 	},
 	(round) => ({
 		trekYearIdx: uniqueIndex('trek_round_trek_year_idx').on(
@@ -179,7 +173,7 @@ export const trekRounds = sqliteTable(
 	})
 );
 
-export const albumSelections = sqliteTable(
+export const albumSelections = pgTable(
 	'album_selection',
 	{
 		id: text('id')
@@ -197,9 +191,7 @@ export const albumSelections = sqliteTable(
 		releaseDate: text('releaseDate'),
 		imageUrl: text('imageUrl'),
 		externalUrl: text('externalUrl'),
-		createdAt: integer('createdAt', { mode: 'timestamp_ms' })
-			.notNull()
-			.$defaultFn(() => new Date())
+		createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow()
 	},
 	(selection) => ({
 		roundUserIdx: uniqueIndex('album_selection_round_user_idx').on(
@@ -211,7 +203,7 @@ export const albumSelections = sqliteTable(
 	})
 );
 
-export const ratings = sqliteTable(
+export const ratings = pgTable(
 	'rating',
 	{
 		id: text('id')
@@ -225,12 +217,8 @@ export const ratings = sqliteTable(
 			.references(() => users.id, { onDelete: 'cascade' }),
 		scoreTenth: integer('scoreTenth').notNull(),
 		note: text('note'),
-		createdAt: integer('createdAt', { mode: 'timestamp_ms' })
-			.notNull()
-			.$defaultFn(() => new Date()),
-		updatedAt: integer('updatedAt', { mode: 'timestamp_ms' })
-			.notNull()
-			.$defaultFn(() => new Date())
+		createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
+		updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow()
 	},
 	(rating) => ({
 		selectionUserIdx: uniqueIndex('rating_selection_user_idx').on(

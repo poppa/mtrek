@@ -18,7 +18,7 @@ export const load: PageServerLoad = async (event) => {
 		authProviders: getAuthProviderStatus(),
 		spotifySearchConfigured: hasSpotifySearchConfig(),
 		lastConcludedYear: getLastConcludedYear(),
-		treks: session?.user?.id ? listTreksForUser(session.user.id) : []
+		treks: session?.user?.id ? await listTreksForUser(session.user.id) : []
 	};
 };
 
@@ -30,7 +30,7 @@ export const actions: Actions = {
 		let trekId: string;
 
 		try {
-			trekId = createTrek({
+			trekId = await createTrek({
 				name,
 				startYear: parseBoundedYear(formData.get('startYear'), 'Start year'),
 				endYear: parseBoundedYear(formData.get('endYear'), 'End year'),
