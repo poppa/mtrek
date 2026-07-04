@@ -16,12 +16,21 @@ export const pool = new Pool({
 export const db = drizzle(pool, { schema });
 
 function getDatabaseUrl() {
-	if (env.DATABASE_URL) {
-		return env.DATABASE_URL;
+	const configuredUrl = firstConfiguredUrl([
+		env.DATABASE_URL,
+		env.POSTGRES_URL,
+		env.POSTGRES_PRISMA_URL,
+		env.POSTGRES_URL_NON_POOLING
+	]);
+
+	if (configuredUrl) {
+		return configuredUrl;
 	}
 
 	if (isVercelRuntime()) {
-		throw new Error('DATABASE_URL is required when deploying MTrek to Vercel.');
+		throw new Error(
+			'DATABASE_URL, POSTGRES_URL, or POSTGRES_URL_NON_POOLING is required when deploying MTrek to Vercel.'
+		);
 	}
 
 	return localDatabaseUrl;
@@ -45,4 +54,8 @@ function getPoolMax() {
 
 function isVercelRuntime() {
 	return env.VERCEL === '1' || env.VERCEL === 'true';
+}
+
+function firstConfiguredUrl(values: Array<string | undefined>) {
+	return values.find((value) => value?.trim());
 }
