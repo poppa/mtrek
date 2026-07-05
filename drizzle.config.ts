@@ -17,7 +17,7 @@ export default defineConfig({
 });
 
 function getDatabaseUrl() {
-	return (
+	return normalizeDatabaseUrl(
 		firstConfiguredUrl([
 			process.env.DRIZZLE_DATABASE_URL,
 			process.env.DATABASE_URL,
@@ -30,4 +30,55 @@ function getDatabaseUrl() {
 
 function firstConfiguredUrl(values: Array<string | undefined>) {
 	return values.find((value) => value?.trim());
+}
+
+function normalizeDatabaseUrl(databaseUrl: string) {
+	const sslMode =
+		process.env.DRIZZLE_DATABASE_SSL_MODE?.trim() ||
+		process.env.DATABASE_SSL_MODE?.trim() ||
+		getSslModeFromUrl(databaseUrl);
+
+	if (!sslMode) {
+		return databaseUrl;
+	}
+
+	if (
+		!['disable', 'verify-full', 'require', 'no-verify', 'prefer'].includes(
+			sslMode
+		)
+	) {
+		throw new Error(
+			`DATABASE_SSL_MODE must be one of disable, require, no-verify, or verify-full. Received: ${sslMode}`
+		);
+	}
+
+	try {
+		const url = new URL(databaseUrl);
+
+		if (sslMode === 'disable') {
+			url.searchParams.set('sslmode', 'disable');
+		} else if (sslMode === 'verify-full') {
+			url.searchParams.set('sslmode', 'verify-full');
+		} else if (
+			sslMode === 'require' ||
+			sslMode === 'no-verify' ||
+			sslMode === 'prefer'
+		) {
+			url.searchParams.set('sslmode', 'no-verify');
+		}
+
+		url.searchParams.delete('uselibpqcompat');
+
+		return url.toString();
+	} catch {
+		return databaseUrl;
+	}
+}
+
+function getSslModeFromUrl(databaseUrl: string) {
+	try {
+		return new URL(databaseUrl).searchParams.get('sslmode')?.trim();
+	} catch {
+		return undefined;
+	}
 }

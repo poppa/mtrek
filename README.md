@@ -32,6 +32,8 @@ For Vercel or another hosted environment, set `DATABASE_URL` to a managed Postgr
 
 `DATABASE_POOL_MAX` can be used to cap the connection pool; it defaults to `10` locally and `1` on Vercel. For Drizzle schema commands against Supabase, set `DRIZZLE_DATABASE_URL` to the non-pooling connection string if it differs from the runtime URL.
 
+For Supabase SSL, MTrek honors `sslmode` in the database URL. Supabase/Vercel URLs commonly use `sslmode=require`; MTrek maps that to standard libpq semantics, meaning the connection is encrypted but the certificate is not verified. To force a mode explicitly, set `DATABASE_SSL_MODE` to `require`, `no-verify`, `verify-full`, or `disable`. For `verify-full`, provide the Supabase CA certificate through `DATABASE_SSL_CA` or `DATABASE_SSL_ROOT_CERT`.
+
 Supabase's `@supabase/supabase-js` client is useful for Supabase APIs such as Storage, Realtime, and PostgREST access. MTrek's server database access intentionally uses Drizzle with a PostgreSQL connection string because Auth.js' Drizzle adapter and the trek service need a SQL database driver, transactions, and migrations.
 
 To run the development server over HTTPS, set `MTREK_CERT` to a combined PEM file containing both the private key and certificate:
