@@ -45,7 +45,7 @@ MTREK_CERT=/path/to/cert.pem npm run dev
 If you access Vite through a reverse proxy or custom hostname, configure the browser-visible HMR websocket endpoint:
 
 ```sh
-MTREK_HMR_HOST=vite.roxen.com
+MTREK_HMR_HOST=your.local.host
 MTREK_HMR_PORT=5174
 MTREK_HMR_PROTOCOL=ws
 ```
