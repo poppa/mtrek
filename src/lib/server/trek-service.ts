@@ -257,12 +257,15 @@ export async function getTrekDetail(trekId: string, userId: string) {
 		(round) => round.status === 'completed'
 	).length;
 	const remainingYears = getRemainingYears(trek, rounds);
+	const rankedAlbums =
+		completedYears > 0 ? await getRankedAlbumsForTrek(trekId) : [];
 
 	return {
 		trek,
 		membership,
 		participants,
-		rounds,
+		rounds: sortRoundsByYear(rounds),
+		rankedAlbums,
 		currentRound,
 		selections,
 		mySelection:
@@ -846,6 +849,91 @@ async function getSelectionsForConcludedRound(roundId: string) {
 	});
 }
 
+async function getRankedAlbumsForTrek(trekId: string) {
+	const selections = await db
+		.select({
+			id: albumSelections.id,
+			roundId: albumSelections.roundId,
+			userId: albumSelections.userId,
+			spotifyAlbumId: albumSelections.spotifyAlbumId,
+			albumName: albumSelections.albumName,
+			artistName: albumSelections.artistName,
+			releaseDate: albumSelections.releaseDate,
+			imageUrl: albumSelections.imageUrl,
+			externalUrl: albumSelections.externalUrl,
+			createdAt: albumSelections.createdAt,
+			year: trekRounds.year,
+			roundPosition: trekRounds.position,
+			userName: users.name,
+			userEmail: users.email
+		})
+		.from(albumSelections)
+		.innerJoin(trekRounds, eq(albumSelections.roundId, trekRounds.id))
+		.innerJoin(users, eq(albumSelections.userId, users.id))
+		.where(
+			and(eq(trekRounds.trekId, trekId), eq(trekRounds.status, 'completed'))
+		)
+		.orderBy(asc(trekRounds.year), asc(albumSelections.createdAt));
+
+	const selectionIds = selections.map((selection) => selection.id);
+	const ratingRows =
+		selectionIds.length > 0
+			? await db
+					.select({
+						selectionId: ratings.selectionId,
+						scoreTenth: ratings.scoreTenth
+					})
+					.from(ratings)
+					.where(inArray(ratings.selectionId, selectionIds))
+			: [];
+	const ratingsBySelection = new Map<string, number[]>();
+
+	for (const rating of ratingRows) {
+		const values = ratingsBySelection.get(rating.selectionId) ?? [];
+		values.push(rating.scoreTenth);
+		ratingsBySelection.set(rating.selectionId, values);
+	}
+
+	return selections
+		.map((selection) => {
+			const scoreValues = ratingsBySelection.get(selection.id) ?? [];
+			const scoreTotal = scoreValues.reduce((sum, score) => sum + score, 0);
+			const averageScoreTenth =
+				scoreValues.length > 0 ? scoreTotal / scoreValues.length : null;
+
+			return {
+				...selection,
+				submittedBy: getProviderName({
+					name: selection.userName,
+					email: selection.userEmail
+				}),
+				ratingCount: scoreValues.length,
+				averageScoreTenth,
+				averageScore: formatScore(averageScoreTenth)
+			};
+		})
+		.sort((left, right) => {
+			if (left.averageScoreTenth === null && right.averageScoreTenth === null) {
+				return (
+					left.year - right.year ||
+					left.albumName.localeCompare(right.albumName) ||
+					left.artistName.localeCompare(right.artistName)
+				);
+			}
+
+			if (left.averageScoreTenth === null) return 1;
+			if (right.averageScoreTenth === null) return -1;
+
+			return (
+				right.averageScoreTenth - left.averageScoreTenth ||
+				right.ratingCount - left.ratingCount ||
+				left.year - right.year ||
+				left.albumName.localeCompare(right.albumName) ||
+				left.artistName.localeCompare(right.artistName)
+			);
+		});
+}
+
 async function refreshRoundState(trekId: string, roundId: string) {
 	const participantCount = await getParticipantCount(trekId);
 	const selectionIds = (
@@ -924,6 +1012,14 @@ function getRemainingYears(
 	const generatedYears = new Set(rounds.map((round) => round.year));
 
 	return getYearRange(trek).filter((year) => !generatedYears.has(year));
+}
+
+function sortRoundsByYear(rounds: TrekRound[]) {
+	return [...rounds].sort((left, right) => {
+		const yearOrder = left.year - right.year;
+
+		return yearOrder === 0 ? left.position - right.position : yearOrder;
+	});
 }
 
 function generateInviteCode() {

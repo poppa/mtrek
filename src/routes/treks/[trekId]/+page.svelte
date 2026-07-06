@@ -472,6 +472,75 @@
 					</div>
 				</section>
 			{/if}
+
+			{#if data.progress.completedYears > 0}
+				<section class="panel">
+					<div class="panel-body stack">
+						<div class="panel-header">
+							<div>
+								<h2>Album ranking</h2>
+								<p class="footer-note">Across concluded years</p>
+							</div>
+							<span class="badge">{data.rankedAlbums.length}</span>
+						</div>
+
+						{#if data.rankedAlbums.length === 0}
+							<p class="empty">No rated albums have been recorded yet.</p>
+						{:else}
+							<div class="ranked-list">
+								{#each data.rankedAlbums as album, index (album.id)}
+									<article class="ranked-album">
+										<span class="rank-number">{index + 1}</span>
+										<div class="cover">
+											{#if album.imageUrl}
+												<img src={album.imageUrl} alt="" />
+											{:else}
+												{initials(album.albumName)}
+											{/if}
+										</div>
+										<div class="album-info">
+											<strong>{album.albumName}</strong>
+											<span>{album.artistName}</span>
+											<div class="inline-row">
+												<a
+													class="button ghost small"
+													href={resolve('/treks/[trekId]/years/[year]', {
+														trekId: data.trek.id,
+														year: String(album.year)
+													})}
+												>
+													<CheckCircle2 size={15} />
+													<span>{album.year}</span>
+												</a>
+												<span>Picked by {album.submittedBy}</span>
+												{#if album.externalUrl}
+													<a
+														class="button small"
+														href={album.externalUrl}
+														target="_blank"
+														rel="external noreferrer"
+													>
+														<ExternalLink size={15} />
+														<span>Open</span>
+													</a>
+												{/if}
+											</div>
+										</div>
+										<div class="score-box compact">
+											<span>{album.averageScore ?? '-'}</span>
+											<small>
+												{album.ratingCount} rating{album.ratingCount === 1
+													? ''
+													: 's'}
+											</small>
+										</div>
+									</article>
+								{/each}
+							</div>
+						{/if}
+					</div>
+				</section>
+			{/if}
 		</div>
 
 		<aside class="stack">
