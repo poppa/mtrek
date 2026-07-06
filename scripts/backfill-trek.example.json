@@ -1,0 +1,49 @@
+{
+	"trekId": "replace-with-trek-id",
+	"participants": {
+		"pontus": "pontus@example.com",
+		"alice": {
+			"email": "alice@example.com"
+		}
+	},
+	"years": [
+		{
+			"year": 1997,
+			"status": "completed",
+			"completedAt": "2026-07-06T12:00:00.000Z",
+			"selections": [
+				{
+					"participant": "pontus",
+					"albumName": "OK Computer",
+					"artistName": "Radiohead",
+					"releaseDate": "1997-05-21",
+					"spotifyAlbumId": "6dVIqQ8qmQ5GBnJ9shOYGE",
+					"externalUrl": "https://open.spotify.com/album/6dVIqQ8qmQ5GBnJ9shOYGE",
+					"ratings": {
+						"pontus": 5,
+						"alice": {
+							"score": 4.5,
+							"note": "Backfilled after listening session."
+						}
+					}
+				},
+				{
+					"participant": "alice",
+					"albumName": "Homogenic",
+					"artistName": "Bjork",
+					"releaseDate": "1997-09-22",
+					"ratings": [
+						{
+							"participant": "pontus",
+							"score": 4.5
+						},
+						{
+							"participant": "alice",
+							"scoreTenth": 50
+						}
+					]
+				}
+			]
+		}
+	]
+}

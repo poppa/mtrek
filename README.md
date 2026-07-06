@@ -90,4 +90,31 @@ npm run build
 npm run db:generate
 npm run db:push
 npm run db:studio
+npm run trek:backfill
 ```
+
+## Backfill Trek Data
+
+Use the standalone backfill script to add concluded years, album selections, and ratings for participants that have already joined a trek.
+
+First list the trek participants so you can use registered emails, user IDs, or short aliases in the JSON file:
+
+```sh
+npm run trek:backfill -- --participants <trek-id>
+```
+
+Create a JSON file using `scripts/backfill-trek.example.json` as a template, then validate it with a dry run:
+
+```sh
+npm run trek:backfill -- --dry-run path/to/backfill.json
+```
+
+Apply it after the dry run looks right:
+
+```sh
+npm run trek:backfill -- path/to/backfill.json
+```
+
+The script loads `.env.dev`, `.env.local`, and `.env`, using the same PostgreSQL URL precedence as the Drizzle commands: `DRIZZLE_DATABASE_URL`, `POSTGRES_URL_NON_POOLING`, `DATABASE_URL`, `POSTGRES_URL`, then `POSTGRES_PRISMA_URL`. It runs every write in one transaction; `--dry-run` rolls that transaction back.
+
+Every referenced selection or rating user must already be a trek participant. Ratings can use `score` from `0` to `5` with at most one decimal, or `scoreTenth` from `0` to `50`. Re-running the same backfill updates the existing year, participant album selection, and participant rating rows instead of creating duplicates.
