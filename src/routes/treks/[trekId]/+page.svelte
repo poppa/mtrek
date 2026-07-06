@@ -122,7 +122,7 @@
 					><Disc3 size={16} />
 					{data.progress.completedYears}/{data.progress.totalYears} years</span
 				>
-				<span class:coral={data.trek.status === 'completed'} class="badge"
+				<span class:brand={data.trek.status === 'completed'} class="badge"
 					>{data.trek.status}</span
 				>
 			</div>

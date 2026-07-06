@@ -7,21 +7,42 @@
 		BlinkMacSystemFont,
 		'Segoe UI',
 		sans-serif;
-	color: #202223;
-	background: #f6f7f2;
-	--bg: #f6f7f2;
+	color: var(--ink);
+	background: var(--bg);
+	--bg: #f8f5f3;
+	--topbar-bg: rgb(248 245 243 / 0.92);
 	--surface: #ffffff;
-	--surface-soft: #eef3ec;
-	--ink: #202223;
-	--muted: #626b67;
-	--line: #d9ddd5;
-	--green: #2f7d6d;
-	--green-dark: #225e53;
-	--coral: #c85f3f;
-	--amber: #d1962f;
-	--violet: #7162a8;
+	--surface-soft: #f1ebe8;
+	--input-bg: #fbfaf8;
+	--empty-bg: rgb(255 255 255 / 0.58);
+	--ink: #242124;
+	--muted: #716766;
+	--line: #ddd3cf;
+	--line-strong: #c7b8b2;
+	--brand: #cd5c5c;
+	--brand-hover: #ad4646;
+	--brand-soft: #f8dddd;
+	--brand-ink: #6d2929;
+	--on-brand: #ffffff;
+	--focus-ring: rgb(205 92 92 / 0.18);
+	--badge-bg: #f1e5e2;
+	--badge-ink: #6e3f3c;
+	--amber: #b98525;
+	--amber-soft: #fff4d4;
+	--amber-line: #dcc991;
+	--amber-ink: #64440e;
+	--violet: #6658a8;
+	--violet-soft: #e9e4f7;
+	--violet-ink: #362b68;
 	--danger: #b23b3b;
-	--shadow: 0 16px 40px rgba(31, 39, 34, 0.08);
+	--danger-soft: #fff0ed;
+	--danger-hover: #ffe5e0;
+	--danger-line: #e1a5a5;
+	--spotify-bg: #dff6e8;
+	--spotify-border: #1db954;
+	--spotify-ink: #0f3520;
+	--progress-track: #e8ded9;
+	--shadow: 0 16px 40px rgb(59 42 40 / 0.09);
 }
 
 * {
@@ -59,26 +80,20 @@ a {
 	gap: 1rem;
 	padding: 0.85rem clamp(1rem, 3vw, 2.25rem);
 	border-bottom: 1px solid var(--line);
-	background: rgba(246, 247, 242, 0.92);
+	background: var(--topbar-bg);
 	backdrop-filter: blur(12px);
 }
 
 .brand {
 	display: inline-flex;
 	align-items: center;
-	gap: 0.65rem;
-	font-weight: 800;
-	letter-spacing: 0;
+	min-width: 0;
 }
 
-.brand-mark {
-	display: grid;
-	width: 2.25rem;
-	height: 2.25rem;
-	place-items: center;
-	border-radius: 8px;
-	color: white;
-	background: var(--green);
+.brand-logo {
+	display: block;
+	width: auto;
+	height: 2.55rem;
 }
 
 .user-tools {
@@ -125,7 +140,7 @@ a {
 
 .eyebrow {
 	margin: 0 0 0.6rem;
-	color: var(--coral);
+	color: var(--brand);
 	font-size: 0.78rem;
 	font-weight: 800;
 	text-transform: uppercase;
@@ -198,7 +213,7 @@ h3 {
 
 .button:hover {
 	transform: translateY(-1px);
-	border-color: #aeb8ae;
+	border-color: var(--line-strong);
 }
 
 .button:disabled {
@@ -208,19 +223,19 @@ h3 {
 }
 
 .button.primary {
-	border-color: var(--green);
-	color: white;
-	background: var(--green);
+	border-color: var(--brand);
+	color: var(--on-brand);
+	background: var(--brand);
 }
 
 .button.primary:hover {
-	background: var(--green-dark);
+	background: var(--brand-hover);
 }
 
 .button.spotify {
-	border-color: #1db954;
-	color: #0f3520;
-	background: #dff6e8;
+	border-color: var(--spotify-border);
+	color: var(--spotify-ink);
+	background: var(--spotify-bg);
 }
 
 .button.ghost {
@@ -229,14 +244,14 @@ h3 {
 }
 
 .button.danger {
-	border-color: #e1a5a5;
+	border-color: var(--danger-line);
 	color: var(--danger);
-	background: #fff0ed;
+	background: var(--danger-soft);
 }
 
 .button.danger:hover {
 	border-color: var(--danger);
-	background: #ffe5e0;
+	background: var(--danger-hover);
 }
 
 .button.small {
@@ -307,7 +322,7 @@ h3 {
 	width: 100%;
 	border: 1px solid var(--line);
 	border-radius: 8px;
-	background: #fbfcfa;
+	background: var(--input-bg);
 	color: var(--ink);
 }
 
@@ -324,8 +339,8 @@ h3 {
 
 .field input:focus,
 .field textarea:focus {
-	border-color: var(--green);
-	outline: 3px solid rgba(47, 125, 109, 0.16);
+	border-color: var(--brand);
+	outline: 3px solid var(--focus-ring);
 }
 
 .two-col {
@@ -344,21 +359,21 @@ h3 {
 }
 
 .notice {
-	border: 1px solid #dcc991;
-	color: #634a12;
-	background: #fff6d7;
+	border: 1px solid var(--amber-line);
+	color: var(--amber-ink);
+	background: var(--amber-soft);
 }
 
 .form-error {
-	border: 1px solid #efb0aa;
+	border: 1px solid var(--danger-line);
 	color: var(--danger);
-	background: #fff0ed;
+	background: var(--danger-soft);
 }
 
 .empty {
 	border: 1px dashed var(--line);
 	color: var(--muted);
-	background: rgba(255, 255, 255, 0.55);
+	background: var(--empty-bg);
 }
 
 .trek-list {
@@ -382,7 +397,7 @@ h3 {
 }
 
 .trek-card:hover {
-	border-color: #aeb8ae;
+	border-color: var(--line-strong);
 }
 
 .trek-card-top {
@@ -418,39 +433,39 @@ h3 {
 	min-height: 1.65rem;
 	padding: 0.25rem 0.55rem;
 	border-radius: 999px;
-	color: #204a41;
-	background: #dfeee9;
+	color: var(--badge-ink);
+	background: var(--badge-bg);
 	font-size: 0.78rem;
 	font-weight: 800;
 	white-space: nowrap;
 }
 
-.badge.coral {
-	color: #6e2e1d;
-	background: #f7ded4;
+.badge.brand {
+	color: var(--brand-ink);
+	background: var(--brand-soft);
 }
 
 .badge.amber {
-	color: #68460e;
-	background: #f7e7bf;
+	color: var(--amber-ink);
+	background: var(--amber-soft);
 }
 
 .badge.violet {
-	color: #362b68;
-	background: #e9e4f7;
+	color: var(--violet-ink);
+	background: var(--violet-soft);
 }
 
 .progress-track {
 	height: 0.55rem;
 	overflow: hidden;
 	border-radius: 999px;
-	background: #e4e8df;
+	background: var(--progress-track);
 }
 
 .progress-fill {
 	height: 100%;
 	border-radius: inherit;
-	background: var(--green);
+	background: var(--brand);
 }
 
 .trek-hero {
@@ -528,20 +543,20 @@ h3 {
 }
 
 a.round-chip:hover {
-	border-color: #aeb8ae;
+	border-color: var(--line-strong);
 	transform: translateY(-1px);
 }
 
 .round-chip[data-status='completed'] {
-	background: #edf6ef;
+	background: var(--brand-soft);
 }
 
 .round-chip[data-status='rating'] {
-	background: #f7e7bf;
+	background: var(--amber-soft);
 }
 
 .round-chip[data-status='selecting'] {
-	background: #e9e4f7;
+	background: var(--violet-soft);
 }
 
 .album-grid {
@@ -568,7 +583,7 @@ a.round-chip:hover {
 	place-items: center;
 	overflow: hidden;
 	border-radius: 8px;
-	color: white;
+	color: var(--on-brand);
 	background: var(--violet);
 	font-weight: 900;
 }
@@ -658,8 +673,8 @@ a.round-chip:hover {
 	place-items: center;
 	padding: 0.55rem 0.7rem;
 	border-radius: 8px;
-	color: #204a41;
-	background: #dfeee9;
+	color: var(--brand-ink);
+	background: var(--brand-soft);
 }
 
 .score-box span {
@@ -691,7 +706,7 @@ a.round-chip:hover {
 	padding: 0.65rem;
 	border: 1px solid var(--line);
 	border-radius: 8px;
-	background: #fbfcfa;
+	background: var(--input-bg);
 }
 
 .rating-item strong {
@@ -714,8 +729,8 @@ a.round-chip:hover {
 	min-height: 2.2rem;
 	place-items: center;
 	border-radius: 8px;
-	color: white;
-	background: var(--green);
+	color: var(--on-brand);
+	background: var(--brand);
 	font-weight: 900;
 }
 
@@ -740,6 +755,10 @@ a.round-chip:hover {
 @media (max-width: 620px) {
 	.topbar {
 		align-items: start;
+	}
+
+	.brand-logo {
+		height: 2.25rem;
 	}
 
 	.user-tools {

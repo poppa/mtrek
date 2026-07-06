@@ -120,7 +120,7 @@
 											<span><Users size={15} /> {trek.participantCount}</span>
 										</div>
 									</div>
-									<span class:coral={trek.status === 'completed'} class="badge">
+									<span class:brand={trek.status === 'completed'} class="badge">
 										{trek.status}
 									</span>
 								</div>

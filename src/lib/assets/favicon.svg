@@ -1,9 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
 	<title>MTrek</title>
-	<rect width="64" height="64" rx="14" fill="#2f7d6d" />
-	<path
-		d="M15 42V20h8l9 15 9-15h8v22h-7V30.5L34.8 42h-5.6L22 30.5V42z"
-		fill="#fff"
-	/>
-	<path d="M14 49c9-6 17 6 27 0 4-2.4 6.6-5.6 8-9" fill="none" stroke="#f3c04e" stroke-linecap="round" stroke-width="4" />
+	<rect width="64" height="64" rx="14" fill="#CD5C5C" />
+	<circle cx="23" cy="23" r="3" fill="#CD5C5C" />
+	<path d="M14 45V19h8.2L32 34.1 41.6 19H50v26h-7.1V31.9L34.7 44h-5.3l-8.2-12.1V45z" fill="#fff" />
+	<path d="M13 51c9-6 16.7 5.4 27 0 4.7-2.5 7.9-6.1 10-11" fill="none" stroke="#F3C04E" stroke-linecap="round" stroke-width="4.4" />
 </svg>

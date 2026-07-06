@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { Compass, LogOut } from '@lucide/svelte';
+	import { LogOut } from '@lucide/svelte';
 	import favicon from '$lib/assets/favicon.svg';
+	import logo from '$lib/assets/logo.svg';
 	import type { LayoutData } from './$types';
 	import '../app.css';
 
@@ -20,8 +21,7 @@
 <div class="app-shell">
 	<header class="topbar">
 		<a class="brand" href={resolve('/')}>
-			<span class="brand-mark"><Compass size={20} /></span>
-			<span>MTrek</span>
+			<img class="brand-logo" src={logo} alt="MTrek" />
 		</a>
 
 		{#if data.session?.user}
