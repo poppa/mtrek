@@ -2,6 +2,7 @@ import { defineConfig } from 'drizzle-kit';
 import { config } from 'dotenv';
 
 config({ path: '.env.dev', quiet: true });
+config({ path: '.env.local', quiet: true, override: true });
 config({ path: '.env', quiet: true });
 
 const localDatabaseUrl = 'postgres://postgres:postgres@localhost:5432/mtrek';
@@ -20,8 +21,8 @@ function getDatabaseUrl() {
 	return normalizeDatabaseUrl(
 		firstConfiguredUrl([
 			process.env.DRIZZLE_DATABASE_URL,
-			process.env.DATABASE_URL,
 			process.env.POSTGRES_URL_NON_POOLING,
+			process.env.DATABASE_URL,
 			process.env.POSTGRES_URL,
 			process.env.POSTGRES_PRISMA_URL
 		]) ?? localDatabaseUrl
