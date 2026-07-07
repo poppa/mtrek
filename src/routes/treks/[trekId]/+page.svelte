@@ -98,6 +98,8 @@
 			.map((part) => part[0]?.toUpperCase())
 			.join('');
 	}
+
+	let manageTrekCollapsed = $state(true);
 </script>
 
 <svelte:head>
@@ -196,9 +198,14 @@
 									{/if}
 								</div>
 								<div class="album-info">
-									<span class="badge violet">Your pick</span>
-									<strong>{data.mySelection.albumName}</strong>
-									<span>{data.mySelection.artistName}</span>
+									<div class="grid-line">
+										<strong>{data.mySelection.albumName}</strong>
+										<span class="badge violet">Your pick</span>
+									</div>
+									<div class="with-label">
+										<span class="label">Album by:</span>
+										{data.mySelection.artistName}
+									</div>
 									{#if canDeleteSelection}
 										<form method="post" action="?/deleteSelection">
 											<button class="button danger small" type="submit">
@@ -224,7 +231,7 @@
 								</span>
 							</div>
 
-							<form class="form-grid" onsubmit={searchAlbums}>
+							<form class="form-grid search" onsubmit={searchAlbums}>
 								<div class="field">
 									<label for="album-search">Album or artist</label>
 									<input
@@ -313,6 +320,8 @@
 								</div>
 							{/if}
 						</div>
+
+						<hr class="divider" />
 
 						<form class="form-grid" method="post" action="?/selectAlbum">
 							<h3>Manual entry</h3>
@@ -467,8 +476,14 @@
 								</div>
 								<div class="album-info">
 									<strong>{selection.albumName}</strong>
-									<span>{selection.artistName}</span>
-									<span>{selection.submittedBy}</span>
+									<div class="with-label">
+										<span class="label">Album by:</span>
+										{selection.artistName}
+									</div>
+									<div class="with-label">
+										<span class="label">Picked by:</span>
+										{selection.submittedBy}
+									</div>
 								</div>
 							</div>
 						{/each}
@@ -549,40 +564,48 @@
 		<aside class="stack">
 			{#if isOwner}
 				<section class="panel">
-					<div class="panel-body stack">
-						<div class="panel-header">
+					<div
+						class="panel-body stack collapsible"
+						class:collapsed={manageTrekCollapsed}
+					>
+						<button
+							class="panel-header no-button"
+							onclick={() => (manageTrekCollapsed = !manageTrekCollapsed)}
+						>
 							<h2>Manage trek</h2>
 							<span class="badge violet">Owner</span>
-						</div>
+						</button>
 
-						<form class="form-grid" method="post" action="?/updateTitle">
-							<div class="field">
-								<label for="trek-name">Title</label>
-								<input
-									id="trek-name"
-									name="name"
-									value={data.trek.name}
-									required
-								/>
-							</div>
-							<button class="button" type="submit">
-								<Save size={16} />
-								<span>Save title</span>
-							</button>
-						</form>
-
-						{#if data.progress.participantCount === 1}
-							<form method="post" action="?/deleteTrek">
-								<button class="button danger" type="submit">
-									<Trash2 size={16} />
-									<span>Delete trek</span>
+						<div class="panel-content">
+							<form class="form-grid" method="post" action="?/updateTitle">
+								<div class="field">
+									<label for="trek-name">Title</label>
+									<input
+										id="trek-name"
+										name="name"
+										value={data.trek.name}
+										required
+									/>
+								</div>
+								<button class="button" type="submit">
+									<Save size={16} />
+									<span>Save title</span>
 								</button>
 							</form>
-						{:else}
-							<p class="footer-note">
-								Treks can only be deleted before another participant joins.
-							</p>
-						{/if}
+
+							{#if data.progress.participantCount === 1}
+								<form method="post" action="?/deleteTrek">
+									<button class="button danger" type="submit">
+										<Trash2 size={16} />
+										<span>Delete trek</span>
+									</button>
+								</form>
+							{:else}
+								<p class="footer-note">
+									Treks can only be deleted before another participant joins.
+								</p>
+							{/if}
+						</div>
 					</div>
 				</section>
 			{/if}
