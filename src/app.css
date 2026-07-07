@@ -7,42 +7,78 @@
 		BlinkMacSystemFont,
 		'Segoe UI',
 		sans-serif;
-	color: var(--ink);
-	background: var(--bg);
-	--bg: #f8f5f3;
-	--topbar-bg: rgb(248 245 243 / 0.92);
-	--surface: #ffffff;
-	--surface-soft: #f1ebe8;
-	--input-bg: #fbfaf8;
-	--empty-bg: rgb(255 255 255 / 0.58);
-	--ink: #242124;
-	--muted: #716766;
-	--line: #ddd3cf;
-	--line-strong: #c7b8b2;
+
+	color-scheme: light dark;
+
+	--primary-bg: light-dark(#ece9ea, #161314);
+	--primary-fg: light-dark(#161314, #ece9ea);
+
+	--bg: var(--primary-bg);
+	--topbar-bg: oklch(from var(--primary-bg) l c h / 0.82);
+	--surface: light-dark(
+		oklch(from var(--primary-bg) calc(l - 0.02) c h),
+		oklch(from var(--primary-bg) calc(l + 0.03) c h)
+	);
+	--surface-soft: light-dark(
+		oklch(from var(--surface) calc(l + 0.03) c h),
+		oklch(from var(--surface) calc(l - 0.025) c h)
+	);
+
+	--input-bg: var(--primary-bg);
+	--empty-bg: var(--surface);
+	--ink: var(--primary-fg);
+
+	--muted: light-dark(
+		oklch(from var(--primary-fg) calc(l + 0.3) c h),
+		oklch(from var(--primary-fg) calc(l - 0.3) c h)
+	);
+	--line: light-dark(
+		oklch(from var(--primary-bg) calc(l - 0.15) c h),
+		oklch(from var(--primary-bg) calc(l + 0.2) c h)
+	);
+	--line-strong: light-dark(
+		oklch(from var(--line) calc(l - 0.15) c h),
+		oklch(from var(--line) calc(l + 0.2) c h)
+	);
+
 	--brand: #cd5c5c;
 	--brand-hover: #ad4646;
 	--brand-soft: #f8dddd;
 	--brand-ink: #6d2929;
+
 	--on-brand: #ffffff;
-	--focus-ring: rgb(205 92 92 / 0.18);
-	--badge-bg: #f1e5e2;
-	--badge-ink: #6e3f3c;
-	--amber: #b98525;
-	--amber-soft: #fff4d4;
-	--amber-line: #dcc991;
-	--amber-ink: #64440e;
-	--violet: #6658a8;
-	--violet-soft: #e9e4f7;
-	--violet-ink: #362b68;
+
+	--focus-ring: rgb(from var(--brand) r g b / 0.5);
+
+	--badge-bg: var(--brand);
+	--badge-ink: var(--brand-soft);
+
+	--notice-bg: light-dark(#f2efe5, #271f02);
+	--notice-line: light-dark(
+		oklch(from var(--notice-bg) calc(l - 0.2) c h),
+		oklch(from var(--notice-bg) calc(l + 0.2) c h)
+	);
+	--notice-ink: light-dark(#4c3d05, #a79246);
+
+	/* --violet: lime; */
+	--violet-soft: light-dark(#9fa0c3, #2e2f45);
+	--violet-ink: light-dark(#474865, #9fa0c3);
+
 	--danger: #b23b3b;
 	--danger-soft: #fff0ed;
 	--danger-hover: #ffe5e0;
 	--danger-line: #e1a5a5;
+
 	--spotify-bg: #dff6e8;
 	--spotify-border: #1db954;
 	--spotify-ink: #0f3520;
+
 	--progress-track: #e8ded9;
+
 	--shadow: 0 16px 40px rgb(59 42 40 / 0.09);
+
+	color: var(--ink);
+	background: var(--bg);
 }
 
 * {
@@ -359,9 +395,9 @@ h3 {
 }
 
 .notice {
-	border: 1px solid var(--amber-line);
-	color: var(--amber-ink);
-	background: var(--amber-soft);
+	border: 1px solid var(--notice-line);
+	color: var(--notice-ink);
+	background: var(--notice-bg);
 }
 
 .form-error {
@@ -548,7 +584,7 @@ a.round-chip:hover {
 }
 
 .round-chip[data-status='completed'] {
-	background: var(--brand-soft);
+	background: var(--brand);
 }
 
 .round-chip[data-status='rating'] {
@@ -583,8 +619,8 @@ a.round-chip:hover {
 	place-items: center;
 	overflow: hidden;
 	border-radius: 8px;
-	color: var(--on-brand);
-	background: var(--violet);
+	/* color: var(--on-brand);
+	background: var(--violet); */
 	font-weight: 900;
 }
 

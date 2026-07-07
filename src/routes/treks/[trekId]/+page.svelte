@@ -214,7 +214,10 @@
 						<div class="stack">
 							<div class="section-header">
 								<h3>Find an album</h3>
-								<span class:amber={!data.spotifySearchConfigured} class="badge">
+								<span
+									class:notice={!data.spotifySearchConfigured}
+									class="badge"
+								>
 									{data.spotifySearchConfigured
 										? 'Spotify ready'
 										: 'Manual mode'}
@@ -628,7 +631,7 @@
 				<div class="panel-body stack">
 					<div class="panel-header">
 						<h2>Timeline</h2>
-						<span class="badge amber">{data.progress.remainingYears} left</span>
+						<span class="badge">{data.progress.remainingYears} left</span>
 					</div>
 					{#if data.rounds.length === 0}
 						<p class="empty">No years have been randomized yet.</p>
