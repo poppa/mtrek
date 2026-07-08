@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import Label from '$lib/components/Label.svelte';
 	import {
 		ArrowLeft,
 		CalendarDays,
@@ -56,7 +57,7 @@
 		<div class="history-list">
 			{#each data.selections as selection (selection.id)}
 				<article class="history-card">
-					<div class="cover">
+					<div class="cover" class:noimage={!selection.imageUrl}>
 						{#if selection.imageUrl}
 							<img src={selection.imageUrl} alt="" />
 						{:else}
@@ -69,11 +70,12 @@
 							<div>
 								<h2>{selection.albumName}</h2>
 								<div class="meta-row">
-									<span>{selection.artistName}</span>
-									<span>Picked by {selection.submittedBy}</span>
+									<Label label="Album by">{selection.artistName}</Label>
 									{#if selection.releaseDate}
-										<span>{selection.releaseDate}</span>
+										<span>@{selection.releaseDate}</span>
 									{/if}
+									&bull;
+									<Label label="Picked by">{selection.submittedBy}</Label>
 								</div>
 							</div>
 
