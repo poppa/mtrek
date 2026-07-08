@@ -143,7 +143,7 @@ export const trekParticipants = pgTable(
 		}),
 		userIdIdx: index('trek_participant_user_id_idx').on(participant.userId)
 	})
-);
+).enableRLS();
 
 export const trekRounds = pgTable(
 	'trek_round',
