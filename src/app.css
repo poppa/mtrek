@@ -58,6 +58,13 @@
 		oklch(from var(--notice-bg) calc(l - 0.2) c h),
 		oklch(from var(--notice-bg) calc(l + 0.2) c h)
 	);
+
+	--success-ink: light-dark(#1d4d2d, #6ba78c);
+	--success-bg: light-dark(#dbf1dc, #172318);
+	--success-line: light-dark(
+		oklch(from var(--success-bg) calc(l - 0.2) c h),
+		oklch(from var(--success-bg) calc(l + 0.2) c h)
+	);
 	--notice-ink: light-dark(#4c3d05, #a79246);
 
 	/* --violet: lime; */
@@ -446,7 +453,14 @@ h3 {
 	gap: 0.75rem;
 }
 
+.align-text-and-icon {
+	align-items: center;
+	display: inline-flex;
+	gap: var(--inline-gap);
+}
+
 .notice,
+.success,
 .form-error,
 .empty {
 	margin: 0;
@@ -459,6 +473,12 @@ h3 {
 	border: 1px solid var(--notice-line);
 	color: var(--notice-ink);
 	background: var(--notice-bg);
+}
+
+.success {
+	border: 1px solid var(--success-line);
+	color: var(--success-ink);
+	background: var(--success-bg);
 }
 
 .form-error {
@@ -542,6 +562,11 @@ h3 {
 	background: var(--brand-soft);
 }
 
+.badge.success {
+	color: var(--success-ink);
+	background-color: var(--success-bg);
+}
+
 .badge.amber {
 	color: var(--amber-ink);
 	background: var(--amber-soft);
@@ -563,6 +588,10 @@ h3 {
 	height: 100%;
 	border-radius: inherit;
 	background: var(--brand);
+}
+
+.progress-fill.completed {
+	background-color: var(--success-ink);
 }
 
 .trek-hero {
@@ -958,10 +987,13 @@ a.round-chip:hover {
 
 	.history-card,
 	.history-heading,
-	.ranked-album,
-	.ranked-year {
+	.ranked-album {
 		grid-template-columns: 1fr;
 	}
+
+	/* .ranked-year {
+
+	} */
 
 	.history-card .cover {
 		width: 100%;

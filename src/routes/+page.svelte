@@ -120,7 +120,10 @@
 											<span><Users size={15} /> {trek.participantCount}</span>
 										</div>
 									</div>
-									<span class:brand={trek.status === 'completed'} class="badge">
+									<span
+										class:success={trek.status === 'completed'}
+										class="badge"
+									>
 										{trek.status}
 									</span>
 								</div>
@@ -128,6 +131,7 @@
 								<div class="progress-track" aria-hidden="true">
 									<div
 										class="progress-fill"
+										class:completed={trek.status === 'completed'}
 										style={`width: ${(trek.completedYears / trek.totalYears) * 100}%`}
 									></div>
 								</div>

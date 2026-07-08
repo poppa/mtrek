@@ -125,7 +125,7 @@
 					><Disc3 size={16} />
 					{data.progress.completedYears}/{data.progress.totalYears} years</span
 				>
-				<span class:brand={data.trek.status === 'completed'} class="badge"
+				<span class:success={data.trek.status === 'completed'} class="badge"
 					>{data.trek.status}</span
 				>
 			</div>
@@ -444,9 +444,11 @@
 							{/each}
 						</div>
 					{:else if data.trek.status === 'completed'}
-						<div class="notice">
-							<CheckCircle2 size={18} />
-							All years in this range have been explored.
+						<div class="success">
+							<span class="align-text-and-icon">
+								<CheckCircle2 size={18} />
+								All years in this range have been explored.
+							</span>
 						</div>
 					{:else}
 						<div class="empty">

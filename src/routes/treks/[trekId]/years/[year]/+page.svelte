@@ -45,7 +45,7 @@
 				<span><Disc3 size={16} /> {data.summary.albumCount} albums</span>
 				<span><Users size={16} /> {data.summary.ratingCount} ratings</span>
 				<span><Star size={16} /> {data.summary.averageScore ?? 'Unrated'}</span>
-				<span class="badge"><CheckCircle2 size={15} /> completed</span>
+				<span class="badge success"><CheckCircle2 size={15} /> completed</span>
 			</div>
 		</div>
 	</div>
