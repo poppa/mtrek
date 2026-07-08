@@ -191,7 +191,7 @@
 
 						{#if data.mySelection}
 							<div class="album-card">
-								<div class="cover">
+								<div class="cover" class:noimage={!data.mySelection.imageUrl}>
 									{#if data.mySelection.imageUrl}
 										<img src={data.mySelection.imageUrl} alt="" />
 									{:else}
@@ -293,7 +293,7 @@
 												value={album.externalUrl ?? ''}
 											/>
 
-											<div class="cover">
+											<div class="cover" class:noimage={!album.imageUrl}>
 												{#if album.imageUrl}
 													<img src={album.imageUrl} alt="" />
 												{:else}
@@ -361,7 +361,7 @@
 						<div class="album-grid">
 							{#each data.selections as selection (selection.id)}
 								<div class="album-card wide">
-									<div class="cover">
+									<div class="cover" class:noimage={!selection.imageUrl}>
 										{#if selection.imageUrl}
 											<img src={selection.imageUrl} alt="" />
 										{:else}
@@ -468,7 +468,7 @@
 					<div class="album-grid">
 						{#each data.selections as selection (selection.id)}
 							<div class="album-card">
-								<div class="cover">
+								<div class="cover" class:noimage={!selection.imageUrl}>
 									{#if selection.imageUrl}
 										<img src={selection.imageUrl} alt="" />
 									{:else}
@@ -555,7 +555,7 @@
 								{#each data.rankedAlbums as album, index (album.id)}
 									<article class="ranked-album">
 										<span class="rank-number">{index + 1}</span>
-										<div class="cover">
+										<div class="cover" class:noimage={!album.imageUrl}>
 											{#if album.imageUrl}
 												<img src={album.imageUrl} alt="" />
 											{:else}

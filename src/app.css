@@ -684,9 +684,11 @@ a.round-chip:hover {
 	place-items: center;
 	overflow: hidden;
 	border-radius: var(--border-radius);
-	/* color: var(--on-brand);
-	background: var(--violet); */
 	font-weight: 900;
+}
+
+.cover.noimage {
+	border: 1px solid var(--line);
 }
 
 .album-card.wide .cover {
