@@ -23,7 +23,7 @@ export const users = pgTable('user', {
 	email: text('email').unique(),
 	emailVerified: timestamp('emailVerified', { mode: 'date' }),
 	image: text('image')
-});
+}).enableRLS();
 
 export const accounts = pgTable(
 	'account',
@@ -48,7 +48,7 @@ export const accounts = pgTable(
 		}),
 		userIdIdx: index('account_user_id_idx').on(account.userId)
 	})
-);
+).enableRLS();
 
 export const sessions = pgTable(
 	'session',
@@ -62,7 +62,7 @@ export const sessions = pgTable(
 	(session) => ({
 		userIdIdx: index('session_user_id_idx').on(session.userId)
 	})
-);
+).enableRLS();
 
 export const verificationTokens = pgTable(
 	'verificationToken',
@@ -76,7 +76,7 @@ export const verificationTokens = pgTable(
 			columns: [verificationToken.identifier, verificationToken.token]
 		})
 	})
-);
+).enableRLS();
 
 export const authenticators = pgTable(
 	'authenticator',
@@ -97,7 +97,7 @@ export const authenticators = pgTable(
 			columns: [authenticator.userId, authenticator.credentialID]
 		})
 	})
-);
+).enableRLS();
 
 export const treks = pgTable(
 	'trek',
@@ -120,7 +120,7 @@ export const treks = pgTable(
 		inviteCodeIdx: uniqueIndex('trek_invite_code_idx').on(trek.inviteCode),
 		createdByIdx: index('trek_created_by_idx').on(trek.createdBy)
 	})
-);
+).enableRLS();
 
 export const trekParticipants = pgTable(
 	'trek_participant',
@@ -171,7 +171,7 @@ export const trekRounds = pgTable(
 		),
 		trekIdIdx: index('trek_round_trek_id_idx').on(round.trekId)
 	})
-);
+).enableRLS();
 
 export const albumSelections = pgTable(
 	'album_selection',
@@ -201,7 +201,7 @@ export const albumSelections = pgTable(
 		roundIdIdx: index('album_selection_round_id_idx').on(selection.roundId),
 		userIdIdx: index('album_selection_user_id_idx').on(selection.userId)
 	})
-);
+).enableRLS();
 
 export const ratings = pgTable(
 	'rating',
@@ -228,7 +228,7 @@ export const ratings = pgTable(
 		selectionIdIdx: index('rating_selection_id_idx').on(rating.selectionId),
 		userIdIdx: index('rating_user_id_idx').on(rating.userId)
 	})
-);
+).enableRLS();
 
 export const usersRelations = relations(users, ({ many }) => ({
 	treks: many(treks),
