@@ -16,6 +16,7 @@
 		Users
 	} from '@lucide/svelte';
 	import type { ActionData, PageData } from './$types';
+	import Label from '$lib/components/Label.svelte';
 
 	type AlbumSearchResult = {
 		spotifyAlbumId: string;
@@ -202,10 +203,7 @@
 										<strong>{data.mySelection.albumName}</strong>
 										<span class="badge violet">Your pick</span>
 									</div>
-									<div class="with-label">
-										<span class="label">Album by:</span>
-										{data.mySelection.artistName}
-									</div>
+									<Label label="Album by">{data.mySelection.artistName}</Label>
 									{#if canDeleteSelection}
 										<form method="post" action="?/deleteSelection">
 											<button class="button danger small" type="submit">
@@ -304,7 +302,7 @@
 											</div>
 											<div class="album-info">
 												<strong>{album.albumName}</strong>
-												<span>{album.artistName}</span>
+												<Label label="Album by">{album.artistName}</Label>
 												<div class="inline-row">
 													<span
 														>{album.releaseDate ?? data.currentRound.year}</span
@@ -372,9 +370,12 @@
 									</div>
 									<div class="album-info">
 										<strong>{selection.albumName}</strong>
-										<span>{selection.artistName}</span>
+										<Label label="Album by">{selection.artistName}</Label>
 										<div class="inline-row">
-											<span>{selection.submittedBy}</span>
+											<Label label="Picked by" small
+												>{selection.submittedBy}</Label
+											>
+											&bull;
 											<span
 												><Star size={15} />
 												{selection.averageScore ?? 'Unrated'}</span
@@ -476,14 +477,8 @@
 								</div>
 								<div class="album-info">
 									<strong>{selection.albumName}</strong>
-									<div class="with-label">
-										<span class="label">Album by:</span>
-										{selection.artistName}
-									</div>
-									<div class="with-label">
-										<span class="label">Picked by:</span>
-										{selection.submittedBy}
-									</div>
+									<Label label="Album by" small>{selection.artistName}</Label>
+									<Label label="Picked by" small>{selection.submittedBy}</Label>
 								</div>
 							</div>
 						{/each}
@@ -518,7 +513,7 @@
 										</div>
 										<div class="album-info">
 											<strong>{album.albumName}</strong>
-											<span>{album.artistName}</span>
+											<Label label="Album by">{album.artistName}</Label>
 											<div class="inline-row">
 												<a
 													class="button ghost small"

@@ -395,6 +395,10 @@ h3 {
 	gap: var(--inline-gap);
 }
 
+.with-label.small {
+	font-size: small;
+}
+
 .with-label .label {
 	color: var(--muted);
 }
