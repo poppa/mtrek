@@ -741,6 +741,22 @@ a.round-chip:hover {
 	background: var(--input-bg);
 }
 
+.ranked-year {
+	display: grid;
+	grid-template-columns: 2.4rem minmax(0, 1fr) auto;
+	gap: 0.75rem;
+	align-items: center;
+	padding: 0.7rem;
+	border: 1px solid var(--line);
+	border-radius: var(--border-radius);
+	background: var(--input-bg);
+}
+
+.ranked-year:hover {
+	border-color: var(--line-strong);
+	transform: translateY(-1px);
+}
+
 .rank-number {
 	display: grid;
 	width: 2.1rem;
@@ -754,6 +770,16 @@ a.round-chip:hover {
 
 .ranked-album .cover {
 	width: 4rem;
+}
+
+.year-rank-main {
+	display: grid;
+	gap: 0.35rem;
+	min-width: 0;
+}
+
+.year-rank-main strong {
+	font-size: 1.05rem;
 }
 
 .search-results {
@@ -930,7 +956,8 @@ a.round-chip:hover {
 
 	.history-card,
 	.history-heading,
-	.ranked-album {
+	.ranked-album,
+	.ranked-year {
 		grid-template-columns: 1fr;
 	}
 

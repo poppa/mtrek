@@ -491,6 +491,57 @@
 					<div class="panel-body stack">
 						<div class="panel-header">
 							<div>
+								<h2>Year ranking</h2>
+								<p class="footer-note">Concluded years by average score</p>
+							</div>
+							<span class="badge">{data.rankedYears.length}</span>
+						</div>
+
+						{#if data.rankedYears.length === 0}
+							<p class="empty">No concluded years have been ranked yet.</p>
+						{:else}
+							<div class="ranked-list">
+								{#each data.rankedYears as year, index (year.roundId)}
+									<a
+										class="ranked-year"
+										href={resolve('/treks/[trekId]/years/[year]', {
+											trekId: data.trek.id,
+											year: String(year.year)
+										})}
+									>
+										<span class="rank-number">{index + 1}</span>
+										<div class="year-rank-main">
+											<strong>{year.year}</strong>
+											<div class="meta-row">
+												<span
+													><Disc3 size={15} />
+													{year.albumCount} album{year.albumCount === 1
+														? ''
+														: 's'}</span
+												>
+												<span
+													><Star size={15} />
+													{year.ratingCount} rating{year.ratingCount === 1
+														? ''
+														: 's'}</span
+												>
+											</div>
+										</div>
+										<div class="score-box compact">
+											<span>{year.averageScore ?? '-'}</span>
+											<small>average</small>
+										</div>
+									</a>
+								{/each}
+							</div>
+						{/if}
+					</div>
+				</section>
+
+				<section class="panel">
+					<div class="panel-body stack">
+						<div class="panel-header">
+							<div>
 								<h2>Album ranking</h2>
 								<p class="footer-note">Across concluded years</p>
 							</div>

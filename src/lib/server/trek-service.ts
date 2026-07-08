@@ -257,6 +257,8 @@ export async function getTrekDetail(trekId: string, userId: string) {
 		(round) => round.status === 'completed'
 	).length;
 	const remainingYears = getRemainingYears(trek, rounds);
+	const rankedYears =
+		completedYears > 0 ? await getRankedConcludedYearsForTrek(trekId) : [];
 	const rankedAlbums =
 		completedYears > 0 ? await getRankedAlbumsForTrek(trekId) : [];
 
@@ -265,6 +267,7 @@ export async function getTrekDetail(trekId: string, userId: string) {
 		membership,
 		participants,
 		rounds: sortRoundsByYear(rounds),
+		rankedYears,
 		rankedAlbums,
 		currentRound,
 		selections,
@@ -930,6 +933,103 @@ async function getRankedAlbumsForTrek(trekId: string) {
 				left.year - right.year ||
 				left.albumName.localeCompare(right.albumName) ||
 				left.artistName.localeCompare(right.artistName)
+			);
+		});
+}
+
+async function getRankedConcludedYearsForTrek(trekId: string) {
+	const concludedRounds = await db
+		.select({
+			roundId: trekRounds.id,
+			year: trekRounds.year,
+			position: trekRounds.position
+		})
+		.from(trekRounds)
+		.where(
+			and(eq(trekRounds.trekId, trekId), eq(trekRounds.status, 'completed'))
+		)
+		.orderBy(asc(trekRounds.year));
+
+	const roundIds = concludedRounds.map((round) => round.roundId);
+	const selections =
+		roundIds.length > 0
+			? await db
+					.select({
+						id: albumSelections.id,
+						roundId: albumSelections.roundId
+					})
+					.from(albumSelections)
+					.where(inArray(albumSelections.roundId, roundIds))
+			: [];
+	const selectionRoundIds = new Map(
+		selections.map((selection) => [selection.id, selection.roundId])
+	);
+	const statsByRound = new Map(
+		concludedRounds.map((round) => [
+			round.roundId,
+			{
+				albumCount: 0,
+				ratingCount: 0,
+				scoreTotal: 0
+			}
+		])
+	);
+
+	for (const selection of selections) {
+		const stats = statsByRound.get(selection.roundId);
+		if (stats) stats.albumCount += 1;
+	}
+
+	const selectionIds = selections.map((selection) => selection.id);
+	const ratingRows =
+		selectionIds.length > 0
+			? await db
+					.select({
+						selectionId: ratings.selectionId,
+						scoreTenth: ratings.scoreTenth
+					})
+					.from(ratings)
+					.where(inArray(ratings.selectionId, selectionIds))
+			: [];
+
+	for (const rating of ratingRows) {
+		const roundId = selectionRoundIds.get(rating.selectionId);
+		const stats = roundId ? statsByRound.get(roundId) : null;
+
+		if (stats) {
+			stats.ratingCount += 1;
+			stats.scoreTotal += rating.scoreTenth;
+		}
+	}
+
+	return concludedRounds
+		.map((round) => {
+			const stats = statsByRound.get(round.roundId);
+			const ratingCount = stats?.ratingCount ?? 0;
+			const averageScoreTenth =
+				stats && ratingCount > 0 ? stats.scoreTotal / ratingCount : null;
+
+			return {
+				...round,
+				albumCount: stats?.albumCount ?? 0,
+				ratingCount,
+				averageScoreTenth,
+				averageScore: formatScore(averageScoreTenth)
+			};
+		})
+		.sort((left, right) => {
+			if (left.averageScoreTenth === null && right.averageScoreTenth === null) {
+				return left.year - right.year;
+			}
+
+			if (left.averageScoreTenth === null) return 1;
+			if (right.averageScoreTenth === null) return -1;
+
+			return (
+				right.averageScoreTenth - left.averageScoreTenth ||
+				right.ratingCount - left.ratingCount ||
+				right.albumCount - left.albumCount ||
+				left.year - right.year
 			);
 		});
 }
