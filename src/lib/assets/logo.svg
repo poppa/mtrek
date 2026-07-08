@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 176 52" aria-labelledby="title">
 	<title id="title">MTrek</title>
-	<rect x="0" y="4" width="44" height="44" rx="10" fill="#CD5C5C" />
-	<circle cx="16" cy="18" r="2.25" fill="#CD5C5C" />
+	<rect x="0" y="4" width="44" height="44" rx="10" fill="#427aa1" />
+	<circle cx="16" cy="18" r="2.25" fill="#427aa1" />
 	<path d="M10 36V17h6.1l7 10.7L30 17h6v19h-5.2V26.4L25 35h-3.9l-5.9-8.6V36z" fill="#fff" />
 	<path d="M10 40c6.5-4.4 11.7 3.7 18.8 0 3.3-1.7 5.7-4.4 7.2-8" fill="none" stroke="#F3C04E" stroke-linecap="round" stroke-width="3.6" />
 	<text x="56" y="35" fill="#5b545b" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="27" font-weight="850" letter-spacing="0">MTrek</text>

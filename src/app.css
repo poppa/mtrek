@@ -41,10 +41,10 @@
 		oklch(from var(--line) calc(l + 0.2) c h)
 	);
 
-	--brand: #cd5c5c;
-	--brand-hover: #ad4646;
-	--brand-soft: #f8dddd;
-	--brand-ink: #6d2929;
+	--brand: #427aa1;
+	--brand-hover: oklch(from var(--brand) calc(l - 0.1) c h);
+	--brand-soft: oklch(from var(--brand) calc(l + 0.3) c h);
+	--brand-ink: #fff;
 
 	--on-brand: #ffffff;
 
@@ -93,6 +93,7 @@
 	--shadow: 0 16px 40px rgb(59 42 40 / 0.09);
 
 	--inline-gap: 0.35rem;
+	--border-radius: 8px;
 
 	color: var(--ink);
 	background: var(--bg);
@@ -252,7 +253,7 @@ h3 {
 	min-height: 2.6rem;
 	padding: 0.68rem 1rem;
 	border: 1px solid var(--line);
-	border-radius: 8px;
+	border-radius: var(--border-radius);
 	color: var(--ink);
 	background: var(--surface);
 	cursor: pointer;
@@ -277,7 +278,7 @@ h3 {
 
 .button.primary {
 	border-color: var(--brand);
-	color: var(--on-brand);
+	color: var(--brand-ink);
 	background: var(--brand);
 }
 
@@ -327,7 +328,7 @@ h3 {
 
 .panel {
 	border: 1px solid var(--line);
-	border-radius: 8px;
+	border-radius: var(--border-radius);
 	background: var(--surface);
 	box-shadow: var(--shadow);
 }
@@ -413,7 +414,7 @@ h3 {
 .field textarea {
 	width: 100%;
 	border: 1px solid var(--line);
-	border-radius: 8px;
+	border-radius: var(--border-radius);
 	background: var(--input-bg);
 	color: var(--ink);
 }
@@ -445,7 +446,7 @@ h3 {
 .form-error,
 .empty {
 	margin: 0;
-	border-radius: 8px;
+	border-radius: var(--border-radius);
 	padding: 0.75rem 0.85rem;
 	line-height: 1.45;
 }
@@ -478,7 +479,7 @@ h3 {
 .participant,
 .round-chip {
 	border: 1px solid var(--line);
-	border-radius: 8px;
+	border-radius: var(--border-radius);
 	background: var(--surface);
 }
 
@@ -579,7 +580,7 @@ h3 {
 	min-width: min(100%, 20rem);
 	padding: 0.85rem;
 	border: 1px solid var(--line);
-	border-radius: 8px;
+	border-radius: var(--border-radius);
 	background: var(--surface);
 }
 
@@ -587,7 +588,7 @@ h3 {
 	display: block;
 	overflow: hidden;
 	padding: 0.55rem 0.65rem;
-	border-radius: 6px;
+	border-radius: calc(var(--border-radius) * 0.75);
 	background: var(--surface-soft);
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -632,15 +633,19 @@ h3 {
 	gap: 0.45rem;
 	padding: 0.45rem 0.65rem;
 	font-weight: 750;
+
+	--chip-border: var(--line-strong);
 }
 
 a.round-chip:hover {
-	border-color: var(--line-strong);
+	border-color: var(--chip-border);
 	transform: translateY(-1px);
 }
 
 .round-chip[data-status='completed'] {
+	--chip-border: oklch(from var(--brand) calc(l - 0.2) c h);
 	background: var(--brand);
+	color: var(--brand-ink);
 }
 
 .round-chip[data-status='rating'] {
@@ -674,7 +679,7 @@ a.round-chip:hover {
 	aspect-ratio: 1;
 	place-items: center;
 	overflow: hidden;
-	border-radius: 8px;
+	border-radius: var(--border-radius);
 	/* color: var(--on-brand);
 	background: var(--violet); */
 	font-weight: 900;
@@ -728,7 +733,7 @@ a.round-chip:hover {
 	align-items: center;
 	padding: 0.7rem;
 	border: 1px solid var(--line);
-	border-radius: 8px;
+	border-radius: var(--border-radius);
 	background: var(--input-bg);
 }
 
@@ -737,9 +742,9 @@ a.round-chip:hover {
 	width: 2.1rem;
 	height: 2.1rem;
 	place-items: center;
-	border-radius: 8px;
+	border-radius: var(--border-radius);
 	color: var(--brand-ink);
-	background: var(--brand-soft);
+	background: var(--brand);
 	font-weight: 900;
 }
 
@@ -768,7 +773,7 @@ a.round-chip:hover {
 	gap: 1rem;
 	padding: 1rem;
 	border: 1px solid var(--line);
-	border-radius: 8px;
+	border-radius: var(--border-radius);
 	background: var(--surface);
 	box-shadow: var(--shadow);
 }
@@ -795,9 +800,9 @@ a.round-chip:hover {
 	min-width: 5rem;
 	place-items: center;
 	padding: 0.55rem 0.7rem;
-	border-radius: 8px;
+	border-radius: var(--border-radius);
 	color: var(--brand-ink);
-	background: var(--brand-soft);
+	background: var(--brand);
 }
 
 .score-box span {
@@ -807,7 +812,7 @@ a.round-chip:hover {
 }
 
 .score-box small {
-	color: var(--muted);
+	color: var(--brand-soft);
 	font-size: 0.72rem;
 	font-weight: 750;
 }
@@ -837,7 +842,7 @@ a.round-chip:hover {
 	align-items: center;
 	padding: 0.65rem;
 	border: 1px solid var(--line);
-	border-radius: 8px;
+	border-radius: var(--border-radius);
 	background: var(--input-bg);
 }
 
@@ -860,7 +865,7 @@ a.round-chip:hover {
 	min-width: 2.7rem;
 	min-height: 2.2rem;
 	place-items: center;
-	border-radius: 8px;
+	border-radius: var(--border-radius);
 	color: var(--on-brand);
 	background: var(--brand);
 	font-weight: 900;
