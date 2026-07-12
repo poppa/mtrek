@@ -1,10 +1,9 @@
-import { error, json, type RequestHandler } from '@sveltejs/kit';
-
-import { getLastConcludedYear } from '$lib/server/trek-service';
 import {
 	hasSpotifySearchConfig,
 	searchSpotifyAlbums
 } from '$lib/server/spotify';
+import { getLastConcludedYear } from '$lib/server/trek-service';
+import { error, json, type RequestHandler } from '@sveltejs/kit';
 
 export const GET: RequestHandler = async (event) => {
 	const session = await event.locals.auth();

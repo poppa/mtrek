@@ -30,7 +30,7 @@
 			</div>
 
 			{#if form?.joinError}
-				<p class="form-error">{form.joinError}</p>
+				<p class="form-error alert">{form.joinError}</p>
 			{/if}
 
 			{#if data.isSignedIn}

@@ -39,8 +39,25 @@
 	{/if}
 
 	{#if !providers.google && !providers.spotify}
-		<p class="notice">
+		<p class="notice alert">
 			Configure Google or Spotify OAuth variables in `.env` to enable sign-in.
 		</p>
 	{/if}
 </div>
+
+<style lang="scss">
+	.auth-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--gap);
+		margin-block-start: var(--gutter);
+	}
+
+	.spotify {
+		--button-bg: #1db954;
+		--button-fg: #191414;
+		--button-line: light-dark(#268246, #4fd27d);
+
+		// --button-hover: oklch(from var(--surface) calc(l - 0.2) c h);
+	}
+</style>

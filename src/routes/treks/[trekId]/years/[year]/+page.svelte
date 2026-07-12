@@ -52,7 +52,7 @@
 	</div>
 
 	{#if data.selections.length === 0}
-		<p class="empty">No albums were recorded for this concluded year.</p>
+		<p class="empty alert">No albums were recorded for this concluded year.</p>
 	{:else}
 		<div class="history-list">
 			{#each data.selections as selection (selection.id)}
