@@ -166,7 +166,6 @@
 	.rating-breakdown {
 		display: grid;
 		gap: var(--gap);
-		// background-color: lime;
 	}
 
 	.rating-item {
