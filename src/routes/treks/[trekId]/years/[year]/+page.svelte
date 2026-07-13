@@ -29,95 +29,179 @@
 </svelte:head>
 
 <section class="page stack">
-	<a
-		class="button ghost small back-link"
-		href={resolve('/treks/[trekId]', { trekId: data.trek.id })}
-	>
-		<ArrowLeft size={16} />
-		<span>{data.trek.name}</span>
-	</a>
+	<div class="contents">
+		<a
+			class="button ghost back-link"
+			href={resolve('/treks/[trekId]', { trekId: data.trek.id })}
+		>
+			<ArrowLeft size={16} />
+			<span>{data.trek.name}</span>
+		</a>
 
-	<div class="trek-hero">
-		<div class="trek-title">
-			<p class="eyebrow">Concluded year</p>
-			<h1>{data.round.year}</h1>
-			<div class="meta-row">
-				<span><CalendarDays size={16} /> Round {data.round.position}</span>
-				<span><Disc3 size={16} /> {data.summary.albumCount} albums</span>
-				<span><Users size={16} /> {data.summary.ratingCount} ratings</span>
-				<span><Star size={16} /> {data.summary.averageScore ?? 'Unrated'}</span>
-				<span class="badge success"><CheckCircle2 size={15} /> completed</span>
+		<div class="trek-hero">
+			<div class="trek-title">
+				<p class="eyebrow">Concluded year</p>
+				<h1>{data.round.year}</h1>
+				<div class="meta-row">
+					<span><CalendarDays size={16} /> Round {data.round.position}</span>
+					<span><Disc3 size={16} /> {data.summary.albumCount} albums</span>
+					<span><Users size={16} /> {data.summary.ratingCount} ratings</span>
+					<span
+						><Star size={16} /> {data.summary.averageScore ?? 'Unrated'}</span
+					>
+					<span class="badge success"><CheckCircle2 size={15} /> completed</span
+					>
+				</div>
 			</div>
 		</div>
-	</div>
 
-	{#if data.selections.length === 0}
-		<p class="empty alert">No albums were recorded for this concluded year.</p>
-	{:else}
-		<div class="history-list">
-			{#each data.selections as selection (selection.id)}
-				<article class="history-card">
-					<div class="cover" class:noimage={!selection.imageUrl}>
-						{#if selection.imageUrl}
-							<img src={selection.imageUrl} alt="" />
-						{:else}
-							{initials(selection.albumName)}
-						{/if}
-					</div>
-
-					<div class="history-main">
-						<div class="history-heading">
-							<div>
-								<h2>{selection.albumName}</h2>
-								<div class="meta-row">
-									<Label label="Album by">{selection.artistName}</Label>
-									{#if selection.releaseDate}
-										<span>@{selection.releaseDate}</span>
-									{/if}
-									&bull;
-									<Label label="Picked by">{selection.submittedBy}</Label>
-								</div>
-							</div>
-
-							<div class="score-box">
-								<span>{selection.averageScore ?? '-'}</span>
-								<small>{selection.ratingCount} ratings</small>
-							</div>
+		{#if data.selections.length === 0}
+			<p class="empty alert">
+				No albums were recorded for this concluded year.
+			</p>
+		{:else}
+			<div class="history-list">
+				{#each data.selections as selection (selection.id)}
+					<article class="card history-card">
+						<div class="cover" class:noimage={!selection.imageUrl}>
+							{#if selection.imageUrl}
+								<img src={selection.imageUrl} alt="" />
+							{:else}
+								{initials(selection.albumName)}
+							{/if}
 						</div>
 
-						{#if selection.externalUrl}
-							<a
-								class="button small album-link"
-								href={selection.externalUrl}
-								target="_blank"
-								rel="external noreferrer"
-							>
-								<ExternalLink size={15} />
-								<span>Open album</span>
-							</a>
-						{/if}
-
-						<div class="rating-breakdown">
-							{#each selection.ratings as rating (`${selection.id}-${rating.userId}`)}
-								<div class="rating-item">
-									{#if rating.userImage}
-										<img class="avatar" src={rating.userImage} alt="" />
-									{:else}
-										<div class="avatar"></div>
-									{/if}
-									<div>
-										<strong>{rating.displayName}</strong>
-										{#if rating.note}
-											<p>{rating.note}</p>
+						<div class="history-main">
+							<div class="history-heading">
+								<div>
+									<h2>{selection.albumName}</h2>
+									<div class="meta-row">
+										<Label label="Album by">{selection.artistName}</Label>
+										{#if selection.releaseDate}
+											<span>@{selection.releaseDate}</span>
 										{/if}
+										&bull;
+										<Label label="Picked by">{selection.submittedBy}</Label>
 									</div>
-									<span class="rating-score">{rating.displayScore}</span>
 								</div>
-							{/each}
+
+								<div class="score-box">
+									<span>{selection.averageScore ?? '-'}</span>
+									<small>{selection.ratingCount} ratings</small>
+								</div>
+							</div>
+
+							{#if selection.externalUrl}
+								<a
+									class="button small album-link"
+									href={selection.externalUrl}
+									target="_blank"
+									rel="external noreferrer"
+								>
+									<ExternalLink size={15} />
+									<span>Open album</span>
+								</a>
+							{/if}
+
+							<div class="rating-breakdown">
+								{#each selection.ratings as rating (`${selection.id}-${rating.userId}`)}
+									<div class="rating-item">
+										{#if rating.userImage}
+											<img class="avatar" src={rating.userImage} alt="" />
+										{:else}
+											<div class="avatar"></div>
+										{/if}
+										<div>
+											<strong>{rating.displayName}</strong>
+											{#if rating.note}
+												<p>{rating.note}</p>
+											{/if}
+										</div>
+										<span class="rating-score">{rating.displayScore}</span>
+									</div>
+								{/each}
+							</div>
 						</div>
-					</div>
-				</article>
-			{/each}
-		</div>
-	{/if}
+					</article>
+				{/each}
+			</div>
+		{/if}
+	</div>
 </section>
+
+<style lang="scss">
+	.history-list {
+		display: grid;
+		gap: var(--gutter);
+	}
+
+	.history-card {
+		display: grid;
+		grid-template-columns: 7rem minmax(0, 1fr);
+		gap: var(--gutter);
+		background: var(--surface);
+
+		@container app (width < 600px) {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	.history-card .cover {
+		width: 7rem;
+	}
+
+	.history-main {
+		display: grid;
+		gap: 0.85rem;
+		min-width: 0;
+	}
+
+	.history-heading {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		gap: 1rem;
+		align-items: start;
+	}
+
+	.rating-breakdown {
+		display: grid;
+		gap: var(--gap);
+		// background-color: lime;
+	}
+
+	.rating-item {
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr) auto;
+		gap: var(--gap);
+		align-items: center;
+		padding: var(--gap);
+		border: 1px solid var(--line);
+		border-radius: var(--border-radius);
+		background: var(--input-bg);
+	}
+
+	.rating-item strong {
+		display: block;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.rating-item p {
+		margin: 0.15rem 0 0;
+		color: var(--muted);
+		font-size: 0.9rem;
+		line-height: 1.35;
+	}
+
+	.rating-score {
+		display: inline-grid;
+		min-width: 2.7rem;
+		min-height: 2.2rem;
+		place-items: center;
+		border-radius: var(--border-radius);
+		color: var(--on-brand);
+		background: var(--brand);
+		font-weight: 900;
+	}
+</style>

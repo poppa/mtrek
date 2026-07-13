@@ -172,7 +172,7 @@
 		gap: calc(var(--gutter) * 2);
 		grid-template-columns: clamp(320px, 30%, 480px) auto;
 
-		@container app (width < 600px) {
+		@container app (width < 834px) {
 			grid-template-columns: 1fr;
 		}
 	}
@@ -193,8 +193,8 @@
 		gap: var(--gap);
 
 		transition:
-			border-color 175ms ease-in,
-			background-color 175ms ease-in;
+			border-color 125ms ease-in,
+			background-color 125ms ease-in;
 
 		&:hover {
 			border-color: var(--line-strong);

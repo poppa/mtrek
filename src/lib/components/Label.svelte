@@ -16,3 +16,18 @@
 	<span class="label">{label}</span>
 	{@render children()}
 </div>
+
+<style lang="scss">
+	.with-label {
+		display: flex;
+		gap: var(--inline-gap);
+	}
+
+	.with-label.small {
+		font-size: small;
+	}
+
+	.with-label .label {
+		color: var(--muted);
+	}
+</style>

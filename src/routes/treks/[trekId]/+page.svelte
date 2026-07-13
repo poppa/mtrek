@@ -204,7 +204,8 @@
 											<strong>{data.mySelection.albumName}</strong>
 											<span class="badge violet">Your pick</span>
 										</div>
-										<Label label="Album by">{data.mySelection.artistName}</Label
+										<Label label="Album by" small
+											>{data.mySelection.artistName}</Label
 										>
 										{#if canDeleteSelection}
 											<form method="post" action="?/deleteSelection">
@@ -216,145 +217,147 @@
 										{/if}
 									</div>
 								</div>
-							{/if}
+							{:else}
+								<div class="stack">
+									<div class="section-header">
+										<h3>Find an album</h3>
+										<span
+											class:notice={!data.spotifySearchConfigured}
+											class="badge"
+										>
+											{data.spotifySearchConfigured
+												? 'Spotify ready'
+												: 'Manual mode'}
+										</span>
+									</div>
 
-							<div class="stack">
-								<div class="section-header">
-									<h3>Find an album</h3>
-									<span
-										class:notice={!data.spotifySearchConfigured}
-										class="badge"
-									>
-										{data.spotifySearchConfigured
-											? 'Spotify ready'
-											: 'Manual mode'}
-									</span>
+									<form class="form-grid search" onsubmit={searchAlbums}>
+										<div class="field">
+											<label for="album-search">Album or artist</label>
+											<input
+												id="album-search"
+												bind:value={query}
+												autocomplete="off"
+												placeholder="Search Spotify"
+												disabled={!data.spotifySearchConfigured}
+											/>
+										</div>
+										<button
+											class="button"
+											type="submit"
+											disabled={!data.spotifySearchConfigured || isSearching}
+										>
+											<Search size={18} />
+											<span>{isSearching ? 'Searching' : 'Search'}</span>
+										</button>
+									</form>
+
+									{#if searchMessage}
+										<p class="notice alert">{searchMessage}</p>
+									{/if}
+
+									{#if results.length > 0}
+										<div class="search-results">
+											{#each results as album (album.spotifyAlbumId)}
+												<form
+													class="album-card wide"
+													method="post"
+													action="?/selectAlbum"
+												>
+													<input
+														type="hidden"
+														name="spotifyAlbumId"
+														value={album.spotifyAlbumId}
+													/>
+													<input
+														type="hidden"
+														name="albumName"
+														value={album.albumName}
+													/>
+													<input
+														type="hidden"
+														name="artistName"
+														value={album.artistName}
+													/>
+													<input
+														type="hidden"
+														name="releaseDate"
+														value={album.releaseDate ?? ''}
+													/>
+													<input
+														type="hidden"
+														name="imageUrl"
+														value={album.imageUrl ?? ''}
+													/>
+													<input
+														type="hidden"
+														name="externalUrl"
+														value={album.externalUrl ?? ''}
+													/>
+
+													<div class="cover" class:noimage={!album.imageUrl}>
+														{#if album.imageUrl}
+															<img src={album.imageUrl} alt="" />
+														{:else}
+															{initials(album.albumName)}
+														{/if}
+													</div>
+													<div class="album-info">
+														<strong>{album.albumName}</strong>
+														<Label label="Album by" small
+															>{album.artistName}</Label
+														>
+														<div class="inline-row">
+															<span
+																>{album.releaseDate ??
+																	data.currentRound.year}</span
+															>
+															<button class="button small" type="submit">
+																<Music2 size={16} />
+																<span>Select</span>
+															</button>
+														</div>
+													</div>
+												</form>
+											{/each}
+										</div>
+									{/if}
 								</div>
 
-								<form class="form-grid search" onsubmit={searchAlbums}>
-									<div class="field">
-										<label for="album-search">Album or artist</label>
-										<input
-											id="album-search"
-											bind:value={query}
-											autocomplete="off"
-											placeholder="Search Spotify"
-											disabled={!data.spotifySearchConfigured}
-										/>
+								<hr class="divider" />
+
+								<form class="form-grid" method="post" action="?/selectAlbum">
+									<h3>Manual entry</h3>
+									<div class="two-col">
+										<div class="field">
+											<label for="albumName">Album</label>
+											<input id="albumName" name="albumName" required />
+										</div>
+										<div class="field">
+											<label for="artistName">Artist</label>
+											<input id="artistName" name="artistName" required />
+										</div>
 									</div>
-									<button
-										class="button"
-										type="submit"
-										disabled={!data.spotifySearchConfigured || isSearching}
-									>
-										<Search size={18} />
-										<span>{isSearching ? 'Searching' : 'Search'}</span>
+									<div class="two-col">
+										<div class="field">
+											<label for="releaseDate">Release date</label>
+											<input
+												id="releaseDate"
+												name="releaseDate"
+												placeholder={String(data.currentRound.year)}
+											/>
+										</div>
+										<div class="field">
+											<label for="externalUrl">Album link</label>
+											<input id="externalUrl" name="externalUrl" type="url" />
+										</div>
+									</div>
+									<button class="button primary" type="submit">
+										<Music2 size={18} />
+										<span>Save album</span>
 									</button>
 								</form>
-
-								{#if searchMessage}
-									<p class="notice alert">{searchMessage}</p>
-								{/if}
-
-								{#if results.length > 0}
-									<div class="search-results">
-										{#each results as album (album.spotifyAlbumId)}
-											<form
-												class="album-card wide"
-												method="post"
-												action="?/selectAlbum"
-											>
-												<input
-													type="hidden"
-													name="spotifyAlbumId"
-													value={album.spotifyAlbumId}
-												/>
-												<input
-													type="hidden"
-													name="albumName"
-													value={album.albumName}
-												/>
-												<input
-													type="hidden"
-													name="artistName"
-													value={album.artistName}
-												/>
-												<input
-													type="hidden"
-													name="releaseDate"
-													value={album.releaseDate ?? ''}
-												/>
-												<input
-													type="hidden"
-													name="imageUrl"
-													value={album.imageUrl ?? ''}
-												/>
-												<input
-													type="hidden"
-													name="externalUrl"
-													value={album.externalUrl ?? ''}
-												/>
-
-												<div class="cover" class:noimage={!album.imageUrl}>
-													{#if album.imageUrl}
-														<img src={album.imageUrl} alt="" />
-													{:else}
-														{initials(album.albumName)}
-													{/if}
-												</div>
-												<div class="album-info">
-													<strong>{album.albumName}</strong>
-													<Label label="Album by">{album.artistName}</Label>
-													<div class="inline-row">
-														<span
-															>{album.releaseDate ??
-																data.currentRound.year}</span
-														>
-														<button class="button small" type="submit">
-															<Music2 size={16} />
-															<span>Select</span>
-														</button>
-													</div>
-												</div>
-											</form>
-										{/each}
-									</div>
-								{/if}
-							</div>
-
-							<hr class="divider" />
-
-							<form class="form-grid" method="post" action="?/selectAlbum">
-								<h3>Manual entry</h3>
-								<div class="two-col">
-									<div class="field">
-										<label for="albumName">Album</label>
-										<input id="albumName" name="albumName" required />
-									</div>
-									<div class="field">
-										<label for="artistName">Artist</label>
-										<input id="artistName" name="artistName" required />
-									</div>
-								</div>
-								<div class="two-col">
-									<div class="field">
-										<label for="releaseDate">Release date</label>
-										<input
-											id="releaseDate"
-											name="releaseDate"
-											placeholder={String(data.currentRound.year)}
-										/>
-									</div>
-									<div class="field">
-										<label for="externalUrl">Album link</label>
-										<input id="externalUrl" name="externalUrl" type="url" />
-									</div>
-								</div>
-								<button class="button primary" type="submit">
-									<Music2 size={18} />
-									<span>Save album</span>
-								</button>
-							</form>
+							{/if}
 						{:else if data.currentRound?.status === 'rating'}
 							<div class="notice alert">
 								{remainingRatings} rating{remainingRatings === 1 ? '' : 's'} left
@@ -462,7 +465,7 @@
 				</section>
 
 				{#if data.selections.length > 0 && data.currentRound?.status === 'selecting'}
-					<section class="stack">
+					<section class="stack panel">
 						<div class="section-header">
 							<h2>Selections</h2>
 							<span class="badge"
@@ -565,8 +568,13 @@
 								<div class="ranked-list">
 									{#each data.rankedAlbums as album, index (album.id)}
 										<article class="ranked-album">
-											<span class="rank-number">{index + 1}</span>
-											<div class="cover" class:noimage={!album.imageUrl}>
+											<span class="rank-number align-self-start"
+												>{index + 1}</span
+											>
+											<div
+												class="cover align-self-start"
+												class:noimage={!album.imageUrl}
+											>
 												{#if album.imageUrl}
 													<img src={album.imageUrl} alt="" />
 												{:else}
@@ -574,8 +582,10 @@
 												{/if}
 											</div>
 											<div class="album-info">
-												<strong>{album.albumName}</strong>
-												<Label label="Album by">{album.artistName}</Label>
+												<div>
+													<strong>{album.albumName}</strong>
+													<Label label="Album by">{album.artistName}</Label>
+												</div>
 												<div class="inline-row">
 													<a
 														class="button ghost small"
@@ -753,13 +763,28 @@
 		gap: var(--gutter);
 		align-items: start;
 
-		@container app (width < 600px) {
+		@container app (width < 834px) {
 			grid-template-columns: 1fr;
+		}
+
+		.panel-header {
+			margin-block-end: var(--gutter);
+		}
+
+		aside {
+			.panel-header {
+				margin-block-end: 0;
+			}
 		}
 	}
 
 	.trek-hero {
 		align-items: flex-end;
+		grid-template-columns: 1fr auto;
+
+		@container app (width < 600px) {
+			grid-template-columns: 1fr;
+		}
 	}
 
 	.form-grid.search {
@@ -770,8 +795,7 @@
 	.invite-box {
 		display: grid;
 		gap: var(--gap);
-		min-width: min(100%, 20rem);
-		padding: var(--gap);
+		padding: var(--gutter);
 		border: 1px solid var(--line);
 		border-radius: var(--border-radius);
 		background: var(--surface);
@@ -789,5 +813,16 @@
 
 	.manage-trek {
 		margin-block-end: 0;
+	}
+
+	.rating-row {
+		display: grid;
+		grid-template-columns: 4rem minmax(0, 1fr) auto;
+		gap: var(--gap);
+		align-items: end;
+
+		@container app (width < 600px) {
+			grid-template-columns: 1fr;
+		}
 	}
 </style>

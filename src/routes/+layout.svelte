@@ -6,6 +6,7 @@
 	import type { LayoutData } from './$types';
 	//
 	import '../app.scss';
+	import { LogOut } from '@lucide/svelte';
 
 	let { children, data }: { children: Snippet; data: LayoutData } = $props();
 </script>
@@ -25,21 +26,24 @@
 
 			{#if data.session?.user}
 				<div class="user-tools">
-					<span class="user-name"
-						>{data.session.user.name ?? data.session.user.email}</span
-					>
 					{#if data.session.user.image}
 						<img class="avatar" src={data.session.user.image} alt="" />
 					{/if}
-					<!--
+					<span class="user-name"
+						>{data.session.user.name ?? data.session.user.email}</span
+					>
+
 					<form method="post" action="/signout">
 						<input type="hidden" name="redirectTo" value="/" />
-						<button class="button ghost small" type="submit" title="Sign out">
+						<button
+							class="button ghost small-text"
+							type="submit"
+							title="Sign out"
+						>
 							<LogOut size={16} />
 							<span>Sign out</span>
 						</button>
 					</form>
-					-->
 				</div>
 			{/if}
 		</div>
@@ -95,6 +99,11 @@
 		color: var(--muted);
 		text-overflow: ellipsis;
 		white-space: nowrap;
+		margin-inline-end: var(--gutter);
+
+		@container app (width < 600px) {
+			display: none;
+		}
 	}
 
 	.avatar {
