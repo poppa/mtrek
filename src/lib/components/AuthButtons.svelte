@@ -57,7 +57,5 @@
 		--button-bg: #1db954;
 		--button-fg: #191414;
 		--button-line: light-dark(#268246, #4fd27d);
-
-		// --button-hover: oklch(from var(--surface) calc(l - 0.2) c h);
 	}
 </style>
