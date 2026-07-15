@@ -36,7 +36,7 @@
 					<form method="post" action="/signout">
 						<input type="hidden" name="redirectTo" value="/" />
 						<button
-							class="button ghost small-text"
+							class="button ghost small-text muted"
 							type="submit"
 							title="Sign out"
 						>
