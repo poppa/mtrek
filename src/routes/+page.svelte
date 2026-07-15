@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { CalendarDays, Disc3, Plus, Shuffle, Users } from '@lucide/svelte';
 	import AuthButtons from '$lib/components/AuthButtons.svelte';
+	import { CalendarDays, Disc3, Plus, Shuffle, Users } from '@lucide/svelte';
 	import type { ActionData, PageData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();

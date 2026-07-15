@@ -1,12 +1,6 @@
 import { env } from '$env/dynamic/private';
 import { db } from '$lib/server/db';
-import {
-	accounts,
-	authenticators,
-	sessions,
-	users,
-	verificationTokens
-} from '$lib/server/db/schema';
+import { authAdapterTables } from '$lib/server/db/schema';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import { SvelteKitAuth, type SvelteKitAuthConfig } from '@auth/sveltekit';
 import Google from '@auth/sveltekit/providers/google';
@@ -48,13 +42,7 @@ async function getAuthConfig(): Promise<SvelteKitAuthConfig> {
 	}
 
 	return {
-		adapter: DrizzleAdapter(db, {
-			usersTable: users,
-			accountsTable: accounts,
-			sessionsTable: sessions,
-			verificationTokensTable: verificationTokens,
-			authenticatorsTable: authenticators
-		}),
+		adapter: DrizzleAdapter(db, authAdapterTables),
 		providers,
 		secret: env.AUTH_SECRET,
 		trustHost: env.AUTH_TRUST_HOST === 'true' || !env.AUTH_TRUST_HOST,

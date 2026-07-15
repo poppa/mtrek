@@ -1,7 +1,6 @@
-import { error, fail, redirect, type Actions } from '@sveltejs/kit';
-
-import { getAuthProviderStatus } from '../../../auth';
 import { getTrekByInviteCode, joinTrek } from '$lib/server/trek-service';
+import { error, fail, redirect, type Actions } from '@sveltejs/kit';
+import { getAuthProviderStatus } from '../../../auth';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {

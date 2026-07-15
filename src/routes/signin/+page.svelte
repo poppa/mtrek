@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { LogIn } from '@lucide/svelte';
 	import AuthButtons from '$lib/components/AuthButtons.svelte';
+	import { LogIn } from '@lucide/svelte';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();

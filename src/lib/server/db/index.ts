@@ -1,8 +1,6 @@
+import { env } from '$env/dynamic/private';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
-
-import { env } from '$env/dynamic/private';
-
 import * as schema from './schema';
 
 const localDatabaseUrl = 'postgres://postgres:postgres@localhost:5432/mtrek';

@@ -1,7 +1,5 @@
-import { error, fail, redirect, type Actions } from '@sveltejs/kit';
-
-import { hasSpotifySearchConfig } from '$lib/server/spotify';
 import { readString, requireUserId } from '$lib/server/session';
+import { hasSpotifySearchConfig } from '$lib/server/spotify';
 import {
 	advanceTrek,
 	deleteOwnSelection,
@@ -10,9 +8,10 @@ import {
 	parseScoreTenth,
 	rateSelection,
 	removeParticipant,
-	updateTrekTitle,
-	selectAlbum
+	selectAlbum,
+	updateTrekTitle
 } from '$lib/server/trek-service';
+import { error, fail, redirect, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {

@@ -15,7 +15,7 @@ export type TrekStatus = 'active' | 'completed';
 export type ParticipantRole = 'owner' | 'participant';
 export type RoundStatus = 'selecting' | 'rating' | 'completed';
 
-export const users = pgTable('user', {
+const usersTable = pgTable('user', {
 	id: text('id')
 		.primaryKey()
 		.$defaultFn(() => crypto.randomUUID()),
@@ -23,9 +23,11 @@ export const users = pgTable('user', {
 	email: text('email').unique(),
 	emailVerified: timestamp('emailVerified', { mode: 'date' }),
 	image: text('image')
-}).enableRLS();
+});
 
-export const accounts = pgTable(
+export const users = usersTable.enableRLS();
+
+const accountsTable = pgTable(
 	'account',
 	{
 		userId: text('userId')
@@ -48,9 +50,11 @@ export const accounts = pgTable(
 		}),
 		userIdIdx: index('account_user_id_idx').on(account.userId)
 	})
-).enableRLS();
+);
 
-export const sessions = pgTable(
+export const accounts = accountsTable.enableRLS();
+
+const sessionsTable = pgTable(
 	'session',
 	{
 		sessionToken: text('sessionToken').primaryKey(),
@@ -62,9 +66,11 @@ export const sessions = pgTable(
 	(session) => ({
 		userIdIdx: index('session_user_id_idx').on(session.userId)
 	})
-).enableRLS();
+);
 
-export const verificationTokens = pgTable(
+export const sessions = sessionsTable.enableRLS();
+
+const verificationTokensTable = pgTable(
 	'verificationToken',
 	{
 		identifier: text('identifier').notNull(),
@@ -76,9 +82,11 @@ export const verificationTokens = pgTable(
 			columns: [verificationToken.identifier, verificationToken.token]
 		})
 	})
-).enableRLS();
+);
 
-export const authenticators = pgTable(
+export const verificationTokens = verificationTokensTable.enableRLS();
+
+const authenticatorsTable = pgTable(
 	'authenticator',
 	{
 		credentialID: text('credentialID').notNull().unique(),
@@ -97,7 +105,17 @@ export const authenticators = pgTable(
 			columns: [authenticator.userId, authenticator.credentialID]
 		})
 	})
-).enableRLS();
+);
+
+export const authenticators = authenticatorsTable.enableRLS();
+
+export const authAdapterTables = {
+	usersTable,
+	accountsTable,
+	sessionsTable,
+	verificationTokensTable,
+	authenticatorsTable
+};
 
 export const treks = pgTable(
 	'trek',

@@ -1,14 +1,13 @@
-import { fail, redirect, type Actions } from '@sveltejs/kit';
-
-import { getAuthProviderStatus } from '../auth';
-import { hasSpotifySearchConfig } from '$lib/server/spotify';
 import { readString, requireUserId } from '$lib/server/session';
+import { hasSpotifySearchConfig } from '$lib/server/spotify';
 import {
 	createTrek,
 	getLastConcludedYear,
 	listTreksForUser,
 	parseBoundedYear
 } from '$lib/server/trek-service';
+import { fail, redirect, type Actions } from '@sveltejs/kit';
+import { getAuthProviderStatus } from '../auth';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {

@@ -2,11 +2,11 @@
 	import { resolve } from '$app/paths';
 	import favicon from '$lib/assets/favicon.svg';
 	import logo from '$lib/assets/logo.svg';
+	import { LogOut } from '@lucide/svelte';
 	import type { Snippet } from 'svelte';
 	import type { LayoutData } from './$types';
 	//
 	import '../app.scss';
-	import { LogOut } from '@lucide/svelte';
 
 	let { children, data }: { children: Snippet; data: LayoutData } = $props();
 </script>

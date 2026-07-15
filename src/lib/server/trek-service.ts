@@ -1,6 +1,3 @@
-import { error } from '@sveltejs/kit';
-import { and, asc, count, desc, eq, inArray, ne } from 'drizzle-orm';
-
 import { db } from '$lib/server/db';
 import {
 	albumSelections,
@@ -11,6 +8,8 @@ import {
 	users,
 	type RoundStatus
 } from '$lib/server/db/schema';
+import { error } from '@sveltejs/kit';
+import { and, asc, count, desc, eq, inArray, ne } from 'drizzle-orm';
 
 type Trek = typeof treks.$inferSelect;
 type TrekRound = typeof trekRounds.$inferSelect;

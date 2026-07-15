@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import Label from '$lib/components/Label.svelte';
 	import {
 		CalendarDays,
 		CheckCircle2,
@@ -16,7 +17,6 @@
 		Users
 	} from '@lucide/svelte';
 	import type { ActionData, PageData } from './$types';
-	import Label from '$lib/components/Label.svelte';
 
 	type AlbumSearchResult = {
 		spotifyAlbumId: string;
