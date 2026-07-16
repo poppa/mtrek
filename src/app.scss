@@ -1079,19 +1079,8 @@ a.round-chip:hover {
 	border-radius: var(--border-radius);
 	color: var(--button-fg);
 	background-color: var(--button-bg);
-	cursor: pointer;
+	cursor: default;
 	justify-content: center;
-
-	transition:
-		border-color 125ms ease-out,
-		background-color 125ms ease-out,
-		color 125ms ease-out;
-
-	&:hover:not(:disabled) {
-		border-color: var(--button-line-hover);
-		background-color: var(--button-bg-hover);
-		color: var(--button-fg-hover);
-	}
 
 	&.primary {
 		--button-bg: var(--brand);
@@ -1127,6 +1116,22 @@ a.round-chip:hover {
 		&:hover {
 			--button-fg: var(--ink);
 		}
+	}
+}
+
+a.button,
+button.button {
+	cursor: pointer;
+
+	transition:
+		border-color 125ms ease-out,
+		background-color 125ms ease-out,
+		color 125ms ease-out;
+
+	&:hover:not(:disabled) {
+		border-color: var(--button-line-hover);
+		background-color: var(--button-bg-hover);
+		color: var(--button-fg-hover);
 	}
 }
 

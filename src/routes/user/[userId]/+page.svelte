@@ -1,9 +1,15 @@
 <script lang="ts">
-	import { CheckCircle2, ExternalLink, LogOut, Music2 } from '@lucide/svelte';
-	import type { PageData } from './$types';
 	import { resolve } from '$app/paths';
 	import Label from '$lib/components/Label.svelte';
 	import { initials } from '$lib/utils';
+	import {
+		CheckCircle2,
+		CircleDashed,
+		ExternalLink,
+		LogOut,
+		Music2
+	} from '@lucide/svelte';
+	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
 
@@ -109,16 +115,23 @@
 													{album.trekName}
 												</a>
 
-												<a
-													class="button small"
-													href={resolve('/treks/[trekId]/years/[year]', {
-														trekId: album.trekId,
-														year: String(album.year)
-													})}
-												>
-													<CheckCircle2 size={15} />
-													{album.year}
-												</a>
+												{#if album.roundStatus === 'completed'}
+													<a
+														class="button small"
+														href={resolve('/treks/[trekId]/years/[year]', {
+															trekId: album.trekId,
+															year: String(album.year)
+														})}
+													>
+														<CheckCircle2 size={15} />
+														{album.year}
+													</a>
+												{:else}
+													<span class="small button muted">
+														<CircleDashed size={15} />
+														{album.year}
+													</span>
+												{/if}
 											{/if}
 										</div>
 									</div>

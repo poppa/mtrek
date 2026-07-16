@@ -908,7 +908,8 @@ export async function getRankedAlbumsForUser(userId: string) {
 				roundPosition: trekRounds.position,
 				userName: users.name,
 				userEmail: users.email,
-				rating: ratings.scoreTenth
+				rating: ratings.scoreTenth,
+				roundStatus: trekRounds.status
 			})
 			.from(ratings)
 			.innerJoin(albumSelections, eq(albumSelections.id, ratings.selectionId))
