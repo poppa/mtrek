@@ -27,6 +27,10 @@
 	});
 </script>
 
+<svelte:head>
+	<title>{data.user.name} · MTrek</title>
+</svelte:head>
+
 <section class="page auth-screen">
 	<div class="contents">
 		<div class="trek-hero">
