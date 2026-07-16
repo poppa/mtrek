@@ -7,6 +7,7 @@
 		CircleDashed,
 		ExternalLink,
 		LogOut,
+		MessageSquareMore,
 		Music2
 	} from '@lucide/svelte';
 	import type { PageData } from './$types';
@@ -91,9 +92,15 @@
 												href={resolve('/user/[userId]', {
 													userId: album.userId
 												})}
-												class="muted">{album.userName}</a
+												class="muted underline">{album.userName}</a
 											></small
 										>
+										{#if album.ratingNote}
+											<div class="note">
+												<MessageSquareMore size={15} />
+												{album.ratingNote}
+											</div>
+										{/if}
 										<div class="links">
 											<a
 												href={album.externalUrl}
@@ -151,20 +158,22 @@
 						<h2>User Treks</h2>
 					</div>
 
-					{#each data.userTreks as trek (trek.id)}
-						<svelte:element
-							this={myMemberships[trek.id] ? 'a' : 'div'}
-							class="trek"
-							href={myMemberships[trek.id]
-								? resolve('/treks/[trekId]', { trekId: trek.id })
-								: undefined}
-						>
-							{trek.name}
-							<span class="badge" class:success={trek.status === 'completed'}>
-								{trek.status}
-							</span>
-						</svelte:element>
-					{/each}
+					<div class="user-treks">
+						{#each data.userTreks as trek (trek.id)}
+							<svelte:element
+								this={myMemberships[trek.id] ? 'a' : 'div'}
+								class="trek card"
+								href={myMemberships[trek.id]
+									? resolve('/treks/[trekId]', { trekId: trek.id })
+									: undefined}
+							>
+								<strong>{trek.name}</strong>
+								<span class="badge" class:success={trek.status === 'completed'}>
+									{trek.status}
+								</span>
+							</svelte:element>
+						{/each}
+					</div>
 				</section>
 			</aside>
 		</div>
@@ -213,8 +222,9 @@
 			}
 
 			.score-box {
-				grid-row: 1;
-				grid-column: 2;
+				grid-area: 1 / 2;
+				justify-self: end;
+				min-width: auto;
 			}
 
 			.album-info {
@@ -247,6 +257,21 @@
 	@container app (width < 834px) {
 		.trek-hero {
 			grid-template-columns: minmax(0, 1fr) auto;
+		}
+	}
+
+	.user-treks {
+		display: flex;
+		flex-direction: column;
+		gap: var(--gap);
+	}
+
+	.note {
+		margin-block: calc(var(--gap) / 1.5);
+
+		:global(.lucide-icon) {
+			margin-block-start: 1px;
+			margin-block-end: -2px;
 		}
 	}
 </style>

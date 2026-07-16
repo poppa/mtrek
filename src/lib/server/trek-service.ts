@@ -909,6 +909,7 @@ export async function getRankedAlbumsForUser(userId: string) {
 				userName: users.name,
 				userEmail: users.email,
 				rating: ratings.scoreTenth,
+				ratingNote: ratings.note,
 				roundStatus: trekRounds.status
 			})
 			.from(ratings)
