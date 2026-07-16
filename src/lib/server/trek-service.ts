@@ -613,6 +613,26 @@ export async function startNextRound(trekId: string) {
 	return insertedRounds[0] ?? null;
 }
 
+export async function getUser(userId: string) {
+	const user = (await db.select().from(users).where(eq(users.id, userId))).at(
+		0
+	);
+	if (!user) {
+		throw error(404, 'User not found.');
+	}
+
+	return user;
+}
+
+export async function getTrekMemberships(userId: string) {
+	const rows = await db
+		.select()
+		.from(trekParticipants)
+		.where(eq(trekParticipants.userId, userId));
+
+	return rows;
+}
+
 async function assertMember(trekId: string, userId: string) {
 	const membership = await getMembership(trekId, userId);
 
@@ -851,6 +871,60 @@ async function getSelectionsForConcludedRound(roundId: string) {
 	});
 }
 
+type AlbumSelection = {
+	id: string;
+	roundId: string;
+	userId: string;
+	spotifyAlbumId: string | null;
+	albumName: string;
+	artistName: string;
+	releaseDate: string | null;
+	imageUrl: string | null;
+	externalUrl: string | null;
+	createdAt: Date;
+	year: number;
+	roundPosition: number;
+	userName: string | null;
+	userEmail: string | null;
+};
+
+export async function getRankedAlbumsForUser(userId: string) {
+	try {
+		const selections = await db
+			.select({
+				id: albumSelections.id,
+				roundId: albumSelections.roundId,
+				userId: albumSelections.userId,
+				spotifyAlbumId: albumSelections.spotifyAlbumId,
+				albumName: albumSelections.albumName,
+				artistName: albumSelections.artistName,
+				releaseDate: albumSelections.releaseDate,
+				imageUrl: albumSelections.imageUrl,
+				externalUrl: albumSelections.externalUrl,
+				createdAt: albumSelections.createdAt,
+				year: trekRounds.year,
+				trekId: trekRounds.trekId,
+				trekName: treks.name,
+				roundPosition: trekRounds.position,
+				userName: users.name,
+				userEmail: users.email,
+				rating: ratings.scoreTenth
+			})
+			.from(ratings)
+			.innerJoin(albumSelections, eq(albumSelections.id, ratings.selectionId))
+			.innerJoin(users, eq(albumSelections.userId, users.id))
+			.innerJoin(trekRounds, eq(albumSelections.roundId, trekRounds.id))
+			.innerJoin(treks, eq(trekRounds.trekId, treks.id))
+			.where(eq(ratings.userId, userId))
+			.orderBy(desc(ratings.scoreTenth), asc(albumSelections.createdAt));
+
+		return selections;
+	} catch (err: unknown) {
+		console.error('Error:', err);
+		throw err;
+	}
+}
+
 async function getRankedAlbumsForTrek(trekId: string) {
 	const selections = await db
 		.select({
@@ -877,17 +951,20 @@ async function getRankedAlbumsForTrek(trekId: string) {
 		)
 		.orderBy(asc(trekRounds.year), asc(albumSelections.createdAt));
 
+	return resolveRanking(selections);
+}
+
+async function resolveRanking(selections: AlbumSelection[]) {
 	const selectionIds = selections.map((selection) => selection.id);
-	const ratingRows =
-		selectionIds.length > 0
-			? await db
-					.select({
-						selectionId: ratings.selectionId,
-						scoreTenth: ratings.scoreTenth
-					})
-					.from(ratings)
-					.where(inArray(ratings.selectionId, selectionIds))
-			: [];
+	const query = db
+		.select({
+			selectionId: ratings.selectionId,
+			scoreTenth: ratings.scoreTenth
+		})
+		.from(ratings)
+		.where(inArray(ratings.selectionId, selectionIds));
+
+	const ratingRows = selectionIds.length > 0 ? await query : [];
 	const ratingsBySelection = new Map<string, number[]>();
 
 	for (const rating of ratingRows) {

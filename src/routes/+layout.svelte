@@ -2,7 +2,6 @@
 	import { resolve } from '$app/paths';
 	import favicon from '$lib/assets/favicon.svg';
 	import logo from '$lib/assets/logo.svg';
-	import { LogOut } from '@lucide/svelte';
 	import type { Snippet } from 'svelte';
 	import type { LayoutData } from './$types';
 	//
@@ -26,24 +25,19 @@
 
 			{#if data.session?.user}
 				<div class="user-tools">
-					{#if data.session.user.image}
-						<img class="avatar" src={data.session.user.image} alt="" />
-					{/if}
-					<span class="user-name"
-						>{data.session.user.name ?? data.session.user.email}</span
+					<a
+						class="user-link"
+						href={resolve('/user/[userId]', {
+							userId: data.session.user?.id
+						})}
 					>
-
-					<form method="post" action="/signout">
-						<input type="hidden" name="redirectTo" value="/" />
-						<button
-							class="button ghost small-text muted"
-							type="submit"
-							title="Sign out"
+						<span class="user-name"
+							>{data.session.user.name ?? data.session.user.email}</span
 						>
-							<LogOut size={16} />
-							<span>Sign out</span>
-						</button>
-					</form>
+						{#if data.session.user.image}
+							<img class="avatar" src={data.session.user.image} alt="" />
+						{/if}
+					</a>
 				</div>
 			{/if}
 		</div>
@@ -99,11 +93,6 @@
 		color: var(--muted);
 		text-overflow: ellipsis;
 		white-space: nowrap;
-		margin-inline-end: var(--gutter);
-
-		@container app (width < 600px) {
-			display: none;
-		}
 	}
 
 	.avatar {
@@ -113,5 +102,11 @@
 		border-radius: 50%;
 		object-fit: cover;
 		background: var(--surface-soft);
+	}
+
+	.user-link {
+		display: flex;
+		align-items: center;
+		gap: var(--gap);
 	}
 </style>

@@ -1377,3 +1377,11 @@ button {
 .margin-gutter-block-start {
 	margin-block-start: var(--gutter);
 }
+
+.muted {
+	color: var(--muted);
+}
+
+.small {
+	font-size: var(--fs-small);
+}

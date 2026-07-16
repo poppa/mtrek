@@ -17,6 +17,7 @@
 		Users
 	} from '@lucide/svelte';
 	import type { ActionData, PageData } from './$types';
+	import { initials } from '$lib/utils';
 
 	type AlbumSearchResult = {
 		spotifyAlbumId: string;
@@ -89,15 +90,6 @@
 		} finally {
 			isSearching = false;
 		}
-	}
-
-	function initials(value: string) {
-		return value
-			.split(/\s+/)
-			.filter(Boolean)
-			.slice(0, 2)
-			.map((part) => part[0]?.toUpperCase())
-			.join('');
 	}
 
 	let manageTrekCollapsed = $state(true);
@@ -378,9 +370,15 @@
 											<strong>{selection.albumName}</strong>
 											<Label label="Album by">{selection.artistName}</Label>
 											<div class="inline-row">
-												<Label label="Picked by" small
-													>{selection.submittedBy}</Label
-												>
+												<Label label="Picked by" small>
+													<a
+														href={resolve('/user/[userId]', {
+															userId: selection.userId
+														})}
+													>
+														{selection.submittedBy}
+													</a>
+												</Label>
 												&bull;
 												<span
 													><Star size={15} />
@@ -692,7 +690,13 @@
 										<div class="avatar"></div>
 									{/if}
 									<div class="line-height-small">
-										<strong>{participant.displayName}</strong>
+										<a
+											href={resolve('/user/[userId]', {
+												userId: participant.userId
+											})}
+										>
+											<strong>{participant.displayName}</strong>
+										</a>
 										<span class="footer-note small">{participant.role}</span>
 									</div>
 									{#if isOwner && participant.role !== 'owner'}
