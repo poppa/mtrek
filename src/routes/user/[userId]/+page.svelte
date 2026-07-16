@@ -3,7 +3,7 @@
 	import Label from '$lib/components/Label.svelte';
 	import { initials } from '$lib/utils';
 	import {
-		CheckCircle2,
+		CircleCheck,
 		CircleDashed,
 		ExternalLink,
 		LogOut,
@@ -123,7 +123,7 @@
 															year: String(album.year)
 														})}
 													>
-														<CheckCircle2 size={15} />
+														<CircleCheck size={15} />
 														{album.year}
 													</a>
 												{:else}

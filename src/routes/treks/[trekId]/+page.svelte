@@ -3,7 +3,7 @@
 	import Label from '$lib/components/Label.svelte';
 	import {
 		CalendarDays,
-		CheckCircle2,
+		CircleCheck,
 		Disc3,
 		ExternalLink,
 		Link,
@@ -372,6 +372,7 @@
 											<div class="inline-row">
 												<Label label="Picked by" small>
 													<a
+														class="underline"
 														href={resolve('/user/[userId]', {
 															userId: selection.userId
 														})}
@@ -450,7 +451,7 @@
 						{:else if data.trek.status === 'completed'}
 							<div class="success alert">
 								<span class="align-text-and-icon">
-									<CheckCircle2 size={18} />
+									<CircleCheck size={18} />
 									All years in this range have been explored.
 								</span>
 							</div>
@@ -484,9 +485,16 @@
 									<div class="album-info">
 										<strong>{selection.albumName}</strong>
 										<Label label="Album by" small>{selection.artistName}</Label>
-										<Label label="Picked by" small
-											>{selection.submittedBy}</Label
-										>
+										<Label label="Picked by" small>
+											<a
+												href={resolve('/user/[userId]', {
+													userId: selection.userId
+												})}
+												class="underline"
+											>
+												{selection.submittedBy}
+											</a>
+										</Label>
 									</div>
 								</div>
 							{/each}
@@ -592,10 +600,17 @@
 															year: String(album.year)
 														})}
 													>
-														<CheckCircle2 size={15} />
+														<CircleCheck size={15} />
 														<span>{album.year}</span>
 													</a>
-													<span>Picked by {album.submittedBy}</span>
+													<Label label="Picked by" small>
+														<a
+															href={resolve('/user/[userId]', {
+																userId: album.userId
+															})}
+															class="underline">{album.submittedBy}</a
+														>
+													</Label>
 													{#if album.externalUrl}
 														<a
 															class="button small"
@@ -741,7 +756,7 @@
 												year: String(round.year)
 											})}
 										>
-											<CheckCircle2 size={15} />
+											<CircleCheck size={15} />
 											{round.year}
 										</a>
 									{:else}

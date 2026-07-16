@@ -4,7 +4,7 @@
 	import {
 		ArrowLeft,
 		CalendarDays,
-		CheckCircle2,
+		CircleCheck,
 		Disc3,
 		ExternalLink,
 		Star,
@@ -49,8 +49,7 @@
 					<span
 						><Star size={16} /> {data.summary.averageScore ?? 'Unrated'}</span
 					>
-					<span class="badge success"><CheckCircle2 size={15} /> completed</span
-					>
+					<span class="badge success"><CircleCheck size={15} /> completed</span>
 				</div>
 			</div>
 		</div>
@@ -81,7 +80,16 @@
 											<span>@{selection.releaseDate}</span>
 										{/if}
 										&bull;
-										<Label label="Picked by">{selection.submittedBy}</Label>
+										<Label label="Picked by">
+											<a
+												href={resolve('/user/[userId]', {
+													userId: selection.userId
+												})}
+												class="underline"
+											>
+												{selection.submittedBy}
+											</a>
+										</Label>
 									</div>
 								</div>
 
@@ -105,7 +113,12 @@
 
 							<div class="rating-breakdown">
 								{#each selection.ratings as rating (`${selection.id}-${rating.userId}`)}
-									<div class="rating-item">
+									<a
+										class="rating-item"
+										href={resolve('/user/[userId]', {
+											userId: rating.userId
+										})}
+									>
 										{#if rating.userImage}
 											<img class="avatar" src={rating.userImage} alt="" />
 										{:else}
@@ -113,12 +126,13 @@
 										{/if}
 										<div>
 											<strong>{rating.displayName}</strong>
+
 											{#if rating.note}
 												<p>{rating.note}</p>
 											{/if}
 										</div>
 										<span class="rating-score">{rating.displayScore}</span>
-									</div>
+									</a>
 								{/each}
 							</div>
 						</div>
