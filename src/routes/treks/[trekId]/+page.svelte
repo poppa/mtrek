@@ -369,43 +369,45 @@
 											{/if}
 										</div>
 										<div class="album-info">
-											<strong>{selection.albumName}</strong>
-											<Label label="Album by">{selection.artistName}</Label>
-											<div class="inline-row">
-												<Label label="Picked by" small>
-													<a
-														class="underline"
-														href={resolve('/user/[userId]', {
-															userId: selection.userId
-														})}
+											<div>
+												<strong>{selection.albumName}</strong>
+												<Label label="Album by">{selection.artistName}</Label>
+												<div class="inline-row">
+													<Label label="Picked by" small>
+														<a
+															class="underline"
+															href={resolve('/user/[userId]', {
+																userId: selection.userId
+															})}
+														>
+															{selection.submittedBy}
+														</a>
+													</Label>
+													&bull;
+													<span
+														><Star size={15} />
+														{selection.averageScore ?? 'Unrated'}</span
 													>
-														{selection.submittedBy}
-													</a>
-												</Label>
-												&bull;
-												<span
-													><Star size={15} />
-													{selection.averageScore ?? 'Unrated'}</span
-												>
-												{#if selection.userId === data.session?.user?.id && canDeleteSelection}
-													<form method="post" action="?/deleteSelection">
-														<button class="button danger small" type="submit">
-															<Trash2 size={15} />
-															<span>Delete pick</span>
-														</button>
-													</form>
-												{/if}
-												{#if selection.externalUrl}
-													<a
-														class="button small"
-														href={selection.externalUrl}
-														target="_blank"
-														rel="external noreferrer"
-													>
-														<ExternalLink size={15} />
-														<span>Open</span>
-													</a>
-												{/if}
+													{#if selection.userId === data.session?.user?.id && canDeleteSelection}
+														<form method="post" action="?/deleteSelection">
+															<button class="button danger small" type="submit">
+																<Trash2 size={15} />
+																<span>Delete pick</span>
+															</button>
+														</form>
+													{/if}
+													{#if selection.externalUrl}
+														<a
+															class="button small"
+															href={selection.externalUrl}
+															target="_blank"
+															rel="external noreferrer"
+														>
+															<ExternalLink size={15} />
+															<span>Open</span>
+														</a>
+													{/if}
+												</div>
 											</div>
 
 											<form
