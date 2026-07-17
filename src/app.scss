@@ -665,6 +665,14 @@ a.card {
 	transition:
 		background-color 125ms ease-in,
 		border-color 125ms ease-in;
+
+	&:hover {
+		border-color: var(--line-strong);
+		background-color: light-dark(
+			oklch(from var(--surface-soft) calc(l - 0.02) c h),
+			oklch(from var(--surface-soft) calc(l + 0.02) c h)
+		);
+	}
 }
 
 .participants {
@@ -879,13 +887,13 @@ a.round-chip:hover {
 	grid-template-columns: 2.4rem minmax(0, 1fr) auto;
 }
 
-.ranked-year:hover {
-	border-color: var(--line-strong);
-	background-color: light-dark(
-		oklch(from var(--surface-soft) calc(l - 0.02) c h),
-		oklch(from var(--surface-soft) calc(l + 0.02) c h)
-	);
-}
+// .ranked-year:hover {
+// 	border-color: var(--line-strong);
+// 	background-color: light-dark(
+// 		oklch(from var(--surface-soft) calc(l - 0.02) c h),
+// 		oklch(from var(--surface-soft) calc(l + 0.02) c h)
+// 	);
+// }
 
 // .ranked-album .cover {
 // 	width: 4rem;

@@ -192,13 +192,15 @@
 										{/if}
 									</div>
 									<div class="album-info">
-										<div class="grid-line">
-											<strong>{data.mySelection.albumName}</strong>
-											<span class="badge violet">Your pick</span>
+										<div>
+											<div class="grid-line">
+												<strong>{data.mySelection.albumName}</strong>
+												<span class="badge violet">Your pick</span>
+											</div>
+											<Label label="Album by" small
+												>{data.mySelection.artistName}</Label
+											>
 										</div>
-										<Label label="Album by" small
-											>{data.mySelection.artistName}</Label
-										>
 										{#if canDeleteSelection}
 											<form method="post" action="?/deleteSelection">
 												<button class="button danger small" type="submit">
@@ -483,18 +485,22 @@
 										{/if}
 									</div>
 									<div class="album-info">
-										<strong>{selection.albumName}</strong>
-										<Label label="Album by" small>{selection.artistName}</Label>
-										<Label label="Picked by" small>
-											<a
-												href={resolve('/user/[userId]', {
-													userId: selection.userId
-												})}
-												class="underline"
+										<div>
+											<strong>{selection.albumName}</strong>
+											<Label label="Album by" small
+												>{selection.artistName}</Label
 											>
-												{selection.submittedBy}
-											</a>
-										</Label>
+											<Label label="Picked by" small>
+												<a
+													href={resolve('/user/[userId]', {
+														userId: selection.userId
+													})}
+													class="underline"
+												>
+													{selection.submittedBy}
+												</a>
+											</Label>
+										</div>
 									</div>
 								</div>
 							{/each}
@@ -809,6 +815,14 @@
 	.form-grid.search {
 		grid-template-columns: 1fr auto;
 		align-items: last baseline;
+
+		+ p {
+			margin-block-start: var(--gutter);
+		}
+	}
+
+	.search-results {
+		margin-block-start: var(--gutter);
 	}
 
 	.invite-box {

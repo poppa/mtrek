@@ -243,6 +243,7 @@
 		display: grid;
 		grid-template-columns: 4rem auto;
 		align-self: start;
+		gap: var(--gap);
 	}
 
 	.links {
