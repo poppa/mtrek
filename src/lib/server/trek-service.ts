@@ -1081,9 +1081,7 @@ export async function getRankedConcludedYearsForTrek(
 		.where(
 			and(eq(trekRounds.trekId, trekId), eq(trekRounds.status, 'completed'))
 		)
-		.orderBy(asc(trekRounds.year))
-		.limit(limit)
-		.offset(offset);
+		.orderBy(asc(trekRounds.year));
 
 	const roundIds = concludedRounds.map((round) => round.roundId);
 	const selections =
@@ -1137,7 +1135,7 @@ export async function getRankedConcludedYearsForTrek(
 		}
 	}
 
-	return concludedRounds
+	const allRows = concludedRounds
 		.map((round) => {
 			const stats = statsByRound.get(round.roundId);
 			const ratingCount = stats?.ratingCount ?? 0;
@@ -1167,6 +1165,12 @@ export async function getRankedConcludedYearsForTrek(
 				left.year - right.year
 			);
 		});
+
+	if (!limit) {
+		return allRows;
+	}
+
+	return allRows.slice(offset, offset + limit);
 }
 
 async function refreshRoundState(trekId: string, roundId: string) {
