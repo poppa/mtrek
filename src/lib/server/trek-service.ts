@@ -986,11 +986,15 @@ export async function getRankedAlbumsForTrek(
 		.where(
 			and(eq(trekRounds.trekId, trekId), eq(trekRounds.status, 'completed'))
 		)
-		.orderBy(asc(trekRounds.year), asc(albumSelections.createdAt))
-		.limit(limit)
-		.offset(offset);
+		.orderBy(asc(trekRounds.year), asc(albumSelections.createdAt));
 
-	return resolveRanking(selections);
+	const resolvedRanked = resolveRanking(selections);
+
+	if (!limit) {
+		return resolvedRanked;
+	}
+
+	return (await resolvedRanked).slice(offset, offset + limit);
 }
 
 async function resolveRanking(selections: AlbumSelection[]) {
