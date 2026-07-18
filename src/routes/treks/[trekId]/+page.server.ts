@@ -1,4 +1,8 @@
-import { readString, requireUserId } from '$lib/server/session';
+import {
+	readString,
+	requireTrekParam,
+	requireUserId
+} from '$lib/server/session';
 import { hasSpotifySearchConfig } from '$lib/server/spotify';
 import {
 	advanceTrek,
@@ -11,7 +15,7 @@ import {
 	selectAlbum,
 	updateTrekTitle
 } from '$lib/server/trek-service';
-import { error, fail, redirect, type Actions } from '@sveltejs/kit';
+import { fail, redirect, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
@@ -176,11 +180,3 @@ export const actions: Actions = {
 		throw redirect(303, '/');
 	}
 };
-
-function requireTrekParam(trekId: string | undefined) {
-	if (!trekId) {
-		throw error(400, 'Missing trek id.');
-	}
-
-	return trekId;
-}

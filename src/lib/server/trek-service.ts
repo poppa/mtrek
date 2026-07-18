@@ -214,6 +214,22 @@ export async function joinTrek(inviteCode: string, userId: string) {
 	return trek.id;
 }
 
+export async function getSimpleTrekDetail(trekId: string, userId: string) {
+	const trek = await getTrek(trekId);
+
+	if (!trek) {
+		throw error(404, 'Trek not found.');
+	}
+
+	const membership = await getMembership(trekId, userId);
+
+	if (!membership) {
+		throw error(403, 'You need to join this trek first.');
+	}
+
+	return trek;
+}
+
 export async function getTrekDetail(trekId: string, userId: string) {
 	const trek = await getTrek(trekId);
 
@@ -260,6 +276,8 @@ export async function getTrekDetail(trekId: string, userId: string) {
 		completedYears > 0 ? await getRankedConcludedYearsForTrek(trekId) : [];
 	const rankedAlbums =
 		completedYears > 0 ? await getRankedAlbumsForTrek(trekId) : [];
+	const rankedYearsCount = await getRankedConcludedYearsCountForTrek(trekId);
+	const rankedAlbumsCount = await getAlbumCountForTrek(trekId);
 
 	return {
 		trek,
@@ -267,7 +285,9 @@ export async function getTrekDetail(trekId: string, userId: string) {
 		participants,
 		rounds: sortRoundsByYear(rounds),
 		rankedYears,
+		rankedYearsCount,
 		rankedAlbums,
+		rankedAlbumsCount,
 		currentRound,
 		selections,
 		mySelection:
@@ -927,7 +947,22 @@ export async function getRankedAlbumsForUser(userId: string) {
 	}
 }
 
-async function getRankedAlbumsForTrek(trekId: string) {
+export async function getAlbumCountForTrek(trekId: string) {
+	const selection = await db
+		.select({ count: count() })
+		.from(albumSelections)
+		.innerJoin(trekRounds, eq(albumSelections.roundId, trekRounds.id))
+		.where(
+			and(eq(trekRounds.trekId, trekId), eq(trekRounds.status, 'completed'))
+		);
+
+	return selection.at(0)?.count ?? 0;
+}
+
+export async function getRankedAlbumsForTrek(
+	trekId: string,
+	{ limit, offset } = { limit: 10, offset: 0 }
+) {
 	const selections = await db
 		.select({
 			id: albumSelections.id,
@@ -951,7 +986,9 @@ async function getRankedAlbumsForTrek(trekId: string) {
 		.where(
 			and(eq(trekRounds.trekId, trekId), eq(trekRounds.status, 'completed'))
 		)
-		.orderBy(asc(trekRounds.year), asc(albumSelections.createdAt));
+		.orderBy(asc(trekRounds.year), asc(albumSelections.createdAt))
+		.limit(limit)
+		.offset(offset);
 
 	return resolveRanking(selections);
 }
@@ -1015,7 +1052,21 @@ async function resolveRanking(selections: AlbumSelection[]) {
 		});
 }
 
-async function getRankedConcludedYearsForTrek(trekId: string) {
+export async function getRankedConcludedYearsCountForTrek(trekId: string) {
+	const selection = await db
+		.select({ count: count() })
+		.from(trekRounds)
+		.where(
+			and(eq(trekRounds.trekId, trekId), eq(trekRounds.status, 'completed'))
+		);
+
+	return selection.at(0)?.count ?? 0;
+}
+
+export async function getRankedConcludedYearsForTrek(
+	trekId: string,
+	{ limit, offset } = { limit: 10, offset: 0 }
+) {
 	const concludedRounds = await db
 		.select({
 			roundId: trekRounds.id,
@@ -1026,7 +1077,9 @@ async function getRankedConcludedYearsForTrek(trekId: string) {
 		.where(
 			and(eq(trekRounds.trekId, trekId), eq(trekRounds.status, 'completed'))
 		)
-		.orderBy(asc(trekRounds.year));
+		.orderBy(asc(trekRounds.year))
+		.limit(limit)
+		.offset(offset);
 
 	const roundIds = concludedRounds.map((round) => round.roundId);
 	const selections =

@@ -1,4 +1,4 @@
-import { redirect, type RequestEvent } from '@sveltejs/kit';
+import { error, redirect, type RequestEvent } from '@sveltejs/kit';
 
 export async function requireUserId(event: RequestEvent) {
 	const session = await event.locals.auth();
@@ -9,6 +9,14 @@ export async function requireUserId(event: RequestEvent) {
 	}
 
 	return userId;
+}
+
+export function requireTrekParam(trekId: string | undefined) {
+	if (!trekId) {
+		throw error(400, 'Missing trek id.');
+	}
+
+	return trekId;
 }
 
 export function readString(formData: FormData, key: string) {

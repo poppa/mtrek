@@ -101,6 +101,7 @@
 	--gutter: 1rem;
 	--gap: 0.6rem;
 	--inline-gap: 0.35rem;
+	--text-gap: 0.2rem;
 	--border-radius: 5px;
 
 	--fs-100: 0.3em;
@@ -1168,6 +1169,10 @@ button.button {
 	}
 }
 
+.panel-footer {
+	margin-block-start: var(--gap);
+}
+
 .badge {
 	display: inline-flex;
 	align-items: center;
@@ -1401,4 +1406,16 @@ button {
 
 .underline {
 	text-decoration: underline;
+}
+
+.goto {
+	align-items: center;
+	gap: var(--text-gap);
+	color: var(--muted);
+	display: inline-flex;
+
+	&:hover {
+		color: var(--ink);
+		text-decoration: underline;
+	}
 }

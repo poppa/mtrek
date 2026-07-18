@@ -3,6 +3,7 @@
 	import Label from '$lib/components/Label.svelte';
 	import {
 		CalendarDays,
+		ChevronsRight,
 		CircleCheck,
 		Disc3,
 		ExternalLink,
@@ -18,6 +19,7 @@
 	} from '@lucide/svelte';
 	import type { ActionData, PageData } from './$types';
 	import { initials } from '$lib/utils';
+	import RankedAlbum from '$lib/components/RankedAlbum.svelte';
 
 	type AlbumSearchResult = {
 		spotifyAlbumId: string;
@@ -518,7 +520,7 @@
 									<h2>Year ranking</h2>
 									<p class="footer-note">Concluded years by average score</p>
 								</div>
-								<span class="badge">{data.rankedYears.length}</span>
+								<span class="badge">{data.rankedYearsCount}</span>
 							</div>
 
 							{#if data.rankedYears.length === 0}
@@ -562,6 +564,18 @@
 								</div>
 							{/if}
 						</div>
+						<!-- {#if data.rankedYearsCount > 5}
+							<div class="panel-footer">
+								<a
+									href={resolve('/treks/[trekId]/year-ranking', {
+										trekId: data.trek.id
+									})}
+									class="goto"
+								>
+									All Year Rankings <ChevronsRight />
+								</a>
+							</div>
+						{/if} -->
 					</section>
 
 					<section class="panel">
@@ -571,7 +585,7 @@
 									<h2>Album ranking</h2>
 									<p class="footer-note">Across concluded years</p>
 								</div>
-								<span class="badge">{data.rankedAlbums.length}</span>
+								<span class="badge">{data.rankedAlbumsCount}</span>
 							</div>
 
 							{#if data.rankedAlbums.length === 0}
@@ -581,70 +595,25 @@
 							{:else}
 								<div class="ranked-list">
 									{#each data.rankedAlbums as album, index (album.id)}
-										<article class="ranked-album">
-											<span class="rank-number align-self-start"
-												>{index + 1}</span
-											>
-											<div
-												class="cover align-self-start"
-												class:noimage={!album.imageUrl}
-											>
-												{#if album.imageUrl}
-													<img src={album.imageUrl} alt="" />
-												{:else}
-													{initials(album.albumName)}
-												{/if}
-											</div>
-											<div class="album-info">
-												<div>
-													<strong>{album.albumName}</strong>
-													<Label label="Album by">{album.artistName}</Label>
-												</div>
-												<div class="inline-row">
-													<a
-														class="button ghost small"
-														href={resolve('/treks/[trekId]/years/[year]', {
-															trekId: data.trek.id,
-															year: String(album.year)
-														})}
-													>
-														<CircleCheck size={15} />
-														<span>{album.year}</span>
-													</a>
-													<Label label="Picked by" small>
-														<a
-															href={resolve('/user/[userId]', {
-																userId: album.userId
-															})}
-															class="underline">{album.submittedBy}</a
-														>
-													</Label>
-													{#if album.externalUrl}
-														<a
-															class="button small"
-															href={album.externalUrl}
-															target="_blank"
-															rel="external noreferrer"
-														>
-															<ExternalLink size={15} />
-															<span>Open</span>
-														</a>
-													{/if}
-												</div>
-											</div>
-											<div class="score-box compact">
-												<span>{album.averageScore ?? '-'}</span>
-												<small>
-													{album.ratingCount} rating{album.ratingCount === 1
-														? ''
-														: 's'}
-												</small>
-											</div>
-										</article>
+										<RankedAlbum
+											{album}
+											trekId={data.trek.id}
+											rank={index + 1}
+										/>
 									{/each}
 								</div>
 							{/if}
 						</div>
+						{#if data.rankedAlbumsCount > 10}
+							<div class="panel-footer">
+								<a
+									class="goto"
+									href={resolve('/treks/[trekId]/album-ranking', {
+										trekId: data.trek.id
+									})}>All Albums <ChevronsRight /></a
+								>
+							</div>
+						{/if}
 					</section>
 				{/if}
 			</div>
