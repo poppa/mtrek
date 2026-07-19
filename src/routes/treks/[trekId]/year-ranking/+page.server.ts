@@ -1,14 +1,14 @@
 import { requireTrekParam, requireUserId } from '$lib/server/session';
 import {
-	getAlbumCountForTrek,
-	getRankedAlbumsForTrek,
+	getRankedConcludedYearsCountForTrek,
+	getRankedConcludedYearsForTrek,
 	getSimpleTrekDetail
 } from '$lib/server/trek-service';
 import { pageNav } from '$lib/utils';
 import { error } from 'console';
 import type { PageServerLoad } from './$types';
 
-const PerPage = 5;
+const PerPage = 20;
 
 export const load: PageServerLoad = async (event) => {
 	const { depends } = event;
@@ -21,19 +21,23 @@ export const load: PageServerLoad = async (event) => {
 		new URL(event.request.url).searchParams.get('page') ?? '1'
 	);
 
-	const albumCount = await getAlbumCountForTrek(trekId);
-	const pgNav = pageNav({ page, limit: PerPage, total: albumCount });
+	const yearCount = await getRankedConcludedYearsCountForTrek(trekId);
+	const pgNav = pageNav({
+		page,
+		limit: PerPage,
+		total: yearCount
+	});
 
-	const [albums, trek] = await Promise.allSettled([
-		getRankedAlbumsForTrek(trekId, {
+	const [years, trek] = await Promise.allSettled([
+		getRankedConcludedYearsForTrek(trekId, {
 			limit: PerPage,
 			offset: pgNav.current?.offset ?? 0
 		}),
 		getSimpleTrekDetail(trekId, userId)
 	]);
 
-	if (albums.status !== 'fulfilled') {
-		throw error(404, albums.reason);
+	if (years.status !== 'fulfilled') {
+		throw error(404, years.reason);
 	}
 
 	if (trek.status !== 'fulfilled') {
@@ -41,9 +45,9 @@ export const load: PageServerLoad = async (event) => {
 	}
 
 	return {
-		albums: albums.value,
-		albumCount,
 		trek: trek.value,
+		years: years.value,
+		yearCount: yearCount,
 		pageNav: pgNav
 	};
 };

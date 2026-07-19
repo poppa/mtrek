@@ -20,6 +20,7 @@
 	import type { ActionData, PageData } from './$types';
 	import { initials } from '$lib/utils';
 	import RankedAlbum from '$lib/components/RankedAlbum.svelte';
+	import RankedYear from '$lib/components/RankedYear.svelte';
 
 	type AlbumSearchResult = {
 		spotifyAlbumId: string;
@@ -530,41 +531,12 @@
 							{:else}
 								<div class="ranked-list">
 									{#each data.rankedYears as year, index (year.roundId)}
-										<a
-											class="ranked-year card"
-											href={resolve('/treks/[trekId]/years/[year]', {
-												trekId: data.trek.id,
-												year: String(year.year)
-											})}
-										>
-											<span class="rank-number">{index + 1}</span>
-											<div class="year-rank-main">
-												<strong>{year.year}</strong>
-												<div class="meta-row">
-													<span
-														><Disc3 size={15} />
-														{year.albumCount} album{year.albumCount === 1
-															? ''
-															: 's'}</span
-													>
-													<span
-														><Star size={15} />
-														{year.ratingCount} rating{year.ratingCount === 1
-															? ''
-															: 's'}</span
-													>
-												</div>
-											</div>
-											<div class="score-box compact">
-												<span>{year.averageScore ?? '-'}</span>
-												<small>average</small>
-											</div>
-										</a>
+										<RankedYear {year} rank={index + 1} trekId={data.trek.id} />
 									{/each}
 								</div>
 							{/if}
 						</div>
-						<!-- {#if data.rankedYearsCount > 5}
+						{#if data.rankedYearsCount > 5}
 							<div class="panel-footer">
 								<a
 									href={resolve('/treks/[trekId]/year-ranking', {
@@ -572,10 +544,10 @@
 									})}
 									class="goto"
 								>
-									All Year Rankings <ChevronsRight />
+									All year rankings <ChevronsRight />
 								</a>
 							</div>
-						{/if} -->
+						{/if}
 					</section>
 
 					<section class="panel">
@@ -610,7 +582,7 @@
 									class="goto"
 									href={resolve('/treks/[trekId]/album-ranking', {
 										trekId: data.trek.id
-									})}>All Albums <ChevronsRight /></a
+									})}>All album rankings <ChevronsRight /></a
 								>
 							</div>
 						{/if}

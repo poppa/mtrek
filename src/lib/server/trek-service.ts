@@ -1,3 +1,4 @@
+import type { SimpleAlbum } from '$lib/dbtypes';
 import { db } from '$lib/server/db';
 import {
 	albumSelections,
@@ -1089,7 +1090,11 @@ export async function getRankedConcludedYearsForTrek(
 			? await db
 					.select({
 						id: albumSelections.id,
-						roundId: albumSelections.roundId
+						roundId: albumSelections.roundId,
+						albumName: albumSelections.albumName,
+						artistName: albumSelections.artistName,
+						imageUrl: albumSelections.imageUrl,
+						releaseDate: albumSelections.releaseDate
 					})
 					.from(albumSelections)
 					.where(inArray(albumSelections.roundId, roundIds))
@@ -1097,23 +1102,37 @@ export async function getRankedConcludedYearsForTrek(
 	const selectionRoundIds = new Map(
 		selections.map((selection) => [selection.id, selection.roundId])
 	);
+
+	type Stats = {
+		albumCount: number;
+		ratingCount: number;
+		scoreTotal: number;
+		albums: SimpleAlbum[];
+	};
+
 	const statsByRound = new Map(
 		concludedRounds.map((round) => [
 			round.roundId,
 			{
 				albumCount: 0,
 				ratingCount: 0,
-				scoreTotal: 0
-			}
+				scoreTotal: 0,
+				albums: []
+			} as Stats
 		])
 	);
 
+	const selectionIds: string[] = [];
+
 	for (const selection of selections) {
+		selectionIds.push(selection.id);
 		const stats = statsByRound.get(selection.roundId);
-		if (stats) stats.albumCount += 1;
+		if (stats) {
+			stats.albumCount += 1;
+			stats.albums.push(selection as SimpleAlbum);
+		}
 	}
 
-	const selectionIds = selections.map((selection) => selection.id);
 	const ratingRows =
 		selectionIds.length > 0
 			? await db
@@ -1147,7 +1166,8 @@ export async function getRankedConcludedYearsForTrek(
 				albumCount: stats?.albumCount ?? 0,
 				ratingCount,
 				averageScoreTenth,
-				averageScore: formatScore(averageScoreTenth)
+				averageScore: formatScore(averageScoreTenth),
+				albums: stats?.albums ?? null
 			};
 		})
 		.sort((left, right) => {

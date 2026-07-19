@@ -18,3 +18,22 @@ export interface RankedAlbum {
 	userName: string | null;
 	userEmail: string | null;
 }
+
+export interface RankedYear {
+	albumCount: number;
+	ratingCount: number;
+	averageScoreTenth: number | null;
+	averageScore: string | null;
+	roundId: string;
+	year: number;
+	position: number;
+}
+
+export interface SimpleAlbum {
+	id: string;
+	roundId: string;
+	artistName: string;
+	albumName: string;
+	imageUrl: string;
+	releaseDate: string;
+}

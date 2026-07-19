@@ -7,8 +7,6 @@
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
-
-	// $inspect(data, 'DATA').with(console.log);
 </script>
 
 <svelte:head>
@@ -50,13 +48,15 @@
 
 		<section class="panel">
 			<div class="panel-body stack">
-				{#each data.albums as album, n (album.id)}
-					<RankedAlbum
-						{album}
-						rank={n + 1 + (data.pageNav.current?.offset ?? 0)}
-						trekId={data.trek.id}
-					/>
-				{/each}
+				<div class="ranked-list">
+					{#each data.albums as album, n (album.id)}
+						<RankedAlbum
+							{album}
+							rank={n + 1 + (data.pageNav.current?.offset ?? 0)}
+							trekId={data.trek.id}
+						/>
+					{/each}
+				</div>
 			</div>
 			<div class="panel-footer">
 				<PageNav
