@@ -531,7 +531,12 @@
 							{:else}
 								<div class="ranked-list">
 									{#each data.rankedYears as year, index (year.roundId)}
-										<RankedYear {year} rank={index + 1} trekId={data.trek.id} />
+										<RankedYear
+											{year}
+											rank={index + 1}
+											trekId={data.trek.id}
+											albums={year.albums}
+										/>
 									{/each}
 								</div>
 							{/if}
