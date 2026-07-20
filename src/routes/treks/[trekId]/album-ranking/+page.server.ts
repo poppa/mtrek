@@ -8,7 +8,7 @@ import { pageNav } from '$lib/utils';
 import { error } from 'console';
 import type { PageServerLoad } from './$types';
 
-const PerPage = 5;
+const PerPage = 20;
 
 export const load: PageServerLoad = async (event) => {
 	const { depends } = event;
