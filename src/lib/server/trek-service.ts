@@ -909,7 +909,10 @@ type AlbumSelection = {
 	userEmail: string | null;
 };
 
-export async function getRankedAlbumsForUser(userId: string) {
+export async function getRankedAlbumsForUser(
+	userId: string,
+	{ limit, offset } = { limit: 10, offset: 0 }
+) {
 	try {
 		const selections = await db
 			.select({
@@ -939,7 +942,9 @@ export async function getRankedAlbumsForUser(userId: string) {
 			.innerJoin(trekRounds, eq(albumSelections.roundId, trekRounds.id))
 			.innerJoin(treks, eq(trekRounds.trekId, treks.id))
 			.where(eq(ratings.userId, userId))
-			.orderBy(desc(ratings.scoreTenth), asc(albumSelections.createdAt));
+			.orderBy(desc(ratings.scoreTenth), asc(albumSelections.createdAt))
+			.limit(limit)
+			.offset(offset);
 
 		return selections;
 	} catch (err: unknown) {
