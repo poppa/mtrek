@@ -1,10 +1,11 @@
 import { env } from '$env/dynamic/private';
 import { db } from '$lib/server/db';
-import { authAdapterTables } from '$lib/server/db/schema';
+import { authAdapterTables, users } from '$lib/server/db/schema';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import { SvelteKitAuth, type SvelteKitAuthConfig } from '@auth/sveltekit';
 import Google from '@auth/sveltekit/providers/google';
 import Spotify from '@auth/sveltekit/providers/spotify';
+import { eq } from 'drizzle-orm';
 
 export function getAuthProviderStatus() {
 	return {
@@ -46,6 +47,23 @@ async function getAuthConfig(): Promise<SvelteKitAuthConfig> {
 		providers,
 		secret: env.AUTH_SECRET,
 		trustHost: env.AUTH_TRUST_HOST === 'true' || !env.AUTH_TRUST_HOST,
+		events: {
+			async signIn({ user, account, profile }) {
+				if (!user.id || !profile) return;
+
+				// Read the fresh provider profile; user.image may still be the saved image.
+				const image =
+					account?.provider === 'google'
+						? profile.picture
+						: account?.provider === 'spotify' && Array.isArray(profile.images)
+							? profile.images[0]?.url
+							: undefined;
+
+				if (typeof image !== 'string' || !image.trim()) return;
+
+				await db.update(users).set({ image }).where(eq(users.id, user.id));
+			}
+		},
 		callbacks: {
 			session({ session, user }) {
 				if (session.user && user.id) {
