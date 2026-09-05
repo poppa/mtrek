@@ -26,11 +26,10 @@
 		<section class="panel">
 			<div class="panel-body stack">
 				<div class="ranked-list">
-					{#each data.years as item, n (item.roundId)}
-						{@const rank = n + 1 + (data.pageNav.current?.offset ?? 0)}
+					{#each data.years as item (item.roundId)}
 						<RankedYear
 							year={item}
-							{rank}
+							rank={item.rank}
 							trekId={data.memberships.some((m) => m.trekId === item.trekId)
 								? item.trekId
 								: undefined}

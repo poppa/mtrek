@@ -49,12 +49,8 @@
 		<section class="panel">
 			<div class="panel-body stack">
 				<div class="ranked-list">
-					{#each data.albums as album, n (album.id)}
-						<RankedAlbum
-							{album}
-							rank={n + 1 + (data.pageNav.current?.offset ?? 0)}
-							trekId={data.trek.id}
-						/>
+					{#each data.albums as album (album.id)}
+						<RankedAlbum {album} rank={album.rank} trekId={data.trek.id} />
 					{/each}
 				</div>
 			</div>

@@ -50,10 +50,10 @@
 		<section class="panel">
 			<div class="panel-body stack">
 				<div class="ranked-list">
-					{#each data.years as year, n (year.year)}
+					{#each data.years as year (year.year)}
 						<RankedYear
 							{year}
-							rank={n + (data.pageNav.current?.offset ?? 0) + 1}
+							rank={year.rank}
 							trekId={data.trek.id}
 							albums={year.albums}
 						/>

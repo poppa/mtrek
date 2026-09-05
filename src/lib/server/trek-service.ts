@@ -1,3 +1,4 @@
+import { rankByScore } from '$lib/ranking';
 import type { SimpleAlbum } from '$lib/dbtypes';
 import { db } from '$lib/server/db';
 import {
@@ -10,7 +11,7 @@ import {
 	type RoundStatus
 } from '$lib/server/db/schema';
 import { error } from '@sveltejs/kit';
-import { and, asc, count, desc, eq, inArray, ne } from 'drizzle-orm';
+import { and, asc, count, desc, eq, inArray, ne, sql } from 'drizzle-orm';
 
 type Trek = typeof treks.$inferSelect;
 type TrekRound = typeof trekRounds.$inferSelect;
@@ -933,6 +934,9 @@ export async function getRankedAlbumsForUser(
 				userName: users.name,
 				userEmail: users.email,
 				rating: ratings.scoreTenth,
+				rank: sql<number>`rank() over (order by ${ratings.scoreTenth} desc)`.mapWith(
+					Number
+				),
 				ratingNote: ratings.note,
 				roundStatus: trekRounds.status
 			})
@@ -1034,7 +1038,7 @@ async function resolveRanking(selections: AlbumSelection[]) {
 		ratingsBySelection.set(rating.selectionId, values);
 	}
 
-	return selections
+	const sorted = selections
 		.map((selection) => {
 			const scoreValues = ratingsBySelection.get(selection.id) ?? [];
 			const scoreTotal = scoreValues.reduce((sum, score) => sum + score, 0);
@@ -1072,6 +1076,7 @@ async function resolveRanking(selections: AlbumSelection[]) {
 				left.artistName.localeCompare(right.artistName)
 			);
 		});
+	return rankByScore(sorted, (album) => album.averageScoreTenth);
 }
 
 export async function getRankedConcludedYearsCountForTrek(trekId: string) {
@@ -1230,11 +1235,13 @@ export async function getRankedConcludedYearsForTrek(
 			);
 		});
 
+	const rankedRows = rankByScore(allRows, (year) => year.averageScoreTenth);
+
 	if (!limit) {
-		return allRows;
+		return rankedRows;
 	}
 
-	return allRows.slice(offset, offset + limit);
+	return rankedRows.slice(offset, offset + limit);
 }
 
 async function refreshRoundState(trekId: string, roundId: string) {

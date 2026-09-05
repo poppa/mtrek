@@ -58,10 +58,10 @@
 						</div>
 
 						<div class="user-ranked-list">
-							{#each data.albums as album, n (album.id)}
+							{#each data.albums as album (album.id)}
 								<UserRankedAlbum
 									{album}
-									rank={n + 1}
+									rank={album.rank}
 									canAccessTrek={!!myMemberships[album.trekId]}
 								/>
 							{:else}<p class="muted">No rated albums yet.</p>
@@ -80,10 +80,10 @@
 				<section class="panel stack">
 					<div class="panel-header"><h2>Top 10 years</h2></div>
 					<div class="ranked-list">
-						{#each data.years as year, n (year.roundId)}
+						{#each data.years as year (year.roundId)}
 							<RankedYear
 								{year}
-								rank={n + 1}
+								rank={year.rank}
 								trekId={myMemberships[year.trekId] ? year.trekId : undefined}
 								trekName={year.trekName}
 							/>

@@ -27,11 +27,10 @@
 		<section class="panel">
 			<div class="panel-body stack">
 				<div class="ranked-list">
-					{#each data.albums as item, n (item.id)}
-						{@const rank = n + 1 + (data.pageNav.current?.offset ?? 0)}
+					{#each data.albums as item (item.id)}
 						<UserRankedAlbum
 							album={item}
-							{rank}
+							rank={item.rank}
 							canAccessTrek={data.memberships.some(
 								(m) => m.trekId === item.trekId
 							)}
