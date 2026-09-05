@@ -942,7 +942,11 @@ export async function getRankedAlbumsForUser(
 			.innerJoin(trekRounds, eq(albumSelections.roundId, trekRounds.id))
 			.innerJoin(treks, eq(trekRounds.trekId, treks.id))
 			.where(eq(ratings.userId, userId))
-			.orderBy(desc(ratings.scoreTenth), asc(albumSelections.createdAt))
+			.orderBy(
+				desc(ratings.scoreTenth),
+				asc(albumSelections.createdAt),
+				asc(albumSelections.id)
+			)
 			.limit(limit)
 			.offset(offset);
 
@@ -951,6 +955,14 @@ export async function getRankedAlbumsForUser(
 		console.error('Error:', err);
 		throw err;
 	}
+}
+
+export async function getAlbumCountForUser(userId: string) {
+	const rows = await db
+		.select({ count: count() })
+		.from(ratings)
+		.where(eq(ratings.userId, userId));
+	return rows[0]?.count ?? 0;
 }
 
 export async function getAlbumCountForTrek(trekId: string) {
@@ -1074,18 +1086,38 @@ export async function getRankedConcludedYearsCountForTrek(trekId: string) {
 }
 
 export async function getRankedConcludedYearsForTrek(
-	trekId: string,
-	{ limit, offset } = { limit: 10, offset: 0 }
+	trekId: string | undefined,
+	{ limit, offset } = { limit: 10, offset: 0 },
+	userId?: string
 ) {
 	const concludedRounds = await db
 		.select({
 			roundId: trekRounds.id,
 			year: trekRounds.year,
-			position: trekRounds.position
+			position: trekRounds.position,
+			trekId: trekRounds.trekId,
+			trekName: treks.name
 		})
 		.from(trekRounds)
+		.innerJoin(treks, eq(trekRounds.trekId, treks.id))
 		.where(
-			and(eq(trekRounds.trekId, trekId), eq(trekRounds.status, 'completed'))
+			and(
+				trekId ? eq(trekRounds.trekId, trekId) : undefined,
+				eq(trekRounds.status, 'completed'),
+				userId
+					? inArray(
+							trekRounds.id,
+							db
+								.select({ roundId: albumSelections.roundId })
+								.from(ratings)
+								.innerJoin(
+									albumSelections,
+									eq(ratings.selectionId, albumSelections.id)
+								)
+								.where(eq(ratings.userId, userId))
+						)
+					: undefined
+			)
 		)
 		.orderBy(asc(trekRounds.year));
 
@@ -1146,7 +1178,12 @@ export async function getRankedConcludedYearsForTrek(
 						scoreTenth: ratings.scoreTenth
 					})
 					.from(ratings)
-					.where(inArray(ratings.selectionId, selectionIds))
+					.where(
+						and(
+							inArray(ratings.selectionId, selectionIds),
+							userId ? eq(ratings.userId, userId) : undefined
+						)
+					)
 			: [];
 
 	for (const rating of ratingRows) {
@@ -1175,6 +1212,7 @@ export async function getRankedConcludedYearsForTrek(
 				albums: stats?.albums ?? null
 			};
 		})
+		.filter((round) => !userId || round.ratingCount > 0)
 		.sort((left, right) => {
 			if (left.averageScoreTenth === null && right.averageScoreTenth === null) {
 				return left.year - right.year;
@@ -1187,7 +1225,8 @@ export async function getRankedConcludedYearsForTrek(
 				right.averageScoreTenth - left.averageScoreTenth ||
 				right.ratingCount - left.ratingCount ||
 				right.albumCount - left.albumCount ||
-				left.year - right.year
+				left.year - right.year ||
+				left.roundId.localeCompare(right.roundId)
 			);
 		});
 

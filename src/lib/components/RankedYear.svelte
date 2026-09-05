@@ -7,24 +7,29 @@
 
 	interface Props {
 		rank: number;
-		trekId: string;
+		trekId?: string;
+		trekName?: string;
 		year: RankedYear;
 		albums?: SimpleAlbum[] | null;
 	}
 
-	const { year, rank, trekId, albums }: Props = $props();
+	const { year, rank, trekId, trekName, albums }: Props = $props();
 </script>
 
-<a
+<svelte:element
+	this={trekId ? 'a' : 'div'}
 	class="ranked-year card"
-	href={resolve('/treks/[trekId]/years/[year]', {
-		trekId: trekId,
-		year: String(year.year)
-	})}
+	href={trekId
+		? resolve('/treks/[trekId]/years/[year]', {
+				trekId: trekId,
+				year: String(year.year)
+			})
+		: undefined}
 >
 	<span class="rank-number">{rank}</span>
 	<div class="year-rank-main">
 		<strong>{year.year}</strong>
+		{#if trekName}<small class="muted">{trekName}</small>{/if}
 		<div class="meta-row">
 			<span
 				><Disc3 size={15} />
@@ -62,7 +67,7 @@
 			{/each}
 		</div>
 	{/if}
-</a>
+</svelte:element>
 
 <style lang="scss">
 	.ranked-list {
