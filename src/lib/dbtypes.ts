@@ -13,7 +13,7 @@ export interface RankedAlbum {
 	imageUrl: string | null;
 	externalUrl: string | null;
 	createdAt: Date;
-	year: number;
+	year: number | null;
 	roundPosition: number;
 	userName: string | null;
 	userEmail: string | null;

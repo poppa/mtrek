@@ -8,6 +8,13 @@
 			"when": 1783060826639,
 			"tag": "0000_rapid_lady_bullseye",
 			"breakpoints": true
+		},
+		{
+			"idx": 1,
+			"version": "7",
+			"when": 1788591471161,
+			"tag": "0001_curated_treks",
+			"breakpoints": true
 		}
 	]
 }

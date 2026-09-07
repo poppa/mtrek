@@ -44,6 +44,8 @@
 	let isSearching = $state(false);
 	let searchMessage = $state('');
 
+	const isCurated = $derived(data.trek.type === 'curated');
+	const roundUnit = $derived(isCurated ? 'album' : 'year');
 	const invitePath = $derived(`/join/${data.trek.inviteCode}`);
 	const waitingSelections = $derived(
 		Math.max(data.progress.participantCount - data.progress.selectionCount, 0)
@@ -53,7 +55,7 @@
 	);
 	const isOwner = $derived(data.membership.role === 'owner');
 	const canDeleteSelection = $derived(
-		Boolean(data.mySelection) && data.progress.ratingCount === 0
+		!isCurated && Boolean(data.mySelection) && data.progress.ratingCount === 0
 	);
 
 	async function searchAlbums(event: SubmitEvent) {
@@ -111,7 +113,9 @@
 				<div class="meta-row">
 					<span
 						><CalendarDays size={16} />
-						{data.trek.startYear}-{data.trek.endYear}</span
+						{isCurated
+							? 'Curated albums'
+							: `${data.trek.startYear}-${data.trek.endYear}`}</span
 					>
 					<span
 						><Users size={16} />
@@ -119,7 +123,8 @@
 					>
 					<span
 						><Disc3 size={16} />
-						{data.progress.completedYears}/{data.progress.totalYears} years</span
+						{data.progress.completedYears}/{data.progress.totalYears}
+						{roundUnit}s</span
 					>
 					<span class:success={data.trek.status === 'completed'} class="badge"
 						>{data.trek.status}</span
@@ -148,11 +153,13 @@
 							<div>
 								<h2>
 									{#if data.currentRound}
-										{data.currentRound.year}
+										{isCurated
+											? (data.selections[0]?.albumName ?? 'Album round')
+											: data.currentRound.year}
 									{:else if data.trek.status === 'completed'}
 										Trek complete
 									{:else}
-										Ready for next year
+										Ready for next {roundUnit}
 									{/if}
 								</h2>
 								{#if data.currentRound}
@@ -167,7 +174,7 @@
 								<form method="post" action="?/advance">
 									<button class="button primary" type="submit">
 										<Shuffle size={18} />
-										<span>Randomize year</span>
+										<span>Randomize {roundUnit}</span>
 									</button>
 								</form>
 							{/if}
@@ -358,7 +365,7 @@
 						{:else if data.currentRound?.status === 'rating'}
 							<div class="notice alert">
 								{remainingRatings} rating{remainingRatings === 1 ? '' : 's'} left
-								before this year wraps.
+								before this {roundUnit} wraps.
 							</div>
 
 							<div class="album-grid">
@@ -459,12 +466,14 @@
 							<div class="success alert">
 								<span class="align-text-and-icon">
 									<CircleCheck size={18} />
-									All years in this range have been explored.
+									{isCurated
+										? 'Everyone has rated every album in the curated list.'
+										: 'All years in this range have been explored.'}
 								</span>
 							</div>
 						{:else}
 							<div class="empty alert">
-								This trek is between years. Randomize the next year when ready.
+								This trek is between rounds. Randomize the next {roundUnit} when ready.
 							</div>
 						{/if}
 					</div>
@@ -513,54 +522,98 @@
 					</section>
 				{/if}
 
-				{#if data.progress.completedYears > 0}
+				{#if isCurated}
 					<section class="panel">
 						<div class="panel-body stack">
 							<div class="panel-header">
-								<div>
-									<h2>Year ranking</h2>
-									<p class="footer-note">Concluded years by average score</p>
-								</div>
-								<span class="badge">{data.rankedYearsCount}</span>
+								<h2>Curated list</h2>
+								<span class="badge">{data.curatedAlbums.length} albums</span>
 							</div>
+							<p class="footer-note">
+								Everyone rates each album. The next album is drawn automatically
+								when all open rounds are complete. New participants also rate
+								earlier albums.
+							</p>
+							<div class="album-grid">
+								{#each data.curatedAlbums as album (album.id)}
+									{@const round = data.rounds.find(
+										(round) => round.curatedAlbumId === album.id
+									)}
+									<div class="album-card">
+										<div class="cover" class:noimage={!album.imageUrl}>
+											{#if album.imageUrl}<img
+													src={album.imageUrl}
+													alt=""
+												/>{:else}{initials(album.albumName)}{/if}
+										</div>
+										<div class="album-info">
+											<strong>{album.albumName}</strong><Label label="Album by"
+												>{album.artistName}</Label
+											>
+											<div class="inline-row">
+												<span
+													class="badge"
+													class:success={round?.status === 'completed'}
+													>{round?.status ?? 'Not drawn'}</span
+												>
+											</div>
+										</div>
+									</div>
+								{/each}
+							</div>
+						</div>
+					</section>
+				{/if}
 
-							{#if data.rankedYears.length === 0}
-								<p class="empty alert">
-									No concluded years have been ranked yet.
-								</p>
-							{:else}
-								<div class="ranked-list">
-									{#each data.rankedYears as year (year.roundId)}
-										<RankedYear
-											{year}
-											rank={year.rank}
-											trekId={data.trek.id}
-											albums={year.albums}
-										/>
-									{/each}
+				{#if data.progress.completedYears > 0}
+					{#if !isCurated}
+						<section class="panel">
+							<div class="panel-body stack">
+								<div class="panel-header">
+									<div>
+										<h2>Year ranking</h2>
+										<p class="footer-note">Concluded years by average score</p>
+									</div>
+									<span class="badge">{data.rankedYearsCount}</span>
+								</div>
+
+								{#if data.rankedYears.length === 0}
+									<p class="empty alert">
+										No concluded years have been ranked yet.
+									</p>
+								{:else}
+									<div class="ranked-list">
+										{#each data.rankedYears as year (year.roundId)}
+											<RankedYear
+												{year}
+												rank={year.rank}
+												trekId={data.trek.id}
+												albums={year.albums}
+											/>
+										{/each}
+									</div>
+								{/if}
+							</div>
+							{#if data.rankedYearsCount > 5}
+								<div class="panel-footer">
+									<a
+										href={resolve('/treks/[trekId]/year-ranking', {
+											trekId: data.trek.id
+										})}
+										class="goto"
+									>
+										All year rankings <ChevronsRight />
+									</a>
 								</div>
 							{/if}
-						</div>
-						{#if data.rankedYearsCount > 5}
-							<div class="panel-footer">
-								<a
-									href={resolve('/treks/[trekId]/year-ranking', {
-										trekId: data.trek.id
-									})}
-									class="goto"
-								>
-									All year rankings <ChevronsRight />
-								</a>
-							</div>
-						{/if}
-					</section>
-
+						</section>
+					{/if}
 					<section class="panel">
 						<div class="panel-body stack">
 							<div class="panel-header">
 								<div>
 									<h2>Album ranking</h2>
-									<p class="footer-note">Across concluded years</p>
+									<p class="footer-note">Across completed rounds</p>
 								</div>
 								<span class="badge">{data.rankedAlbumsCount}</span>
 							</div>
@@ -697,7 +750,7 @@
 							<span class="badge">{data.progress.remainingYears} left</span>
 						</div>
 						{#if data.rounds.length === 0}
-							<p class="empty alert">No years have been randomized yet.</p>
+							<p class="empty alert">No rounds have been randomized yet.</p>
 						{:else}
 							<div class="timeline">
 								{#each data.rounds as round (round.id)}
@@ -705,18 +758,31 @@
 										<a
 											class="round-chip"
 											data-status={round.status}
-											href={resolve('/treks/[trekId]/years/[year]', {
-												trekId: data.trek.id,
-												year: String(round.year)
-											})}
+											href={isCurated
+												? resolve('/treks/[trekId]/rounds/[roundId]', {
+														trekId: data.trek.id,
+														roundId: round.id
+													})
+												: resolve('/treks/[trekId]/years/[year]', {
+														trekId: data.trek.id,
+														year: String(round.year)
+													})}
 										>
 											<CircleCheck size={15} />
-											{round.year}
+											{isCurated
+												? data.curatedAlbums.find(
+														(album) => album.id === round.curatedAlbumId
+													)?.albumName
+												: round.year}
 										</a>
 									{:else}
 										<span class="round-chip" data-status={round.status}>
 											<Shuffle size={15} />
-											{round.year}
+											{isCurated
+												? data.curatedAlbums.find(
+														(album) => album.id === round.curatedAlbumId
+													)?.albumName
+												: round.year}
 										</span>
 									{/if}
 								{/each}

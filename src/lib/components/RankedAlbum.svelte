@@ -31,13 +31,18 @@
 		<div class="inline-row">
 			<a
 				class="button ghost small"
-				href={resolve('/treks/[trekId]/years/[year]', {
-					trekId: trekId,
-					year: String(album.year)
-				})}
+				href={album.year === null
+					? resolve('/treks/[trekId]/rounds/[roundId]', {
+							trekId: trekId,
+							roundId: album.roundId
+						})
+					: resolve('/treks/[trekId]/years/[year]', {
+							trekId: trekId,
+							year: String(album.year)
+						})}
 			>
 				<CircleCheck size={15} />
-				<span>{album.year}</span>
+				<span>{album.year ?? `Round ${album.roundPosition}`}</span>
 			</a>
 			<Label label="Picked by" small>
 				<a

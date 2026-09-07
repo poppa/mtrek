@@ -5,7 +5,7 @@ import {
 	getSimpleTrekDetail
 } from '$lib/server/trek-service';
 import { pageNav } from '$lib/utils';
-import { error } from 'console';
+import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
 const PerPage = 20;

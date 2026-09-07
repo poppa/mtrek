@@ -15,7 +15,8 @@
 		"db:generate": "drizzle-kit generate",
 		"db:push": "drizzle-kit push",
 		"db:studio": "drizzle-kit studio",
-		"trek:backfill": "node scripts/backfill-trek.js"
+		"trek:backfill": "node scripts/backfill-trek.js",
+		"test:integration": "node --test tests/trek-service.test.mjs"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",

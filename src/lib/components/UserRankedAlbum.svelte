@@ -77,18 +77,23 @@
 					{#if album.roundStatus === 'completed'}
 						<a
 							class="button small"
-							href={resolve('/treks/[trekId]/years/[year]', {
-								trekId: album.trekId,
-								year: String(album.year)
-							})}
+							href={album.year === null
+								? resolve('/treks/[trekId]/rounds/[roundId]', {
+										trekId: album.trekId,
+										roundId: album.roundId
+									})
+								: resolve('/treks/[trekId]/years/[year]', {
+										trekId: album.trekId,
+										year: String(album.year)
+									})}
 						>
 							<CircleCheck size={15} />
-							{album.year}
+							{album.year ?? `Round ${album.roundPosition}`}
 						</a>
 					{:else}
 						<span class="small button muted">
 							<CircleDashed size={15} />
-							{album.year}
+							{album.year ?? `Round ${album.roundPosition}`}
 						</span>
 					{/if}
 				{/if}
