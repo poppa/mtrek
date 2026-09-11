@@ -22,7 +22,7 @@
 	} = $props();
 </script>
 
-<div class="ranked-album wide">
+<div class="user-ranked-album">
 	<div class="rank-number align-self-start">{rank}</div>
 	<div class="album-info">
 		<div class="cover align-self-start" class:noimage={!album.imageUrl}>
@@ -106,8 +106,12 @@
 </div>
 
 <style lang="scss">
-	.ranked-album {
+	.user-ranked-album {
 		grid-template-columns: 2.4rem minmax(0, 1fr) auto;
+
+		.cover {
+			width: 4rem;
+		}
 
 		@container app (width < 834px) {
 			grid-template-columns: 2.4rem auto;
