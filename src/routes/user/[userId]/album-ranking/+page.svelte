@@ -24,7 +24,7 @@
 				<div class="meta-row">{data.total} albums</div>
 			</div>
 		</div>
-		<form class="filter panel" method="GET">
+		<form class="user-filter panel" method="GET">
 			<label for="trek-filter">Filter on Trek</label>
 			<select
 				id="trek-filter"
@@ -63,24 +63,3 @@
 		</section>
 	</div>
 </section>
-
-<style lang="scss">
-	.filter {
-		margin-block-end: var(--gutter);
-		display: grid;
-		grid-template-columns: auto 1fr;
-		align-items: center;
-		gap: var(--gap);
-	}
-
-	@container app (width < 834px) {
-		.filter {
-			margin-block-end: -1px;
-		}
-	}
-
-	label {
-		display: block;
-		color: var(--muted);
-	}
-</style>

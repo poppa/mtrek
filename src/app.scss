@@ -1420,3 +1420,22 @@ button {
 		text-decoration: underline;
 	}
 }
+
+.user-filter {
+	margin-block-end: var(--gutter);
+	display: grid;
+	grid-template-columns: auto 1fr;
+	align-items: center;
+	gap: var(--gap);
+
+	label {
+		display: block;
+		color: var(--muted);
+	}
+}
+
+@container app (width < 834px) {
+	.user-filter {
+		margin-block-end: -1px;
+	}
+}
