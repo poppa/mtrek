@@ -5,6 +5,7 @@
 		CalendarDays,
 		ChevronsRight,
 		CircleCheck,
+		Copy,
 		Disc3,
 		ExternalLink,
 		Link,
@@ -47,6 +48,7 @@
 	const isCurated = $derived(data.trek.type === 'curated');
 	const roundUnit = $derived(isCurated ? 'album' : 'year');
 	const invitePath = $derived(`/join/${data.trek.inviteCode}`);
+	let inviteCopied = $state(false);
 	const waitingSelections = $derived(
 		Math.max(data.progress.participantCount - data.progress.selectionCount, 0)
 	);
@@ -57,6 +59,13 @@
 	const canDeleteSelection = $derived(
 		!isCurated && Boolean(data.mySelection) && data.progress.ratingCount === 0
 	);
+
+	async function copyInviteLink() {
+		await navigator.clipboard.writeText(
+			new URL(invitePath, window.location.origin).href
+		);
+		inviteCopied = true;
+	}
 
 	async function searchAlbums(event: SubmitEvent) {
 		event.preventDefault();
@@ -132,13 +141,24 @@
 				</div>
 			</div>
 
-			<div class="invite-box">
+			<button
+				type="button"
+				class="invite-box"
+				onclick={copyInviteLink}
+				aria-label="Copy invite link"
+			>
 				<div class="inline-row">
-					<Link size={16} />
-					<strong>Invite</strong>
+					{#if inviteCopied}
+						<CircleCheck size={16} />
+						<strong>Invite copied</strong>
+					{:else}
+						<Link size={16} />
+						<strong>Invite</strong>
+					{/if}
+					<Copy size={16} class="copy-icon" />
 				</div>
 				<code>{invitePath}</code>
-			</div>
+			</button>
 		</div>
 
 		{#if form?.actionError}
@@ -840,12 +860,31 @@
 	}
 
 	.invite-box {
+		width: 100%;
+		appearance: none;
+		color: inherit;
+		font: inherit;
+		text-align: start;
+		cursor: pointer;
 		display: grid;
 		gap: var(--gap);
 		padding: var(--gutter);
 		border: 1px solid var(--line);
 		border-radius: var(--border-radius);
 		background: var(--surface);
+
+		&:hover {
+			border-color: var(--line-strong);
+		}
+
+		&:focus-visible {
+			outline: 2px solid var(--brand);
+			outline-offset: 2px;
+		}
+	}
+
+	.copy-icon {
+		margin-inline-start: auto;
 	}
 
 	.invite-box code {
