@@ -73,7 +73,6 @@
 </script>
 
 <div class="stack">
-	<h3>Curated albums</h3>
 	<p class="footer-note">
 		Add as many albums as you like. Each round draws one at random. The list is
 		fixed when you create the trek.
@@ -204,5 +203,11 @@
 	}
 	.manual {
 		margin-block-start: var(--gap);
+	}
+
+	details {
+		summary {
+			cursor: pointer;
+		}
 	}
 </style>
