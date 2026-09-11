@@ -1061,7 +1061,8 @@ type AlbumSelection = {
 
 export async function getRankedAlbumsForUser(
 	userId: string,
-	{ limit, offset } = { limit: 10, offset: 0 }
+	{ limit, offset } = { limit: 10, offset: 0 },
+	trekId?: string
 ) {
 	try {
 		const selections = await db
@@ -1094,7 +1095,11 @@ export async function getRankedAlbumsForUser(
 			.innerJoin(users, eq(albumSelections.userId, users.id))
 			.innerJoin(trekRounds, eq(albumSelections.roundId, trekRounds.id))
 			.innerJoin(treks, eq(trekRounds.trekId, treks.id))
-			.where(eq(ratings.userId, userId))
+			.where(
+				trekId
+					? and(eq(ratings.userId, userId), eq(trekRounds.trekId, trekId))
+					: eq(ratings.userId, userId)
+			)
 			.orderBy(
 				desc(ratings.scoreTenth),
 				asc(albumSelections.createdAt),
@@ -1110,11 +1115,15 @@ export async function getRankedAlbumsForUser(
 	}
 }
 
-export async function getAlbumCountForUser(userId: string) {
-	const rows = await db
-		.select({ count: count() })
-		.from(ratings)
-		.where(eq(ratings.userId, userId));
+export async function getAlbumCountForUser(userId: string, trekId?: string) {
+	const query = db.select({ count: count() }).from(ratings);
+
+	const rows = trekId
+		? await query
+				.innerJoin(albumSelections, eq(albumSelections.id, ratings.selectionId))
+				.innerJoin(trekRounds, eq(albumSelections.roundId, trekRounds.id))
+				.where(and(eq(ratings.userId, userId), eq(trekRounds.trekId, trekId)))
+		: await query.where(eq(ratings.userId, userId));
 	return rows[0]?.count ?? 0;
 }
 

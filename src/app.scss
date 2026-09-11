@@ -1188,7 +1188,7 @@ button.button {
 	white-space: nowrap;
 }
 
-.stack {
+:where(.stack) {
 	display: flex;
 	gap: var(--gutter);
 	flex-direction: column;
@@ -1196,7 +1196,7 @@ button.button {
 	@container app (width < 600px) {
 		gap: 0;
 
-		> :not(:first-child) {
+		> :where(:not(:first-child)) {
 			margin-block-start: -1px;
 		}
 	}

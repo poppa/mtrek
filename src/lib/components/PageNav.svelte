@@ -20,14 +20,24 @@
 		path: PathParam;
 		pathArgs: PathArgsParam;
 		queryName?: string;
+		query?: Record<string, string | undefined>;
 		invalidate?: VoidFunction;
 	}
 
-	const { nav, path, pathArgs, queryName, invalidate }: Props = $props();
+	const { nav, path, pathArgs, queryName, query, invalidate }: Props = $props();
 
 	const getPath = (pg: number): PathParam => {
-		const concat = path.includes(`?`) ? '&' : '?';
-		const p = `${path}${concat}${queryName ?? 'page'}=${pg}`;
+		const extraQuery = Object.entries(query ?? {})
+			.flatMap(([name, value]) =>
+				value === undefined
+					? []
+					: [`${encodeURIComponent(name)}=${encodeURIComponent(value)}`]
+			)
+			.join('&');
+		const params = [extraQuery, `${queryName ?? 'page'}=${pg}`]
+			.filter(Boolean)
+			.join('&');
+		const p = `${path}${path.includes('?') ? '&' : '?'}${params}`;
 		return p as PathParam;
 	};
 </script>
