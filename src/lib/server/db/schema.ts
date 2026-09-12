@@ -11,6 +11,7 @@ import {
 	uniqueIndex
 } from 'drizzle-orm/pg-core';
 
+export type TrekType = 'years' | 'curated';
 export type TrekStatus = 'active' | 'completed';
 export type ParticipantRole = 'owner' | 'participant';
 export type RoundStatus = 'selecting' | 'rating' | 'completed';
@@ -124,8 +125,9 @@ export const treks = pgTable(
 			.primaryKey()
 			.$defaultFn(() => crypto.randomUUID()),
 		name: text('name').notNull(),
-		startYear: integer('startYear').notNull(),
-		endYear: integer('endYear').notNull(),
+		type: text('type').$type<TrekType>().notNull().default('years'),
+		startYear: integer('startYear'),
+		endYear: integer('endYear'),
 		status: text('status').$type<TrekStatus>().notNull().default('active'),
 		inviteCode: text('inviteCode').notNull(),
 		createdBy: text('createdBy')
@@ -163,6 +165,35 @@ export const trekParticipants = pgTable(
 	})
 ).enableRLS();
 
+export const curatedAlbums = pgTable(
+	'curated_album',
+	{
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		trekId: text('trekId')
+			.notNull()
+			.references(() => treks.id, { onDelete: 'cascade' }),
+		position: integer('position').notNull(),
+		spotifyAlbumId: text('spotifyAlbumId'),
+		albumName: text('albumName').notNull(),
+		artistName: text('artistName').notNull(),
+		releaseDate: text('releaseDate'),
+		imageUrl: text('imageUrl'),
+		externalUrl: text('externalUrl')
+	},
+	(album) => ({
+		trekPositionIdx: uniqueIndex('curated_album_trek_position_idx').on(
+			album.trekId,
+			album.position
+		),
+		trekSpotifyIdx: uniqueIndex('curated_album_trek_spotify_idx').on(
+			album.trekId,
+			album.spotifyAlbumId
+		)
+	})
+).enableRLS();
+
 export const trekRounds = pgTable(
 	'trek_round',
 	{
@@ -173,12 +204,16 @@ export const trekRounds = pgTable(
 			.notNull()
 			.references(() => treks.id, { onDelete: 'cascade' }),
 		position: integer('position').notNull(),
-		year: integer('year').notNull(),
+		year: integer('year'),
+		curatedAlbumId: text('curatedAlbumId').references(() => curatedAlbums.id),
 		status: text('status').$type<RoundStatus>().notNull().default('selecting'),
 		createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
 		completedAt: timestamp('completedAt', { mode: 'date' })
 	},
 	(round) => ({
+		curatedAlbumIdx: uniqueIndex('trek_round_curated_album_idx').on(
+			round.curatedAlbumId
+		),
 		trekYearIdx: uniqueIndex('trek_round_trek_year_idx').on(
 			round.trekId,
 			round.year

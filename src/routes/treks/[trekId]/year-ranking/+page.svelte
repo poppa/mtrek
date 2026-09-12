@@ -8,7 +8,9 @@
 
 	let { data }: { data: PageData } = $props();
 
-	const totalYears = $derived(data.trek.endYear - data.trek.startYear + 1);
+	const totalYears = $derived(
+		(data.trek.endYear ?? 0) - (data.trek.startYear ?? 0) + 1
+	);
 </script>
 
 <svelte:head>

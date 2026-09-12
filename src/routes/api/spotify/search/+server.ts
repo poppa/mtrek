@@ -13,13 +13,17 @@ export const GET: RequestHandler = async (event) => {
 	}
 
 	const query = event.url.searchParams.get('q')?.trim() ?? '';
-	const year = Number(event.url.searchParams.get('year'));
+	const yearParam = event.url.searchParams.get('year');
+	const year = yearParam === null ? undefined : Number(yearParam);
 
 	if (!query || query.length < 2) {
 		return json({ configured: hasSpotifySearchConfig(), albums: [] });
 	}
 
-	if (!Number.isInteger(year) || year < 1900 || year > getLastConcludedYear()) {
+	if (
+		year !== undefined &&
+		(!Number.isInteger(year) || year < 1900 || year > getLastConcludedYear())
+	) {
 		throw error(400, 'Year must be a fully concluded year.');
 	}
 

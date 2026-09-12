@@ -153,7 +153,9 @@ async function listParticipants(client, trekId) {
 	const trek = await getTrek(client, trekId);
 	const participants = await getTrekParticipants(client, trekId);
 
-	console.log(`${trek.name} (${trek.startYear}-${trek.endYear})`);
+	console.log(
+		`${trek.name} (${trek.type === 'curated' ? 'Curated albums' : `${trek.startYear}-${trek.endYear}`})`
+	);
 	console.table(
 		participants.map((participant) => ({
 			aliasCandidate: participant.email ?? participant.userId,
@@ -167,6 +169,8 @@ async function listParticipants(client, trekId) {
 
 async function backfillTrek(client, options) {
 	const trek = await getTrek(client, options.trekId);
+	if (trek.type === 'curated')
+		throw new Error('Year backfill is only supported for year-based treks.');
 	const participants = await getTrekParticipants(client, trek.id);
 
 	if (participants.length === 0) {
@@ -253,6 +257,7 @@ async function getTrek(client, trekId) {
 			select
 				id,
 				name,
+				type,
 				"startYear",
 				"endYear",
 				status,

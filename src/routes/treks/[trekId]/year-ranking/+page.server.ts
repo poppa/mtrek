@@ -5,7 +5,7 @@ import {
 	getSimpleTrekDetail
 } from '$lib/server/trek-service';
 import { pageNav } from '$lib/utils';
-import { error } from 'console';
+import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
 const PerPage = 20;
@@ -21,6 +21,12 @@ export const load: PageServerLoad = async (event) => {
 		new URL(event.request.url).searchParams.get('page') ?? '1'
 	);
 
+	const detail = await getSimpleTrekDetail(trekId, userId);
+	if (detail.type !== 'years')
+		throw error(
+			404,
+			'Curated treks have album rankings instead of year rankings.'
+		);
 	const yearCount = await getRankedConcludedYearsCountForTrek(trekId);
 	const pgNav = pageNav({
 		page,

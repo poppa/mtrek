@@ -1,10 +1,24 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import CuratedAlbumPicker from '$lib/components/CuratedAlbumPicker.svelte';
+	import { parseCuratedAlbums, type AlbumInput } from '$lib/curated-albums';
 	import AuthButtons from '$lib/components/AuthButtons.svelte';
 	import { CalendarDays, Disc3, Plus, Shuffle, Users } from '@lucide/svelte';
 	import type { ActionData, PageData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
+	let trekType = $state('years');
+	let albums = $state<AlbumInput[]>([]);
+	$effect(() => {
+		if (form?.values) {
+			trekType = form.values.type;
+			try {
+				albums = parseCuratedAlbums(JSON.parse(form.values.albums || '[]'));
+			} catch {
+				albums = [];
+			}
+		}
+	});
 </script>
 
 {#if !data.session?.user}
@@ -14,8 +28,8 @@
 				<p class="eyebrow">Music exploration with friends</p>
 				<h1><span class="brand-color">M</span>Trek</h1>
 				<p class="lead">
-					Create a trek across a year range, randomize one year at a time, pick
-					albums, listen, rate, and finish when every year has been explored.
+					Explore a year range or a curated album list with friends. Draw a year
+					or album at random, listen, and rate together.
 				</p>
 				<AuthButtons providers={data.authProviders} redirectTo="/" />
 			</div>
@@ -55,44 +69,64 @@
 								/>
 							</div>
 
-							<div class="two-col">
-								<div class="field">
-									<label for="startYear">Start year</label>
-									<input
-										id="startYear"
-										name="startYear"
-										type="number"
-										min="1900"
-										max={data.lastConcludedYear}
-										value={form?.values?.startYear ??
-											data.lastConcludedYear - 9}
-										required
-									/>
-								</div>
-								<div class="field">
-									<label for="endYear">End year</label>
-									<input
-										id="endYear"
-										name="endYear"
-										type="number"
-										min="1900"
-										max={data.lastConcludedYear}
-										value={form?.values?.endYear ?? data.lastConcludedYear}
-										required
-									/>
-								</div>
+							<div class="field">
+								<label for="trek-type">Trek type</label><select
+									id="trek-type"
+									name="type"
+									bind:value={trekType}
+									><option value="years">Year-based</option><option
+										value="curated">Curated albums</option
+									></select
+								>
 							</div>
-
-							<button class="button primary" type="submit">
+							{#if trekType === 'curated'}
+								<CuratedAlbumPicker
+									bind:albums
+									spotifySearchConfigured={data.spotifySearchConfigured}
+								/>
+							{:else}
+								<div class="two-col">
+									<div class="field">
+										<label for="startYear">Start year</label>
+										<input
+											id="startYear"
+											name="startYear"
+											type="number"
+											min="1900"
+											max={data.lastConcludedYear}
+											value={form?.values?.startYear ??
+												data.lastConcludedYear - 9}
+											required
+										/>
+									</div>
+									<div class="field">
+										<label for="endYear">End year</label>
+										<input
+											id="endYear"
+											name="endYear"
+											type="number"
+											min="1900"
+											max={data.lastConcludedYear}
+											value={form?.values?.endYear ?? data.lastConcludedYear}
+											required
+										/>
+									</div>
+								</div>
+							{/if}
+							<button
+								class="button primary"
+								type="submit"
+								disabled={trekType === 'curated' && albums.length === 0}
+							>
 								<Shuffle size={18} />
 								<span>Create and randomize</span>
 							</button>
 						</form>
 
-						<p class="footer-note small">
-							The latest selectable end year is {data.lastConcludedYear}.
-							Current-year treks stay out until the year has fully concluded.
-						</p>
+						{#if trekType === 'years'}<p class="footer-note small">
+								The latest selectable end year is {data.lastConcludedYear}.
+								Current-year treks stay out until the year has fully concluded.
+							</p>{/if}
 					</div>
 				</section>
 
@@ -104,7 +138,7 @@
 
 					{#if data.treks.length === 0}
 						<p class="empty alert">
-							No treks yet. Create one to randomize the first year.
+							No treks yet. Create one to start exploring.
 						</p>
 					{:else}
 						<div class="trek-list">
@@ -119,7 +153,9 @@
 											<div class="meta-row">
 												<span
 													><CalendarDays size={15} />
-													{trek.startYear}-{trek.endYear}</span
+													{trek.type === 'curated'
+														? 'Curated albums'
+														: `${trek.startYear}-${trek.endYear}`}</span
 												>
 												<span><Users size={15} /> {trek.participantCount}</span>
 											</div>
@@ -143,7 +179,8 @@
 									<div class="metric-row">
 										<span
 											><Disc3 size={15} />
-											{trek.completedYears}/{trek.totalYears} years</span
+											{trek.completedYears}/{trek.totalYears}
+											{trek.type === 'curated' ? 'albums' : 'years'}</span
 										>
 										{#if trek.activeYear}
 											<span><Shuffle size={15} /> {trek.activeYear}</span>

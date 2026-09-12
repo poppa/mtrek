@@ -31,7 +31,9 @@
 				<div class="meta-row">
 					<span
 						><CalendarDays size={16} />
-						{data.trek.startYear}-{data.trek.endYear}</span
+						{data.trek.type === 'curated'
+							? 'Curated albums'
+							: `${data.trek.startYear}-${data.trek.endYear}`}</span
 					>
 
 					<span

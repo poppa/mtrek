@@ -77,17 +77,19 @@
 						>
 					</div>
 				</section>
-				<section class="panel stack">
-					<div class="panel-header"><h2>Top 10 years</h2></div>
-					<div class="ranked-list">
-						{#each data.years as year (year.roundId)}
-							<RankedYear
-								{year}
-								rank={year.rank}
-								trekId={myMemberships[year.trekId] ? year.trekId : undefined}
-								trekName={year.trekName}
-							/>
-						{:else}<p class="muted">No rated completed years yet.</p>{/each}
+				<section class="panel">
+					<div class="panel-body stack">
+						<div class="panel-header"><h2>Top 10 years</h2></div>
+						<div class="ranked-list">
+							{#each data.years as year (year.roundId)}
+								<RankedYear
+									{year}
+									rank={year.rank}
+									trekId={myMemberships[year.trekId] ? year.trekId : undefined}
+									trekName={year.trekName}
+								/>
+							{:else}<p class="muted">No rated completed years yet.</p>{/each}
+						</div>
 					</div>
 					<div class="panel-footer">
 						<a

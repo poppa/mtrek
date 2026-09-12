@@ -5,7 +5,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev --mode dev",
-		"build": "vite build",
+		"build": "sh scripts/vercel-migrate.sh && vite build",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
@@ -15,7 +15,9 @@
 		"db:generate": "drizzle-kit generate",
 		"db:push": "drizzle-kit push",
 		"db:studio": "drizzle-kit studio",
-		"trek:backfill": "node scripts/backfill-trek.js"
+		"db:migrate": "drizzle-kit migrate",
+		"trek:backfill": "node scripts/backfill-trek.js",
+		"test:integration": "node --test tests/trek-service.test.mjs"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",

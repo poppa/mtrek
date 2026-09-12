@@ -1,8 +1,11 @@
+import { parseCuratedAlbums, type AlbumInput } from '$lib/curated-albums';
+export type { AlbumInput } from '$lib/curated-albums';
 import { rankByScore } from '$lib/ranking';
 import type { SimpleAlbum } from '$lib/dbtypes';
 import { db } from '$lib/server/db';
 import {
 	albumSelections,
+	curatedAlbums,
 	ratings,
 	trekParticipants,
 	trekRounds,
@@ -11,19 +14,20 @@ import {
 	type RoundStatus
 } from '$lib/server/db/schema';
 import { error } from '@sveltejs/kit';
-import { and, asc, count, desc, eq, inArray, ne, sql } from 'drizzle-orm';
+import {
+	and,
+	asc,
+	count,
+	desc,
+	eq,
+	inArray,
+	isNotNull,
+	ne,
+	sql
+} from 'drizzle-orm';
 
 type Trek = typeof treks.$inferSelect;
 type TrekRound = typeof trekRounds.$inferSelect;
-
-export type AlbumInput = {
-	spotifyAlbumId?: string | null;
-	albumName: string;
-	artistName: string;
-	releaseDate?: string | null;
-	imageUrl?: string | null;
-	externalUrl?: string | null;
-};
 
 export function getLastConcludedYear(referenceDate = new Date()) {
 	return referenceDate.getFullYear() - 1;
@@ -119,7 +123,10 @@ export async function listTreksForUser(userId: string) {
 			const completedYears = rounds.filter(
 				(round) => round.status === 'completed'
 			).length;
-			const totalYears = getYearRange(trek).length;
+			const totalYears =
+				trek.type === 'curated'
+					? (await getCuratedAlbums(trek.id)).length
+					: getYearRange(trek).length;
 
 			return {
 				...trek,
@@ -133,41 +140,50 @@ export async function listTreksForUser(userId: string) {
 	);
 }
 
-export async function createTrek(input: {
-	name: string;
-	startYear: number;
-	endYear: number;
-	userId: string;
-}) {
+export async function createTrek(
+	input: {
+		name: string;
+		userId: string;
+	} & (
+		| { type?: 'years'; startYear: number; endYear: number }
+		| { type: 'curated'; albums: unknown }
+	)
+) {
 	const name = input.name.trim();
-
-	if (!name) {
-		throw new Error('Trek name is required.');
-	}
-
-	validateTrekYears(input.startYear, input.endYear);
-
+	if (!name) throw new Error('Trek name is required.');
+	const albums =
+		input.type === 'curated' ? parseCuratedAlbums(input.albums) : [];
+	if (input.type !== 'curated')
+		validateTrekYears(input.startYear, input.endYear);
 	const trekId = crypto.randomUUID();
-
 	await db.transaction(async (tx) => {
-		await tx.insert(treks).values({
-			id: trekId,
-			name,
-			startYear: input.startYear,
-			endYear: input.endYear,
-			inviteCode: generateInviteCode(),
-			createdBy: input.userId
-		});
-
-		await tx.insert(trekParticipants).values({
-			trekId,
-			userId: input.userId,
-			role: 'owner'
-		});
+		const [trek] = await tx
+			.insert(treks)
+			.values({
+				id: trekId,
+				name,
+				type: input.type ?? 'years',
+				startYear: input.type === 'curated' ? null : input.startYear,
+				endYear: input.type === 'curated' ? null : input.endYear,
+				inviteCode: generateInviteCode(),
+				createdBy: input.userId
+			})
+			.returning();
+		await tx
+			.insert(trekParticipants)
+			.values({ trekId, userId: input.userId, role: 'owner' });
+		if (input.type === 'curated') {
+			await tx.insert(curatedAlbums).values(
+				albums.map((album, index) => ({
+					...album,
+					trekId,
+					position: index + 1
+				}))
+			);
+			await advanceCuratedRound(tx, trek);
+		}
 	});
-
-	await startNextRound(trekId);
-
+	if (input.type !== 'curated') await startNextRound(trekId);
 	return trekId;
 }
 
@@ -186,6 +202,34 @@ export async function joinTrek(inviteCode: string, userId: string) {
 
 	if (!trek) {
 		throw error(404, 'Invite not found.');
+	}
+
+	if (trek.type === 'curated') {
+		return db.transaction(async (tx) => {
+			const locked = await lockCuratedTrek(tx, trek.id);
+			const [member] = await tx
+				.select()
+				.from(trekParticipants)
+				.where(
+					and(
+						eq(trekParticipants.trekId, trek.id),
+						eq(trekParticipants.userId, userId)
+					)
+				);
+			if (member) return trek.id;
+			if (locked.status === 'completed')
+				throw error(409, 'This trek has already completed.');
+			await tx
+				.insert(trekParticipants)
+				.values({ trekId: trek.id, userId, role: 'participant' });
+			// Every participant must rate every drawn album, including earlier rounds.
+			await tx
+				.update(trekRounds)
+				.set({ status: 'rating', completedAt: null })
+				.where(eq(trekRounds.trekId, trek.id));
+			await refreshCuratedRounds(tx, locked);
+			return trek.id;
+		});
 	}
 
 	const existingMembership = await getMembership(trek.id, userId);
@@ -268,11 +312,19 @@ export async function getTrekDetail(trekId: string, userId: string) {
 	const currentRound =
 		rounds.find((round) => round.status !== 'completed') ?? null;
 	const selections = currentRound
-		? await getSelectionsForRound(currentRound.id, userId)
+		? await getSelectionsForRound(
+				currentRound.id,
+				userId,
+				trek.type === 'curated'
+					? participants.map((participant) => participant.userId)
+					: undefined
+			)
 		: [];
 	const completedYears = rounds.filter(
 		(round) => round.status === 'completed'
 	).length;
+	const curatedList =
+		trek.type === 'curated' ? await getCuratedAlbums(trekId) : [];
 	const remainingYears = getRemainingYears(trek, rounds);
 	const rankedYears =
 		completedYears > 0 ? await getRankedConcludedYearsForTrek(trekId) : [];
@@ -285,7 +337,8 @@ export async function getTrekDetail(trekId: string, userId: string) {
 		trek,
 		membership,
 		participants,
-		rounds: sortRoundsByYear(rounds),
+		curatedAlbums: curatedList,
+		rounds: trek.type === 'curated' ? rounds : sortRoundsByYear(rounds),
 		rankedYears,
 		rankedYearsCount,
 		rankedAlbums,
@@ -298,8 +351,14 @@ export async function getTrekDetail(trekId: string, userId: string) {
 			participantCount: participants.length,
 			selectionCount: selections.length,
 			completedYears,
-			totalYears: getYearRange(trek).length,
-			remainingYears: remainingYears.length,
+			totalYears:
+				trek.type === 'curated'
+					? curatedList.length
+					: getYearRange(trek).length,
+			remainingYears:
+				trek.type === 'curated'
+					? curatedList.length - completedYears
+					: remainingYears.length,
 			requiredRatingCount: currentRound
 				? participants.length * selections.length
 				: 0,
@@ -319,7 +378,7 @@ export async function getConcludedYearDetail(input: {
 }) {
 	const trek = await getTrek(input.trekId);
 
-	if (!trek) {
+	if (!trek || trek.type !== 'years') {
 		throw error(404, 'Trek not found.');
 	}
 
@@ -402,6 +461,23 @@ export async function removeParticipant(input: {
 		throw new Error('The owner cannot be removed from the trek.');
 	}
 
+	const trek = await getTrek(input.trekId);
+	if (trek?.type === 'curated') {
+		await db.transaction(async (tx) => {
+			await lockCuratedTrek(tx, trek.id);
+			await tx
+				.delete(trekParticipants)
+				.where(
+					and(
+						eq(trekParticipants.trekId, trek.id),
+						eq(trekParticipants.userId, input.participantId)
+					)
+				);
+			await refreshCuratedRounds(tx, trek);
+		});
+		return;
+	}
+
 	const activeRound = await getActiveRound(input.trekId);
 
 	if (activeRound && (await getRatingCountForRound(activeRound.id)) > 0) {
@@ -455,6 +531,8 @@ export async function selectAlbum(
 	input: AlbumInput
 ) {
 	await assertMember(trekId, userId);
+	if ((await getTrek(trekId))?.type === 'curated')
+		throw error(409, 'Curated albums are fixed when the trek is created.');
 	validateAlbumInput(input);
 
 	const round = await getActiveRound(trekId);
@@ -500,6 +578,9 @@ export async function deleteOwnSelection(input: {
 }) {
 	await assertMember(input.trekId, input.userId);
 
+	if ((await getTrek(input.trekId))?.type === 'curated')
+		throw error(409, 'Curated albums cannot be deleted.');
+
 	const round = await getActiveRound(input.trekId);
 
 	if (!round) {
@@ -536,8 +617,59 @@ export async function rateSelection(input: {
 }) {
 	await assertMember(input.trekId, input.userId);
 
-	if (input.scoreTenth < 0 || input.scoreTenth > 50) {
+	if (
+		!Number.isInteger(input.scoreTenth) ||
+		input.scoreTenth < 0 ||
+		input.scoreTenth > 50
+	) {
 		throw new Error('Rating must be between 0 and 5.');
+	}
+
+	if ((await getTrek(input.trekId))?.type === 'curated') {
+		await db.transaction(async (tx) => {
+			const trek = await lockCuratedTrek(tx, input.trekId);
+			const [member] = await tx
+				.select()
+				.from(trekParticipants)
+				.where(
+					and(
+						eq(trekParticipants.trekId, trek.id),
+						eq(trekParticipants.userId, input.userId)
+					)
+				);
+			if (!member) throw error(403, 'You are not a participant in this trek.');
+			const [selection] = await tx
+				.select({ id: albumSelections.id, status: trekRounds.status })
+				.from(albumSelections)
+				.innerJoin(trekRounds, eq(albumSelections.roundId, trekRounds.id))
+				.where(
+					and(
+						eq(albumSelections.id, input.selectionId),
+						eq(trekRounds.trekId, trek.id)
+					)
+				);
+			if (!selection) throw error(404, 'Album selection not found.');
+			if (selection.status !== 'rating')
+				throw error(409, 'This album round is already completed.');
+			const values = {
+				scoreTenth: input.scoreTenth,
+				note: cleanOptional(input.note),
+				updatedAt: new Date()
+			};
+			await tx
+				.insert(ratings)
+				.values({
+					...values,
+					selectionId: input.selectionId,
+					userId: input.userId
+				})
+				.onConflictDoUpdate({
+					target: [ratings.selectionId, ratings.userId],
+					set: values
+				});
+			await refreshCuratedRounds(tx, trek);
+		});
+		return;
 	}
 
 	const selection = (
@@ -603,6 +735,12 @@ export async function startNextRound(trekId: string) {
 
 	if (!trek) {
 		throw error(404, 'Trek not found.');
+	}
+
+	if (trek.type === 'curated') {
+		return db.transaction(async (tx) =>
+			advanceCuratedRound(tx, await lockCuratedTrek(tx, trekId))
+		);
 	}
 
 	const activeRound = await getActiveRound(trekId);
@@ -752,7 +890,11 @@ async function getRatingCountForRound(roundId: string) {
 	return rows[0]?.value ?? 0;
 }
 
-async function getSelectionsForRound(roundId: string, userId: string) {
+async function getSelectionsForRound(
+	roundId: string,
+	userId: string,
+	participantIds?: string[]
+) {
 	const selections = await db
 		.select({
 			id: albumSelections.id,
@@ -785,7 +927,14 @@ async function getSelectionsForRound(roundId: string, userId: string) {
 						note: ratings.note
 					})
 					.from(ratings)
-					.where(inArray(ratings.selectionId, selectionIds))
+					.where(
+						and(
+							inArray(ratings.selectionId, selectionIds),
+							participantIds
+								? inArray(ratings.userId, participantIds)
+								: undefined
+						)
+					)
 			: [];
 
 	return selections.map((selection) => {
@@ -904,7 +1053,7 @@ type AlbumSelection = {
 	imageUrl: string | null;
 	externalUrl: string | null;
 	createdAt: Date;
-	year: number;
+	year: number | null;
 	roundPosition: number;
 	userName: string | null;
 	userEmail: string | null;
@@ -912,7 +1061,8 @@ type AlbumSelection = {
 
 export async function getRankedAlbumsForUser(
 	userId: string,
-	{ limit, offset } = { limit: 10, offset: 0 }
+	{ limit, offset } = { limit: 10, offset: 0 },
+	trekId?: string
 ) {
 	try {
 		const selections = await db
@@ -945,7 +1095,11 @@ export async function getRankedAlbumsForUser(
 			.innerJoin(users, eq(albumSelections.userId, users.id))
 			.innerJoin(trekRounds, eq(albumSelections.roundId, trekRounds.id))
 			.innerJoin(treks, eq(trekRounds.trekId, treks.id))
-			.where(eq(ratings.userId, userId))
+			.where(
+				trekId
+					? and(eq(ratings.userId, userId), eq(trekRounds.trekId, trekId))
+					: eq(ratings.userId, userId)
+			)
 			.orderBy(
 				desc(ratings.scoreTenth),
 				asc(albumSelections.createdAt),
@@ -961,11 +1115,15 @@ export async function getRankedAlbumsForUser(
 	}
 }
 
-export async function getAlbumCountForUser(userId: string) {
-	const rows = await db
-		.select({ count: count() })
-		.from(ratings)
-		.where(eq(ratings.userId, userId));
+export async function getAlbumCountForUser(userId: string, trekId?: string) {
+	const query = db.select({ count: count() }).from(ratings);
+
+	const rows = trekId
+		? await query
+				.innerJoin(albumSelections, eq(albumSelections.id, ratings.selectionId))
+				.innerJoin(trekRounds, eq(albumSelections.roundId, trekRounds.id))
+				.where(and(eq(ratings.userId, userId), eq(trekRounds.trekId, trekId)))
+		: await query.where(eq(ratings.userId, userId));
 	return rows[0]?.count ?? 0;
 }
 
@@ -1059,7 +1217,7 @@ async function resolveRanking(selections: AlbumSelection[]) {
 		.sort((left, right) => {
 			if (left.averageScoreTenth === null && right.averageScoreTenth === null) {
 				return (
-					left.year - right.year ||
+					(left.year ?? 0) - (right.year ?? 0) ||
 					left.albumName.localeCompare(right.albumName) ||
 					left.artistName.localeCompare(right.artistName)
 				);
@@ -1071,7 +1229,7 @@ async function resolveRanking(selections: AlbumSelection[]) {
 			return (
 				right.averageScoreTenth - left.averageScoreTenth ||
 				right.ratingCount - left.ratingCount ||
-				left.year - right.year ||
+				(left.year ?? 0) - (right.year ?? 0) ||
 				left.albumName.localeCompare(right.albumName) ||
 				left.artistName.localeCompare(right.artistName)
 			);
@@ -1084,7 +1242,11 @@ export async function getRankedConcludedYearsCountForTrek(trekId: string) {
 		.select({ count: count() })
 		.from(trekRounds)
 		.where(
-			and(eq(trekRounds.trekId, trekId), eq(trekRounds.status, 'completed'))
+			and(
+				eq(trekRounds.trekId, trekId),
+				eq(trekRounds.status, 'completed'),
+				isNotNull(trekRounds.year)
+			)
 		);
 
 	return selection.at(0)?.count ?? 0;
@@ -1109,6 +1271,7 @@ export async function getRankedConcludedYearsForTrek(
 			and(
 				trekId ? eq(trekRounds.trekId, trekId) : undefined,
 				eq(trekRounds.status, 'completed'),
+				isNotNull(trekRounds.year),
 				userId
 					? inArray(
 							trekRounds.id,
@@ -1210,6 +1373,7 @@ export async function getRankedConcludedYearsForTrek(
 
 			return {
 				...round,
+				year: round.year!,
 				albumCount: stats?.albumCount ?? 0,
 				ratingCount,
 				averageScoreTenth,
@@ -1220,7 +1384,7 @@ export async function getRankedConcludedYearsForTrek(
 		.filter((round) => !userId || round.ratingCount > 0)
 		.sort((left, right) => {
 			if (left.averageScoreTenth === null && right.averageScoreTenth === null) {
-				return left.year - right.year;
+				return (left.year ?? 0) - (right.year ?? 0);
 			}
 
 			if (left.averageScoreTenth === null) return 1;
@@ -1230,7 +1394,7 @@ export async function getRankedConcludedYearsForTrek(
 				right.averageScoreTenth - left.averageScoreTenth ||
 				right.ratingCount - left.ratingCount ||
 				right.albumCount - left.albumCount ||
-				left.year - right.year ||
+				(left.year ?? 0) - (right.year ?? 0) ||
 				left.roundId.localeCompare(right.roundId)
 			);
 		});
@@ -1307,6 +1471,7 @@ async function completeTrek(trekId: string) {
 
 function getYearRange(trek: Pick<Trek, 'startYear' | 'endYear'>) {
 	const years: number[] = [];
+	if (trek.startYear === null || trek.endYear === null) return years;
 
 	for (let year = trek.startYear; year <= trek.endYear; year += 1) {
 		years.push(year);
@@ -1326,7 +1491,7 @@ function getRemainingYears(
 
 function sortRoundsByYear(rounds: TrekRound[]) {
 	return [...rounds].sort((left, right) => {
-		const yearOrder = left.year - right.year;
+		const yearOrder = (left.year ?? 0) - (right.year ?? 0);
 
 		return yearOrder === 0 ? left.position - right.position : yearOrder;
 	});
@@ -1340,4 +1505,142 @@ function cleanOptional(value: string | null | undefined) {
 	const cleaned = value?.trim();
 
 	return cleaned ? cleaned : null;
+}
+
+type TrekTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+async function lockCuratedTrek(tx: TrekTransaction, trekId: string) {
+	const [trek] = await tx
+		.select()
+		.from(treks)
+		.where(eq(treks.id, trekId))
+		.for('update');
+	if (!trek || trek.type !== 'curated')
+		throw error(404, 'Curated trek not found.');
+	return trek;
+}
+
+async function getCuratedAlbums(trekId: string) {
+	return db
+		.select()
+		.from(curatedAlbums)
+		.where(eq(curatedAlbums.trekId, trekId))
+		.orderBy(asc(curatedAlbums.position));
+}
+
+/** Caller holds the trek lock, so simultaneous final ratings cannot draw twice. */
+async function advanceCuratedRound(tx: TrekTransaction, trek: Trek) {
+	const rounds = await tx
+		.select()
+		.from(trekRounds)
+		.where(eq(trekRounds.trekId, trek.id))
+		.orderBy(asc(trekRounds.position));
+	const active = rounds.find((round) => round.status !== 'completed');
+	if (active) return active;
+	const albums = await tx
+		.select()
+		.from(curatedAlbums)
+		.where(eq(curatedAlbums.trekId, trek.id));
+	const drawn = new Set(rounds.map((round) => round.curatedAlbumId));
+	const remaining = albums.filter((album) => !drawn.has(album.id));
+	if (!remaining.length) {
+		await tx
+			.update(treks)
+			.set({ status: 'completed', completedAt: new Date() })
+			.where(eq(treks.id, trek.id));
+		return null;
+	}
+	const album = remaining[Math.floor(Math.random() * remaining.length)];
+	const [round] = await tx
+		.insert(trekRounds)
+		.values({
+			trekId: trek.id,
+			position: rounds.length + 1,
+			curatedAlbumId: album.id,
+			status: 'rating'
+		})
+		.returning();
+	await tx.insert(albumSelections).values({
+		roundId: round.id,
+		userId: trek.createdBy,
+		spotifyAlbumId: album.spotifyAlbumId,
+		albumName: album.albumName,
+		artistName: album.artistName,
+		releaseDate: album.releaseDate,
+		imageUrl: album.imageUrl,
+		externalUrl: album.externalUrl
+	});
+	return round;
+}
+
+async function refreshCuratedRounds(tx: TrekTransaction, trek: Trek) {
+	const participants = await tx
+		.select({ userId: trekParticipants.userId })
+		.from(trekParticipants)
+		.where(eq(trekParticipants.trekId, trek.id));
+	const rounds = await tx
+		.select()
+		.from(trekRounds)
+		.where(eq(trekRounds.trekId, trek.id));
+	const scores = await tx
+		.select({ roundId: albumSelections.roundId, userId: ratings.userId })
+		.from(ratings)
+		.innerJoin(albumSelections, eq(ratings.selectionId, albumSelections.id))
+		.innerJoin(trekRounds, eq(albumSelections.roundId, trekRounds.id))
+		.where(eq(trekRounds.trekId, trek.id));
+	for (const round of rounds) {
+		const rated = new Set(
+			scores
+				.filter((score) => score.roundId === round.id)
+				.map((score) => score.userId)
+		);
+		const completed =
+			participants.length > 0 &&
+			participants.every((participant) => rated.has(participant.userId));
+		if (completed && round.status !== 'completed') {
+			await tx
+				.update(trekRounds)
+				.set({ status: 'completed', completedAt: new Date() })
+				.where(eq(trekRounds.id, round.id));
+		}
+	}
+	await advanceCuratedRound(tx, trek);
+}
+
+export async function getConcludedAlbumRoundDetail(input: {
+	trekId: string;
+	userId: string;
+	roundId: string;
+}) {
+	const trek = await getSimpleTrekDetail(input.trekId, input.userId);
+	const [round] = await db
+		.select()
+		.from(trekRounds)
+		.where(
+			and(
+				eq(trekRounds.id, input.roundId),
+				eq(trekRounds.trekId, trek.id),
+				eq(trekRounds.status, 'completed')
+			)
+		);
+	if (trek.type !== 'curated' || !round)
+		throw error(404, 'Concluded album round not found.');
+	const selections = await getSelectionsForConcludedRound(round.id);
+	const scores = selections.flatMap((selection) =>
+		selection.ratings.map((rating) => rating.scoreTenth)
+	);
+	return {
+		trek,
+		round,
+		selections,
+		summary: {
+			albumCount: selections.length,
+			ratingCount: scores.length,
+			averageScore: scores.length
+				? formatScore(
+						scores.reduce((sum, score) => sum + score, 0) / scores.length
+					)
+				: null
+		}
+	};
 }

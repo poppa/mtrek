@@ -23,6 +23,20 @@
 				<div class="meta-row">{data.total} years</div>
 			</div>
 		</div>
+		<form class="user-filter panel" method="GET">
+			<label for="trek-filter">Filter on Trek</label>
+			<select
+				id="trek-filter"
+				name="trekId"
+				value={data.selectedTrekId ?? ''}
+				onchange={(event) => event.currentTarget.form?.requestSubmit()}
+			>
+				<option value="">All Treks</option>
+				{#each data.treks as trek (trek.id)}
+					<option value={trek.id}>{trek.name}</option>
+				{/each}
+			</select>
+		</form>
 		<section class="panel">
 			<div class="panel-body stack">
 				<div class="ranked-list">
@@ -44,6 +58,7 @@
 						nav={data.pageNav}
 						path="/user/[userId]/year-ranking"
 						pathArgs={{ userId: data.user.id }}
+						query={{ trekId: data.selectedTrekId }}
 					/>
 				</div>{/if}
 		</section>

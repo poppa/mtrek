@@ -118,3 +118,23 @@ npm run trek:backfill -- path/to/backfill.json
 The script loads `.env.dev`, `.env.local`, and `.env`, using the same PostgreSQL URL precedence as the Drizzle commands: `DRIZZLE_DATABASE_URL`, `POSTGRES_URL_NON_POOLING`, `DATABASE_URL`, `POSTGRES_URL`, then `POSTGRES_PRISMA_URL`. It runs every write in one transaction; `--dry-run` rolls that transaction back.
 
 Every referenced selection or rating user must already be a trek participant. Ratings can use `score` from `0` to `5` with at most one decimal, or `scoreTenth` from `0` to `50`. Re-running the same backfill updates the existing year, participant album selection, and participant rating rows instead of creating duplicates.
+
+## Curated album Treks
+
+Choose **Curated albums** in the creation form, then build a list using Spotify search or manual entry. There is no fixed album-count limit; at least one album is required. Duplicate albums are rejected, and the list is fixed once the Trek is created.
+
+Each round draws one previously undrawn album and opens ratings immediately. Once every current participant has rated it, the next album is drawn automatically. Late joiners must also rate earlier albums; existing ratings are preserved. The Trek completes once every participant has rated the entire list. As with year-based Treks, completed Treks no longer accept new participants.
+
+Curated albums appear in Trek and user album rankings. Completed album rounds have their own history pages; year rankings remain specific to year-based Treks.
+
+Apply `drizzle/0001_curated_treks.sql` to an existing database before running this version (or use the existing `npm run db:push` workflow). The migration adds the album list and Trek type, keeps existing Treks as `years`, and allows year fields to be empty for curated Treks. The year-backfill script rejects curated Treks.
+
+### Integration tests
+
+The integration suite creates a fresh database, applies migrations, exercises both Trek types, and drops that database afterward. Set `TEST_DATABASE_URL` to a local PostgreSQL server where the test user can create databases:
+
+```sh
+TEST_DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres npm run test:integration
+```
+
+It covers migration compatibility, album validation, concurrent final ratings, automatic progression, late joins, participant removal, access checks, and the existing year-based flow. It does not load application `.env` files or modify existing database tables.

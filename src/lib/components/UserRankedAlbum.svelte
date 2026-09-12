@@ -22,7 +22,7 @@
 	} = $props();
 </script>
 
-<div class="ranked-album wide">
+<div class="user-ranked-album">
 	<div class="rank-number align-self-start">{rank}</div>
 	<div class="album-info">
 		<div class="cover align-self-start" class:noimage={!album.imageUrl}>
@@ -77,18 +77,23 @@
 					{#if album.roundStatus === 'completed'}
 						<a
 							class="button small"
-							href={resolve('/treks/[trekId]/years/[year]', {
-								trekId: album.trekId,
-								year: String(album.year)
-							})}
+							href={album.year === null
+								? resolve('/treks/[trekId]/rounds/[roundId]', {
+										trekId: album.trekId,
+										roundId: album.roundId
+									})
+								: resolve('/treks/[trekId]/years/[year]', {
+										trekId: album.trekId,
+										year: String(album.year)
+									})}
 						>
 							<CircleCheck size={15} />
-							{album.year}
+							{album.year ?? `Round ${album.roundPosition}`}
 						</a>
 					{:else}
 						<span class="small button muted">
 							<CircleDashed size={15} />
-							{album.year}
+							{album.year ?? `Round ${album.roundPosition}`}
 						</span>
 					{/if}
 				{/if}
@@ -101,8 +106,12 @@
 </div>
 
 <style lang="scss">
-	.ranked-album {
+	.user-ranked-album {
 		grid-template-columns: 2.4rem minmax(0, 1fr) auto;
+
+		.cover {
+			width: 4rem;
+		}
 
 		@container app (width < 834px) {
 			grid-template-columns: 2.4rem auto;

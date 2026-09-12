@@ -37,11 +37,14 @@ export function hasSpotifySearchConfig() {
 
 export async function searchSpotifyAlbums(input: {
 	query: string;
-	year: number;
+	year?: number;
 }) {
 	const token = await getSpotifyAccessToken();
 	const params = new URLSearchParams({
-		q: `${input.query.trim()} year:${input.year}`,
+		q:
+			input.year === undefined
+				? input.query.trim()
+				: `${input.query.trim()} year:${input.year}`,
 		type: 'album',
 		limit: '8'
 	});

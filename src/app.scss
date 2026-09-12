@@ -835,6 +835,7 @@ a.round-chip:hover {
 }
 
 .ranked-album,
+.user-ranked-album,
 .ranked-year {
 	display: grid;
 	gap: var(--gap);
@@ -968,6 +969,12 @@ a.round-chip:hover {
 // 	border: 0;
 // 	border-block-start: 1px dashed var(--line);
 // }
+
+@media screen and (max-width: 832px) {
+	.stack + aside.stack {
+		margin-block-start: calc((var(--gutter) + 1px) * -1);
+	}
+}
 
 // @media (max-width: 860px) {
 // 	.dashboard-grid,
@@ -1187,16 +1194,14 @@ button.button {
 	white-space: nowrap;
 }
 
-.stack {
+:where(.stack) {
 	display: flex;
 	gap: var(--gutter);
 	flex-direction: column;
 
 	@container app (width < 600px) {
-		gap: 0;
-
-		> :not(:first-child) {
-			margin-block-start: -1px;
+		.panel + .panel {
+			margin-block-start: calc((var(--gutter) + 1px) * -1);
 		}
 	}
 }
@@ -1417,5 +1422,24 @@ button {
 	&:hover {
 		color: var(--ink);
 		text-decoration: underline;
+	}
+}
+
+.user-filter {
+	margin-block-end: var(--gutter);
+	display: grid;
+	grid-template-columns: auto 1fr;
+	align-items: center;
+	gap: var(--gap);
+
+	label {
+		display: block;
+		color: var(--muted);
+	}
+}
+
+@container app (width < 834px) {
+	.user-filter {
+		margin-block-end: -1px;
 	}
 }
