@@ -1437,9 +1437,3 @@ button {
 		color: var(--muted);
 	}
 }
-
-@container app (width < 834px) {
-	.user-filter {
-		margin-block-end: -1px;
-	}
-}
