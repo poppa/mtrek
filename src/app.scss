@@ -970,6 +970,12 @@ a.round-chip:hover {
 // 	border-block-start: 1px dashed var(--line);
 // }
 
+@media screen and (max-width: 832px) {
+	.stack + aside.stack {
+		margin-block-start: calc((var(--gutter) + 1px) * -1);
+	}
+}
+
 // @media (max-width: 860px) {
 // 	.dashboard-grid,
 // 	.workspace-grid,
@@ -1194,10 +1200,8 @@ button.button {
 	flex-direction: column;
 
 	@container app (width < 600px) {
-		gap: 0;
-
-		> :where(:not(:first-child)) {
-			margin-block-start: -1px;
+		.panel + .panel {
+			margin-block-start: calc((var(--gutter) + 1px) * -1);
 		}
 	}
 }

@@ -20,6 +20,11 @@
 
 	async function search() {
 		if (query.trim().length < 2) {
+			if (results.length) {
+				results = [];
+				return;
+			}
+
 			message = 'Enter at least two characters.';
 			return;
 		}
@@ -78,28 +83,30 @@
 		fixed when you create the trek.
 	</p>
 	<input type="hidden" name="albums" value={JSON.stringify(albums)} />
-	<div class="field">
-		<label for="curated-search">Album or artist</label>
-		<input
-			id="curated-search"
-			bind:value={query}
-			placeholder="Search Spotify"
-			disabled={!spotifySearchConfigured}
-			onkeydown={(event) => {
-				if (event.key === 'Enter') {
-					event.preventDefault();
-					void search();
-				}
-			}}
-		/>
+	<div class="grid">
+		<div class="field">
+			<label for="curated-search">Album or artist</label>
+			<input
+				id="curated-search"
+				bind:value={query}
+				placeholder="Search Spotify"
+				disabled={!spotifySearchConfigured}
+				onkeydown={(event) => {
+					if (event.key === 'Enter') {
+						event.preventDefault();
+						void search();
+					}
+				}}
+			/>
+		</div>
+		<button
+			type="button"
+			class="button"
+			onclick={search}
+			disabled={!spotifySearchConfigured || searching}
+			><Search size={16} />{searching ? 'Searching…' : 'Search'}</button
+		>
 	</div>
-	<button
-		type="button"
-		class="button"
-		onclick={search}
-		disabled={!spotifySearchConfigured || searching}
-		><Search size={16} />{searching ? 'Searching…' : 'Search Spotify'}</button
-	>
 	{#if !spotifySearchConfigured}<p class="footer-note">
 			Spotify search is unavailable. Add albums manually below.
 		</p>{/if}
@@ -209,5 +216,12 @@
 		summary {
 			cursor: pointer;
 		}
+	}
+
+	.grid {
+		display: grid;
+		grid-template-columns: 1fr auto;
+		gap: var(--gap);
+		align-items: flex-end;
 	}
 </style>

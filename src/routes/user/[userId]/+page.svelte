@@ -77,7 +77,7 @@
 						>
 					</div>
 				</section>
-				<section class="panel stack">
+				<section class="panel">
 					<div class="panel-body stack">
 						<div class="panel-header"><h2>Top 10 years</h2></div>
 						<div class="ranked-list">
