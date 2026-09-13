@@ -1383,6 +1383,22 @@ button {
 	background: var(--danger-soft);
 }
 
+form[aria-busy='true'] {
+	cursor: progress;
+
+	button[type='submit'] {
+		pointer-events: none;
+		cursor: progress;
+		opacity: 0.72;
+
+		&::after {
+			content: 'Working…';
+			margin-inline-start: 0.45rem;
+			font-size: 0.85em;
+		}
+	}
+}
+
 .empty {
 	border: 1px dashed var(--line);
 	color: var(--muted);

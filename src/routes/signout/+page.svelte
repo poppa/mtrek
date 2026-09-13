@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { enhance } from '$lib/form-enhance';
 	import { LogOut } from '@lucide/svelte';
 	import type { PageData } from './$types';
 
@@ -18,7 +19,7 @@
 
 			{#if data.session?.user}
 				<p class="lead">End your current MTrek session on this device.</p>
-				<form method="post">
+				<form method="post" use:enhance>
 					<input type="hidden" name="redirectTo" value="/" />
 					<button class="button primary" type="submit">
 						<LogOut size={18} />

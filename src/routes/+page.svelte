@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { enhance } from '$lib/form-enhance';
 	import CuratedAlbumPicker from '$lib/components/CuratedAlbumPicker.svelte';
 	import { parseCuratedAlbums, type AlbumInput } from '$lib/curated-albums';
 	import AuthButtons from '$lib/components/AuthButtons.svelte';
@@ -57,7 +58,12 @@
 							<p class="form-error alert">{form.createError}</p>
 						{/if}
 
-						<form class="form-grid" method="post" action="?/createTrek">
+						<form
+							class="form-grid"
+							method="post"
+							action="?/createTrek"
+							use:enhance
+						>
 							<div class="field">
 								<label for="name">Name</label>
 								<input

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { LogIn, Music2 } from '@lucide/svelte';
+	import { enhance } from '$lib/form-enhance';
 
 	type ProviderStatus = {
 		google: boolean;
@@ -17,7 +18,7 @@
 
 <div class="auth-actions">
 	{#if providers.google}
-		<form method="post" action="/signin">
+		<form method="post" action="/signin" use:enhance>
 			<input type="hidden" name="providerId" value="google" />
 			<input type="hidden" name="redirectTo" value={redirectTo} />
 			<button class="button primary" type="submit">
@@ -28,7 +29,7 @@
 	{/if}
 
 	{#if providers.spotify}
-		<form method="post" action="/signin">
+		<form method="post" action="/signin" use:enhance>
 			<input type="hidden" name="providerId" value="spotify" />
 			<input type="hidden" name="redirectTo" value={redirectTo} />
 			<button class="button spotify" type="submit">

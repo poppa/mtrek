@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { enhance } from '$lib/form-enhance';
 	import Label from '$lib/components/Label.svelte';
 	import {
 		CalendarDays,
@@ -191,7 +192,7 @@
 							</div>
 
 							{#if data.progress.canAdvance}
-								<form method="post" action="?/advance">
+								<form method="post" action="?/advance" use:enhance>
 									<button class="button primary" type="submit">
 										<Shuffle size={18} />
 										<span>Randomize {roundUnit}</span>
@@ -232,7 +233,11 @@
 											>
 										</div>
 										{#if canDeleteSelection}
-											<form method="post" action="?/deleteSelection">
+											<form
+												method="post"
+												action="?/deleteSelection"
+												use:enhance
+											>
 												<button class="button danger small" type="submit">
 													<Trash2 size={15} />
 													<span>Delete pick</span>
@@ -255,7 +260,11 @@
 										</span>
 									</div>
 
-									<form class="form-grid search" onsubmit={searchAlbums}>
+									<form
+										class="form-grid search"
+										onsubmit={searchAlbums}
+										aria-busy={isSearching}
+									>
 										<div class="field">
 											<label for="album-search">Album or artist</label>
 											<input
@@ -287,6 +296,7 @@
 													class="album-card wide"
 													method="post"
 													action="?/selectAlbum"
+													use:enhance
 												>
 													<input
 														type="hidden"
@@ -350,7 +360,12 @@
 
 								<hr class="divider" />
 
-								<form class="form-grid" method="post" action="?/selectAlbum">
+								<form
+									class="form-grid"
+									method="post"
+									action="?/selectAlbum"
+									use:enhance
+								>
 									<h3>Manual entry</h3>
 									<div class="two-col">
 										<div class="field">
@@ -419,7 +434,11 @@
 														{selection.averageScore ?? 'Unrated'}</span
 													>
 													{#if selection.userId === data.session?.user?.id && canDeleteSelection}
-														<form method="post" action="?/deleteSelection">
+														<form
+															method="post"
+															action="?/deleteSelection"
+															use:enhance
+														>
 															<button class="button danger small" type="submit">
 																<Trash2 size={15} />
 																<span>Delete pick</span>
@@ -444,6 +463,7 @@
 												class="rating-form"
 												method="post"
 												action="?/rateAlbum"
+												use:enhance
 											>
 												<input
 													type="hidden"
@@ -684,7 +704,12 @@
 							</button>
 
 							<div class="panel-content">
-								<form class="form-grid" method="post" action="?/updateTitle">
+								<form
+									class="form-grid"
+									method="post"
+									action="?/updateTitle"
+									use:enhance
+								>
 									<div class="field">
 										<label for="trek-name">Title</label>
 										<input
@@ -701,7 +726,7 @@
 								</form>
 
 								{#if data.progress.participantCount === 1}
-									<form method="post" action="?/deleteTrek">
+									<form method="post" action="?/deleteTrek" use:enhance>
 										<button class="button danger" type="submit">
 											<Trash2 size={16} />
 											<span>Delete trek</span>
@@ -742,7 +767,11 @@
 										<span class="footer-note small">{participant.role}</span>
 									</div>
 									{#if isOwner && participant.role !== 'owner'}
-										<form method="post" action="?/removeParticipant">
+										<form
+											method="post"
+											action="?/removeParticipant"
+											use:enhance
+										>
 											<input
 												type="hidden"
 												name="participantId"

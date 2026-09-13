@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { enhance } from '$lib/form-enhance';
 	import RankedYear from '$lib/components/RankedYear.svelte';
 	import UserRankedAlbum from '$lib/components/UserRankedAlbum.svelte';
 	import { ChevronsRight, LogOut } from '@lucide/svelte';
@@ -35,7 +36,7 @@
 				</h1>
 			</div>
 			{#if data.me}
-				<form method="post" action="/signout">
+				<form method="post" action="/signout" use:enhance>
 					<input type="hidden" name="redirectTo" value="/" />
 					<button
 						class="button ghost small-text muted"

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { CalendarDays, LogIn, Users } from '@lucide/svelte';
 	import AuthButtons from '$lib/components/AuthButtons.svelte';
+	import { enhance } from '$lib/form-enhance';
 	import type { ActionData, PageData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -39,7 +40,7 @@
 						<p class="form-error alert">{form.joinError}</p>
 					{/if}
 					{#if data.isSignedIn}
-						<form method="post">
+						<form method="post" use:enhance>
 							<button class="button primary" type="submit">
 								<LogIn size={18} />
 								<span>Join trek</span>
