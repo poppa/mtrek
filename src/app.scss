@@ -1383,6 +1383,10 @@ button {
 	background: var(--danger-soft);
 }
 
+form {
+	--form-pending-label: 'Working…';
+}
+
 form[aria-busy='true'] {
 	cursor: progress;
 
@@ -1392,7 +1396,7 @@ form[aria-busy='true'] {
 		opacity: 0.72;
 
 		&::after {
-			content: 'Working…';
+			content: var(--form-pending-label);
 			margin-inline-start: 0.45rem;
 			font-size: 0.85em;
 		}

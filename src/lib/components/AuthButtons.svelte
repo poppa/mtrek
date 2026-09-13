@@ -18,7 +18,12 @@
 
 <div class="auth-actions">
 	{#if providers.google}
-		<form method="post" action="/signin" use:enhance>
+		<form
+			method="post"
+			action="/signin"
+			use:enhance
+			style:--form-pending-label="Logging on…"
+		>
 			<input type="hidden" name="providerId" value="google" />
 			<input type="hidden" name="redirectTo" value={redirectTo} />
 			<button class="button primary" type="submit">
@@ -29,7 +34,12 @@
 	{/if}
 
 	{#if providers.spotify}
-		<form method="post" action="/signin" use:enhance>
+		<form
+			method="post"
+			action="/signin"
+			use:enhance
+			style:--form-pending-label="Logging on…"
+		>
 			<input type="hidden" name="providerId" value="spotify" />
 			<input type="hidden" name="redirectTo" value={redirectTo} />
 			<button class="button spotify" type="submit">
