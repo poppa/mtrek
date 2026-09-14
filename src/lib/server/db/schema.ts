@@ -13,6 +13,7 @@ import {
 
 export type TrekType = 'years' | 'curated';
 export type TrekStatus = 'active' | 'completed';
+export type RoundOrder = 'random' | 'consecutive';
 export type ParticipantRole = 'owner' | 'participant';
 export type RoundStatus = 'selecting' | 'rating' | 'completed';
 
@@ -129,6 +130,10 @@ export const treks = pgTable(
 		startYear: integer('startYear'),
 		endYear: integer('endYear'),
 		status: text('status').$type<TrekStatus>().notNull().default('active'),
+		roundOrder: text('roundOrder')
+			.$type<RoundOrder>()
+			.notNull()
+			.default('random'),
 		inviteCode: text('inviteCode').notNull(),
 		createdBy: text('createdBy')
 			.notNull()

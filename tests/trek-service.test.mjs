@@ -41,6 +41,12 @@ before(async () => {
 			'utf8'
 		)
 	);
+	await pool.query(
+		await readFile(
+			new URL('../drizzle/0002_powerful_shooting_star.sql', import.meta.url),
+			'utf8'
+		)
+	);
 	service = await import('../src/lib/server/trek-service.ts');
 	({ parseCuratedAlbums } = await import('../src/lib/curated-albums.ts'));
 });
@@ -87,6 +93,7 @@ test('migration preserves existing year-based Treks', async () => {
 		rows: [trek]
 	} = await pool.query('SELECT * FROM trek WHERE id = $1', ['legacy-trek']);
 	assert.equal(trek.type, 'years');
+	assert.equal(trek.roundOrder, 'random');
 	assert.equal(trek.startYear, 1990);
 	assert.equal(trek.endYear, 1999);
 });
@@ -301,6 +308,36 @@ test('year-based Treks still select one album per participant and advance manual
 		(await service.getTrekDetail(id, owner)).currentRound.status,
 		'selecting'
 	);
+});
+
+test('consecutive Treks start rounds in year or curated-list order', async () => {
+	const yearOwner = await user();
+	const yearTrekId = await service.createTrek({
+		name: 'Chronological years',
+		userId: yearOwner,
+		startYear: 1990,
+		endYear: 1991,
+		roundOrder: 'consecutive'
+	});
+	const yearDetail = await service.getTrekDetail(yearTrekId, yearOwner);
+	assert.equal(yearDetail.currentRound.year, 1990);
+
+	const albumOwner = await user();
+	const albumTrekId = await service.createTrek({
+		name: 'Ordered albums',
+		userId: albumOwner,
+		type: 'curated',
+		roundOrder: 'consecutive',
+		albums: [
+			{ albumName: 'First', artistName: 'Artist' },
+			{ albumName: 'Second', artistName: 'Artist' }
+		]
+	});
+	let albumDetail = await service.getTrekDetail(albumTrekId, albumOwner);
+	assert.equal(albumDetail.selections[0].albumName, 'First');
+	await rate(albumTrekId, albumOwner, albumDetail.selections[0].id);
+	albumDetail = await service.getTrekDetail(albumTrekId, albumOwner);
+	assert.equal(albumDetail.selections[0].albumName, 'Second');
 });
 
 test('a returning participant reuses earlier ratings and does not leave completed rounds open', async () => {

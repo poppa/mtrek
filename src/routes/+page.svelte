@@ -9,10 +9,13 @@
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 	let trekType = $state('years');
+	let roundOrder = $state<'random' | 'consecutive'>('random');
 	let albums = $state<AlbumInput[]>([]);
 	$effect(() => {
 		if (form?.values) {
 			trekType = form.values.type;
+			roundOrder =
+				form.values.roundOrder === 'consecutive' ? 'consecutive' : 'random';
 			try {
 				albums = parseCuratedAlbums(JSON.parse(form.values.albums || '[]'));
 			} catch {
@@ -85,9 +88,26 @@
 									></select
 								>
 							</div>
+
+							<div class="field">
+								<label for="round-order">Round order</label>
+								<select
+									id="round-order"
+									name="roundOrder"
+									bind:value={roundOrder}
+								>
+									<option value="random">Randomized</option>
+									<option value="consecutive">
+										{trekType === 'curated'
+											? 'Album list order'
+											: 'Chronological year order'}
+									</option>
+								</select>
+							</div>
 							{#if trekType === 'curated'}
 								<CuratedAlbumPicker
 									bind:albums
+									{roundOrder}
 									spotifySearchConfigured={data.spotifySearchConfigured}
 								/>
 							{:else}
@@ -125,7 +145,11 @@
 								disabled={trekType === 'curated' && albums.length === 0}
 							>
 								<Shuffle size={18} />
-								<span>Create and randomize</span>
+								<span
+									>{roundOrder === 'consecutive'
+										? 'Create and start'
+										: 'Create and randomize'}</span
+								>
 							</button>
 						</form>
 

@@ -1,0 +1,1 @@
+ALTER TABLE "trek" ADD COLUMN "roundOrder" text DEFAULT 'random' NOT NULL;

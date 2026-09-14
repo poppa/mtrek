@@ -15,6 +15,13 @@
 			"when": 1788591471161,
 			"tag": "0001_curated_treks",
 			"breakpoints": true
+		},
+		{
+			"idx": 2,
+			"version": "7",
+			"when": 1789280460915,
+			"tag": "0002_powerful_shooting_star",
+			"breakpoints": true
 		}
 	]
 }

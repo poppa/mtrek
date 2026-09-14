@@ -48,6 +48,11 @@
 
 	const isCurated = $derived(data.trek.type === 'curated');
 	const roundUnit = $derived(isCurated ? 'album' : 'year');
+	const nextRoundLabel = $derived(
+		data.trek.roundOrder === 'consecutive'
+			? `Start next ${roundUnit}`
+			: `Randomize ${roundUnit}`
+	);
 	const invitePath = $derived(`/join/${data.trek.inviteCode}`);
 	let inviteCopied = $state(false);
 	const waitingSelections = $derived(
@@ -195,7 +200,7 @@
 								<form method="post" action="?/advance" use:enhance>
 									<button class="button primary" type="submit">
 										<Shuffle size={18} />
-										<span>Randomize {roundUnit}</span>
+										<span>{nextRoundLabel}</span>
 									</button>
 								</form>
 							{/if}

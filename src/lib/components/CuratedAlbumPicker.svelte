@@ -6,8 +6,13 @@
 
 	let {
 		albums = $bindable<AlbumInput[]>([]),
-		spotifySearchConfigured
-	}: { albums: AlbumInput[]; spotifySearchConfigured: boolean } = $props();
+		spotifySearchConfigured,
+		roundOrder
+	}: {
+		albums: AlbumInput[];
+		spotifySearchConfigured: boolean;
+		roundOrder: 'random' | 'consecutive';
+	} = $props();
 	let query = $state('');
 	let results = $state<AlbumInput[]>([]);
 	let searching = $state(false);
@@ -79,8 +84,9 @@
 
 <div class="stack">
 	<p class="footer-note">
-		Add as many albums as you like. Each round draws one at random. The list is
-		fixed when you create the trek.
+		Add as many albums as you like. Each round uses one album
+		{roundOrder === 'consecutive' ? 'in this list order' : 'at random'}. The
+		list is fixed when you create the trek.
 	</p>
 	<input type="hidden" name="albums" value={JSON.stringify(albums)} />
 	<div class="grid">

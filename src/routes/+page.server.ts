@@ -27,18 +27,22 @@ export const actions: Actions = {
 		const formData = await event.request.formData();
 		const name = readString(formData, 'name');
 		const type = readString(formData, 'type') || 'years';
+		const roundOrder = readString(formData, 'roundOrder') || 'random';
 		const albums = readString(formData, 'albums');
 		let trekId: string;
 
 		try {
 			if (type !== 'years' && type !== 'curated')
 				throw new Error('Invalid trek type.');
+			if (roundOrder !== 'random' && roundOrder !== 'consecutive')
+				throw new Error('Invalid round order.');
 			trekId =
 				type === 'curated'
 					? await createTrek({
 							name,
 							userId,
 							type,
+							roundOrder,
 							albums: JSON.parse(albums || '[]')
 						})
 					: await createTrek({
@@ -48,7 +52,8 @@ export const actions: Actions = {
 								'Start year'
 							),
 							endYear: parseBoundedYear(formData.get('endYear'), 'End year'),
-							userId
+							userId,
+							roundOrder
 						});
 		} catch (createError) {
 			return fail(400, {
@@ -59,6 +64,7 @@ export const actions: Actions = {
 				values: {
 					name,
 					type,
+					roundOrder,
 					albums,
 					startYear: readString(formData, 'startYear'),
 					endYear: readString(formData, 'endYear')

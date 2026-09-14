@@ -132,7 +132,7 @@ export const actions: Actions = {
 				actionError:
 					advanceError instanceof Error
 						? advanceError.message
-						: 'Could not randomize next year.'
+						: 'Could not start the next round.'
 			});
 		}
 

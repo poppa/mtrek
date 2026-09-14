@@ -144,6 +144,7 @@ export async function createTrek(
 	input: {
 		name: string;
 		userId: string;
+		roundOrder?: 'random' | 'consecutive';
 	} & (
 		| { type?: 'years'; startYear: number; endYear: number }
 		| { type: 'curated'; albums: unknown }
@@ -165,6 +166,7 @@ export async function createTrek(
 				type: input.type ?? 'years',
 				startYear: input.type === 'curated' ? null : input.startYear,
 				endYear: input.type === 'curated' ? null : input.endYear,
+				roundOrder: input.roundOrder ?? 'random',
 				inviteCode: generateInviteCode(),
 				createdBy: input.userId
 			})
@@ -758,7 +760,9 @@ export async function startNextRound(trekId: string) {
 	}
 
 	const year =
-		remainingYears[Math.floor(Math.random() * remainingYears.length)];
+		trek.roundOrder === 'consecutive'
+			? remainingYears[0]
+			: remainingYears[Math.floor(Math.random() * remainingYears.length)];
 
 	const insertedRounds = await db
 		.insert(trekRounds)
@@ -1540,7 +1544,8 @@ async function advanceCuratedRound(tx: TrekTransaction, trek: Trek) {
 	const albums = await tx
 		.select()
 		.from(curatedAlbums)
-		.where(eq(curatedAlbums.trekId, trek.id));
+		.where(eq(curatedAlbums.trekId, trek.id))
+		.orderBy(asc(curatedAlbums.position));
 	const drawn = new Set(rounds.map((round) => round.curatedAlbumId));
 	const remaining = albums.filter((album) => !drawn.has(album.id));
 	if (!remaining.length) {
@@ -1550,7 +1555,10 @@ async function advanceCuratedRound(tx: TrekTransaction, trek: Trek) {
 			.where(eq(treks.id, trek.id));
 		return null;
 	}
-	const album = remaining[Math.floor(Math.random() * remaining.length)];
+	const album =
+		trek.roundOrder === 'consecutive'
+			? remaining[0]
+			: remaining[Math.floor(Math.random() * remaining.length)];
 	const [round] = await tx
 		.insert(trekRounds)
 		.values({
