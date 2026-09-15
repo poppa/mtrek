@@ -6,6 +6,19 @@ export function enhance(node: HTMLFormElement) {
 
 	const enhancedForm = svelteKitEnhance(node, () => {
 		pendingSubmissions += 1;
+		node.dataset.submitting = 'true';
+		const disabledControls = Array.from(
+			node.querySelectorAll<
+				| HTMLButtonElement
+				| HTMLInputElement
+				| HTMLSelectElement
+				| HTMLTextAreaElement
+			>('button, input, select, textarea')
+		).map((control) => [control, control.disabled] as const);
+
+		for (const [control] of disabledControls) {
+			control.disabled = true;
+		}
 
 		if (!node.hasAttribute('aria-busy') && busyTimer === undefined) {
 			busyTimer = setTimeout(() => {
@@ -18,7 +31,7 @@ export function enhance(node: HTMLFormElement) {
 
 		return async ({ update }) => {
 			try {
-				await update();
+				await update({ reset: false });
 			} finally {
 				pendingSubmissions -= 1;
 
@@ -26,6 +39,11 @@ export function enhance(node: HTMLFormElement) {
 					if (busyTimer !== undefined) clearTimeout(busyTimer);
 					busyTimer = undefined;
 					node.removeAttribute('aria-busy');
+					delete node.dataset.submitting;
+
+					for (const [control, wasDisabled] of disabledControls) {
+						control.disabled = wasDisabled;
+					}
 				}
 			}
 		};

@@ -1387,6 +1387,13 @@ form {
 	--form-pending-label: 'Working…';
 }
 
+form[data-submitting='true'] {
+	:is(input, select, textarea, button):disabled {
+		cursor: progress;
+		opacity: 0.72;
+	}
+}
+
 form[aria-busy='true'] {
 	cursor: progress;
 
