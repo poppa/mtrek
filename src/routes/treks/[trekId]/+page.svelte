@@ -917,7 +917,7 @@
 		}
 	}
 
-	.copy-icon {
+	:global(.copy-icon) {
 		margin-inline-start: auto;
 	}
 
