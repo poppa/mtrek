@@ -823,20 +823,24 @@
 													})}
 										>
 											<CircleCheck size={15} />
-											{isCurated
-												? data.curatedAlbums.find(
-														(album) => album.id === round.curatedAlbumId
-													)?.albumName
-												: round.year}
+											<span class="text">
+												{isCurated
+													? data.curatedAlbums.find(
+															(album) => album.id === round.curatedAlbumId
+														)?.albumName
+													: round.year}
+											</span>
 										</a>
 									{:else}
 										<span class="round-chip" data-status={round.status}>
 											<Shuffle size={15} />
-											{isCurated
-												? data.curatedAlbums.find(
-														(album) => album.id === round.curatedAlbumId
-													)?.albumName
-												: round.year}
+											<span class="text">
+												{isCurated
+													? data.curatedAlbums.find(
+															(album) => album.id === round.curatedAlbumId
+														)?.albumName
+													: round.year}
+											</span>
 										</span>
 									{/if}
 								{/each}

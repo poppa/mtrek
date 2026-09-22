@@ -706,7 +706,9 @@ a.card {
 	--chip-bg: var(--surface);
 	--chip-ink: var(--ink);
 
-	display: inline-flex;
+	line-height: 1.2;
+	display: inline-grid;
+	grid-template-columns: 1fr auto;
 	align-items: center;
 	gap: var(--inline-gap);
 	font-weight: 750;
@@ -715,6 +717,12 @@ a.card {
 	padding: var(--inline-gap) var(--gap);
 	background-color: var(--chip-bg);
 	color: var(--chip-ink);
+
+	.text {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
 
 	transition:
 		border-color 125ms ease-in,

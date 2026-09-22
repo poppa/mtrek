@@ -164,6 +164,7 @@
 		display: flex;
 		gap: var(--gap);
 		justify-content: space-between;
+		align-items: baseline;
 	}
 
 	@container app (width < 834px) {
