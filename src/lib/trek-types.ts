@@ -55,10 +55,25 @@ export function getJoinTrekMessage(type: TrekType) {
 export function getTrekMode(type: TrekType) {
 	switch (type) {
 		case 'years':
-			return { isCurated: false, isNamed: false, roundUnit: 'year' };
+			return {
+				isYears: true,
+				isCurated: false,
+				isNamed: false,
+				roundUnit: 'year'
+			};
 		case 'curated':
-			return { isCurated: true, isNamed: false, roundUnit: 'album' };
+			return {
+				isYears: false,
+				isCurated: true,
+				isNamed: false,
+				roundUnit: 'album'
+			};
 		case 'named':
-			return { isCurated: false, isNamed: true, roundUnit: 'round' };
+			return {
+				isYears: false,
+				isCurated: false,
+				isNamed: true,
+				roundUnit: 'round'
+			};
 	}
 }

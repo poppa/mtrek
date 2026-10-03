@@ -48,6 +48,7 @@
 	let searchMessage = $state('');
 
 	const trekMode = $derived(getTrekMode(data.trek.type));
+	const isYears = $derived(trekMode.isYears);
 	const isCurated = $derived(trekMode.isCurated);
 	const isNamed = $derived(trekMode.isNamed);
 	const roundUnit = $derived(trekMode.roundUnit);
@@ -630,7 +631,7 @@
 				{/if}
 
 				{#if data.progress.completedYears > 0}
-					{#if !isCurated}
+					{#if isYears}
 						<section class="panel">
 							<div class="panel-body stack">
 								<div class="panel-header">
