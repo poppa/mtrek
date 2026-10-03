@@ -1,6 +1,6 @@
 # MTrek
 
-MTrek is a SvelteKit music exploration app. Participants create a trek over a concluded year range, randomize one unexplored year at a time, select albums from that year, rate every selected album from 0-5, and finish when every year in the trek has been explored.
+MTrek is a SvelteKit music exploration app. Participants can explore a concluded year range, a fixed curated album list, or a creator-defined set of named rounds. In each round, they select or rate albums together and build rankings as the trek progresses.
 
 ## Tech
 
@@ -127,14 +127,22 @@ Each round draws one previously undrawn album and opens ratings immediately. Onc
 
 Curated albums appear in Trek and user album rankings. Completed album rounds have their own history pages; year rankings remain specific to year-based Treks.
 
-Apply `drizzle/0001_curated_treks.sql` to an existing database before running this version (or use the existing `npm run db:push` workflow). The migration adds the album list and Trek type, keeps existing Treks as `years`, and allows year fields to be empty for curated Treks. The year-backfill script rejects curated Treks.
+Apply the migrations through `drizzle/0003_spotty_guardsmen.sql` to an existing database before running this version (or use the existing `npm run db:push` workflow). The migrations add curated albums, named-round fields, and Trek types while keeping existing Treks as `years`. Use the year-backfill workflow only with year-based Treks.
+
+## Named-round Treks
+
+Choose **Named rounds** in the creation form, then add one or more rounds. Every round needs a name and can include an optional description. The entire list is created when the Trek starts; choose whether rounds should open in the listed order or at random.
+
+Named rounds follow the same participant flow as year-based Treks: each participant selects an album, ratings open once every participant has selected one, and the next round is started manually after the current one is complete. A Trek completes after every named round has been explored.
+
+Named rounds appear in the Trek timeline and use their own completed-round history pages. They contribute to album rankings, but year rankings remain exclusive to year-based Treks.
 
 ### Integration tests
 
-The integration suite creates a fresh database, applies migrations, exercises both Trek types, and drops that database afterward. Set `TEST_DATABASE_URL` to a local PostgreSQL server where the test user can create databases:
+The integration suite creates a fresh database, applies migrations, exercises all three Trek types, and drops that database afterward. Set `TEST_DATABASE_URL` to a local PostgreSQL server where the test user can create databases:
 
 ```sh
 TEST_DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres npm run test:integration
 ```
 
-It covers migration compatibility, album validation, concurrent final ratings, automatic progression, late joins, participant removal, access checks, and the existing year-based flow. It does not load application `.env` files or modify existing database tables.
+It covers migration compatibility, album and named-round validation, concurrent final ratings, automatic progression, late joins, participant removal, access checks, and year-based and named-round flows. It does not load application `.env` files or modify existing database tables.
