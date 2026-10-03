@@ -3,21 +3,11 @@
 	import { resolve } from '$app/paths';
 	import PageNav from '$lib/components/PageNav.svelte';
 	import RankedAlbum from '$lib/components/RankedAlbum.svelte';
+	import { getTrekTypeDescription } from '$lib/trek-types';
 	import { ArrowLeft, CalendarDays, Disc3 } from '@lucide/svelte';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
-
-	function getTrekDescription(type: 'years' | 'curated' | 'named') {
-		switch (type) {
-			case 'years':
-				return `${data.trek.startYear}-${data.trek.endYear}`;
-			case 'curated':
-				return 'Curated albums';
-			case 'named':
-				return 'Named rounds';
-		}
-	}
 </script>
 
 <svelte:head>
@@ -42,7 +32,7 @@
 				<div class="meta-row">
 					<span
 						><CalendarDays size={16} />
-						{getTrekDescription(data.trek.type)}</span
+						{getTrekTypeDescription(data.trek.type, data.trek)}</span
 					>
 
 					<span

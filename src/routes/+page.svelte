@@ -5,6 +5,7 @@
 	import NamedRoundPicker from '$lib/components/NamedRoundPicker.svelte';
 	import { parseNamedRounds, type NamedRoundInput } from '$lib/named-rounds';
 	import { parseCuratedAlbums, type AlbumInput } from '$lib/curated-albums';
+	import { getTrekRoundUnit, getTrekTypeDescription } from '$lib/trek-types';
 	import AuthButtons from '$lib/components/AuthButtons.svelte';
 	import { CalendarDays, Disc3, Plus, Shuffle, Users } from '@lucide/svelte';
 	import type { ActionData, PageData } from './$types';
@@ -15,31 +16,6 @@
 	let albums = $state<AlbumInput[]>([]);
 	let rounds = $state<NamedRoundInput[]>([{ name: '', description: '' }]);
 
-	function getTrekDescription(
-		type: 'years' | 'curated' | 'named',
-		startYear: number | null,
-		endYear: number | null
-	) {
-		switch (type) {
-			case 'years':
-				return `${startYear}-${endYear}`;
-			case 'curated':
-				return 'Curated albums';
-			case 'named':
-				return 'Named rounds';
-		}
-	}
-
-	function getTrekRoundUnit(type: 'years' | 'curated' | 'named') {
-		switch (type) {
-			case 'years':
-				return 'years';
-			case 'curated':
-				return 'albums';
-			case 'named':
-				return 'rounds';
-		}
-	}
 	$effect(() => {
 		if (form?.values) {
 			trekType = form.values.type;
@@ -222,11 +198,7 @@
 											<div class="meta-row">
 												<span
 													><CalendarDays size={15} />
-													{getTrekDescription(
-														trek.type,
-														trek.startYear,
-														trek.endYear
-													)}</span
+													{getTrekTypeDescription(trek.type, trek)}</span
 												>
 												<span><Users size={15} /> {trek.participantCount}</span>
 											</div>
@@ -251,7 +223,7 @@
 										<span
 											><Disc3 size={15} />
 											{trek.completedYears}/{trek.totalYears}
-											{getTrekRoundUnit(trek.type)}</span
+											{getTrekRoundUnit(trek.type, true)}</span
 										>
 										{#if trek.activeYear}
 											<span><Shuffle size={15} /> {trek.activeYear}</span>

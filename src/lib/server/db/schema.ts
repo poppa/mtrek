@@ -1,4 +1,5 @@
 import type { AdapterAccountType } from '@auth/core/adapters';
+import type { TrekType } from '$lib/trek-types';
 import { relations } from 'drizzle-orm';
 import {
 	boolean,
@@ -11,7 +12,7 @@ import {
 	uniqueIndex
 } from 'drizzle-orm/pg-core';
 
-export type TrekType = 'years' | 'curated' | 'named';
+export type { TrekType } from '$lib/trek-types';
 export type TrekStatus = 'active' | 'completed';
 export type RoundOrder = 'random' | 'consecutive';
 export type ParticipantRole = 'owner' | 'participant';

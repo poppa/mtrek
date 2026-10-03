@@ -11,20 +11,10 @@
 		Users
 	} from '@lucide/svelte';
 	import type { getConcludedYearDetail } from '$lib/server/trek-service';
+	import { getConcludedRoundLabel } from '$lib/trek-types';
 	type PageData = Awaited<ReturnType<typeof getConcludedYearDetail>>;
 
 	let { data }: { data: PageData } = $props();
-
-	function getRoundEyebrow(type: 'years' | 'curated' | 'named') {
-		switch (type) {
-			case 'years':
-				return 'Concluded year';
-			case 'curated':
-				return 'Concluded album';
-			case 'named':
-				return 'Concluded round';
-		}
-	}
 
 	function initials(value: string) {
 		return value
@@ -58,7 +48,7 @@
 		<div class="trek-hero">
 			<div class="trek-title">
 				<p class="eyebrow">
-					{getRoundEyebrow(data.trek.type)}
+					{getConcludedRoundLabel(data.trek.type)}
 				</p>
 				<h1>
 					{data.round.name ??

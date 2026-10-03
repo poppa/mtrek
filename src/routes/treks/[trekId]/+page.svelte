@@ -23,6 +23,7 @@
 	import { initials } from '$lib/utils';
 	import RankedAlbum from '$lib/components/RankedAlbum.svelte';
 	import RankedYear from '$lib/components/RankedYear.svelte';
+	import { getTrekMode } from '$lib/trek-types';
 
 	type AlbumSearchResult = {
 		spotifyAlbumId: string;
@@ -45,17 +46,6 @@
 	let results = $state<AlbumSearchResult[]>([]);
 	let isSearching = $state(false);
 	let searchMessage = $state('');
-
-	function getTrekMode(type: 'years' | 'curated' | 'named') {
-		switch (type) {
-			case 'years':
-				return { isCurated: false, isNamed: false, roundUnit: 'year' };
-			case 'curated':
-				return { isCurated: true, isNamed: false, roundUnit: 'album' };
-			case 'named':
-				return { isCurated: false, isNamed: true, roundUnit: 'round' };
-		}
-	}
 
 	const trekMode = $derived(getTrekMode(data.trek.type));
 	const isCurated = $derived(trekMode.isCurated);
