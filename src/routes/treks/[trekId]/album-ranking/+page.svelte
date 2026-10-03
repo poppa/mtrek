@@ -7,6 +7,17 @@
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
+
+	function getTrekDescription(type: 'years' | 'curated' | 'named') {
+		switch (type) {
+			case 'years':
+				return `${data.trek.startYear}-${data.trek.endYear}`;
+			case 'curated':
+				return 'Curated albums';
+			case 'named':
+				return 'Named rounds';
+		}
+	}
 </script>
 
 <svelte:head>
@@ -31,11 +42,7 @@
 				<div class="meta-row">
 					<span
 						><CalendarDays size={16} />
-						{data.trek.type === 'curated'
-							? 'Curated albums'
-							: data.trek.type === 'named'
-								? 'Named rounds'
-								: `${data.trek.startYear}-${data.trek.endYear}`}</span
+						{getTrekDescription(data.trek.type)}</span
 					>
 
 					<span

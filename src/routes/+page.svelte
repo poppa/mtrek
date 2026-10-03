@@ -14,6 +14,32 @@
 	let roundOrder = $state<'random' | 'consecutive'>('random');
 	let albums = $state<AlbumInput[]>([]);
 	let rounds = $state<NamedRoundInput[]>([{ name: '', description: '' }]);
+
+	function getTrekDescription(
+		type: 'years' | 'curated' | 'named',
+		startYear: number | null,
+		endYear: number | null
+	) {
+		switch (type) {
+			case 'years':
+				return `${startYear}-${endYear}`;
+			case 'curated':
+				return 'Curated albums';
+			case 'named':
+				return 'Named rounds';
+		}
+	}
+
+	function getTrekRoundUnit(type: 'years' | 'curated' | 'named') {
+		switch (type) {
+			case 'years':
+				return 'years';
+			case 'curated':
+				return 'albums';
+			case 'named':
+				return 'rounds';
+		}
+	}
 	$effect(() => {
 		if (form?.values) {
 			trekType = form.values.type;
@@ -196,9 +222,11 @@
 											<div class="meta-row">
 												<span
 													><CalendarDays size={15} />
-													{trek.type === 'curated'
-														? 'Curated albums'
-														: `${trek.startYear}-${trek.endYear}`}</span
+													{getTrekDescription(
+														trek.type,
+														trek.startYear,
+														trek.endYear
+													)}</span
 												>
 												<span><Users size={15} /> {trek.participantCount}</span>
 											</div>
@@ -223,11 +251,7 @@
 										<span
 											><Disc3 size={15} />
 											{trek.completedYears}/{trek.totalYears}
-											{trek.type === 'curated'
-												? 'albums'
-												: trek.type === 'named'
-													? 'rounds'
-													: 'years'}</span
+											{getTrekRoundUnit(trek.type)}</span
 										>
 										{#if trek.activeYear}
 											<span><Shuffle size={15} /> {trek.activeYear}</span>

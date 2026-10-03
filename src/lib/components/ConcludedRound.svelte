@@ -15,6 +15,17 @@
 
 	let { data }: { data: PageData } = $props();
 
+	function getRoundEyebrow(type: 'years' | 'curated' | 'named') {
+		switch (type) {
+			case 'years':
+				return 'Concluded year';
+			case 'curated':
+				return 'Concluded album';
+			case 'named':
+				return 'Concluded round';
+		}
+	}
+
 	function initials(value: string) {
 		return value
 			.split(/\s+/)
@@ -47,11 +58,7 @@
 		<div class="trek-hero">
 			<div class="trek-title">
 				<p class="eyebrow">
-					{data.trek.type === 'curated'
-						? 'Concluded album'
-						: data.trek.type === 'named'
-							? 'Concluded round'
-							: 'Concluded year'}
+					{getRoundEyebrow(data.trek.type)}
 				</p>
 				<h1>
 					{data.round.name ??

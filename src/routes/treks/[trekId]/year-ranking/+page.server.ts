@@ -22,11 +22,16 @@ export const load: PageServerLoad = async (event) => {
 	);
 
 	const detail = await getSimpleTrekDetail(trekId, userId);
-	if (detail.type !== 'years')
-		throw error(
-			404,
-			'Curated treks have album rankings instead of year rankings.'
-		);
+	switch (detail.type) {
+		case 'years':
+			break;
+		case 'curated':
+		case 'named':
+			throw error(
+				404,
+				'Year rankings are only available for year-based treks.'
+			);
+	}
 	const yearCount = await getRankedConcludedYearsCountForTrek(trekId);
 	const pgNav = pageNav({
 		page,

@@ -46,9 +46,21 @@
 	let isSearching = $state(false);
 	let searchMessage = $state('');
 
-	const isCurated = $derived(data.trek.type === 'curated');
-	const isNamed = $derived(data.trek.type === 'named');
-	const roundUnit = $derived(isCurated ? 'album' : isNamed ? 'round' : 'year');
+	function getTrekMode(type: 'years' | 'curated' | 'named') {
+		switch (type) {
+			case 'years':
+				return { isCurated: false, isNamed: false, roundUnit: 'year' };
+			case 'curated':
+				return { isCurated: true, isNamed: false, roundUnit: 'album' };
+			case 'named':
+				return { isCurated: false, isNamed: true, roundUnit: 'round' };
+		}
+	}
+
+	const trekMode = $derived(getTrekMode(data.trek.type));
+	const isCurated = $derived(trekMode.isCurated);
+	const isNamed = $derived(trekMode.isNamed);
+	const roundUnit = $derived(trekMode.roundUnit);
 	const nextRoundLabel = $derived(
 		data.trek.roundOrder === 'consecutive'
 			? `Start next ${roundUnit}`

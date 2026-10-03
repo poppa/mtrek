@@ -38,33 +38,38 @@ export const actions: Actions = {
 				throw new Error('Invalid trek type.');
 			if (roundOrder !== 'random' && roundOrder !== 'consecutive')
 				throw new Error('Invalid round order.');
-			trekId =
-				type === 'curated'
-					? await createTrek({
-							name,
-							userId,
-							type,
-							roundOrder,
-							albums: JSON.parse(albums || '[]')
-						})
-					: type === 'named'
-						? await createTrek({
-								name,
-								userId,
-								type,
-								roundOrder,
-								rounds: parseNamedRounds(JSON.parse(rounds || '[]'))
-							})
-						: await createTrek({
-								name,
-								startYear: parseBoundedYear(
-									formData.get('startYear'),
-									'Start year'
-								),
-								endYear: parseBoundedYear(formData.get('endYear'), 'End year'),
-								userId,
-								roundOrder
-							});
+			switch (type) {
+				case 'years':
+					trekId = await createTrek({
+						name,
+						startYear: parseBoundedYear(
+							formData.get('startYear'),
+							'Start year'
+						),
+						endYear: parseBoundedYear(formData.get('endYear'), 'End year'),
+						userId,
+						roundOrder
+					});
+					break;
+				case 'curated':
+					trekId = await createTrek({
+						name,
+						userId,
+						type,
+						roundOrder,
+						albums: JSON.parse(albums || '[]')
+					});
+					break;
+				case 'named':
+					trekId = await createTrek({
+						name,
+						userId,
+						type,
+						roundOrder,
+						rounds: parseNamedRounds(JSON.parse(rounds || '[]'))
+					});
+					break;
+			}
 		} catch (createError) {
 			return fail(400, {
 				createError:

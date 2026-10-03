@@ -122,12 +122,7 @@ export async function listTreksForUser(userId: string) {
 			const completedYears = rounds.filter(
 				(round) => round.status === 'completed'
 			).length;
-			const totalYears =
-				trek.type === 'curated'
-					? (await getCuratedAlbums(trek.id)).length
-					: trek.type === 'named'
-						? rounds.length
-						: getYearRange(trek).length;
+			const totalYears = await getTrekRoundCount(trek, rounds);
 
 			return {
 				...trek,
@@ -154,12 +149,26 @@ export async function createTrek(
 ) {
 	const name = input.name.trim();
 	if (!name) throw new Error('Trek name is required.');
-	const albums =
-		input.type === 'curated' ? parseCuratedAlbums(input.albums) : [];
-	const namedRounds =
-		input.type === 'named' ? parseNamedRounds(input.rounds) : [];
-	if (input.type === 'years' || input.type === undefined)
-		validateTrekYears(input.startYear, input.endYear);
+	const type = input.type ?? 'years';
+	let albums: AlbumInput[] = [];
+	let namedRounds: ReturnType<typeof parseNamedRounds> = [];
+	let startYear: number | null = null;
+	let endYear: number | null = null;
+
+	switch (input.type) {
+		case undefined:
+		case 'years':
+			startYear = input.startYear;
+			endYear = input.endYear;
+			validateTrekYears(startYear, endYear);
+			break;
+		case 'curated':
+			albums = parseCuratedAlbums(input.albums);
+			break;
+		case 'named':
+			namedRounds = parseNamedRounds(input.rounds);
+			break;
+	}
 	const trekId = crypto.randomUUID();
 	await db.transaction(async (tx) => {
 		const [trek] = await tx
@@ -167,15 +176,9 @@ export async function createTrek(
 			.values({
 				id: trekId,
 				name,
-				type: input.type ?? 'years',
-				startYear:
-					input.type === 'years' || input.type === undefined
-						? input.startYear
-						: null,
-				endYear:
-					input.type === 'years' || input.type === undefined
-						? input.endYear
-						: null,
+				type,
+				startYear,
+				endYear,
 				roundOrder: input.roundOrder ?? 'random',
 				inviteCode: generateInviteCode(),
 				createdBy: input.userId
@@ -184,29 +187,40 @@ export async function createTrek(
 		await tx
 			.insert(trekParticipants)
 			.values({ trekId, userId: input.userId, role: 'owner' });
-		if (input.type === 'curated') {
-			await tx.insert(curatedAlbums).values(
-				albums.map((album, index) => ({
-					...album,
-					trekId,
-					position: index + 1
-				}))
-			);
-			await advanceCuratedRound(tx, trek);
-		}
-		if (input.type === 'named') {
-			await tx.insert(trekRounds).values(
-				namedRounds.map((round, index) => ({
-					trekId,
-					position: index + 1,
-					name: round.name,
-					description: round.description ?? null,
-					status: 'pending' as const
-				}))
-			);
+		switch (type) {
+			case 'years':
+				break;
+			case 'curated':
+				await tx.insert(curatedAlbums).values(
+					albums.map((album, index) => ({
+						...album,
+						trekId,
+						position: index + 1
+					}))
+				);
+				await advanceCuratedRound(tx, trek);
+				break;
+			case 'named':
+				await tx.insert(trekRounds).values(
+					namedRounds.map((round, index) => ({
+						trekId,
+						position: index + 1,
+						name: round.name,
+						description: round.description ?? null,
+						status: 'pending' as const
+					}))
+				);
+				break;
 		}
 	});
-	if (input.type !== 'curated') await startNextRound(trekId);
+	switch (type) {
+		case 'years':
+		case 'named':
+			await startNextRound(trekId);
+			break;
+		case 'curated':
+			break;
+	}
 	return trekId;
 }
 
@@ -227,32 +241,36 @@ export async function joinTrek(inviteCode: string, userId: string) {
 		throw error(404, 'Invite not found.');
 	}
 
-	if (trek.type === 'curated') {
-		return db.transaction(async (tx) => {
-			const locked = await lockCuratedTrek(tx, trek.id);
-			const [member] = await tx
-				.select()
-				.from(trekParticipants)
-				.where(
-					and(
-						eq(trekParticipants.trekId, trek.id),
-						eq(trekParticipants.userId, userId)
-					)
-				);
-			if (member) return trek.id;
-			if (locked.status === 'completed')
-				throw error(409, 'This trek has already completed.');
-			await tx
-				.insert(trekParticipants)
-				.values({ trekId: trek.id, userId, role: 'participant' });
-			// Every participant must rate every drawn album, including earlier rounds.
-			await tx
-				.update(trekRounds)
-				.set({ status: 'rating', completedAt: null })
-				.where(eq(trekRounds.trekId, trek.id));
-			await refreshCuratedRounds(tx, locked);
-			return trek.id;
-		});
+	switch (trek.type) {
+		case 'curated':
+			return db.transaction(async (tx) => {
+				const locked = await lockCuratedTrek(tx, trek.id);
+				const [member] = await tx
+					.select()
+					.from(trekParticipants)
+					.where(
+						and(
+							eq(trekParticipants.trekId, trek.id),
+							eq(trekParticipants.userId, userId)
+						)
+					);
+				if (member) return trek.id;
+				if (locked.status === 'completed')
+					throw error(409, 'This trek has already completed.');
+				await tx
+					.insert(trekParticipants)
+					.values({ trekId: trek.id, userId, role: 'participant' });
+				// Every participant must rate every drawn album, including earlier rounds.
+				await tx
+					.update(trekRounds)
+					.set({ status: 'rating', completedAt: null })
+					.where(eq(trekRounds.trekId, trek.id));
+				await refreshCuratedRounds(tx, locked);
+				return trek.id;
+			});
+		case 'years':
+		case 'named':
+			break;
 	}
 
 	const existingMembership = await getMembership(trek.id, userId);
@@ -337,16 +355,13 @@ export async function getTrekDetail(trekId: string, userId: string) {
 		? await getSelectionsForRound(
 				currentRound.id,
 				userId,
-				trek.type === 'curated'
-					? participants.map((participant) => participant.userId)
-					: undefined
+				getRatingParticipantIds(trek, participants)
 			)
 		: [];
 	const completedYears = rounds.filter(
 		(round) => round.status === 'completed'
 	).length;
-	const curatedList =
-		trek.type === 'curated' ? await getCuratedAlbums(trekId) : [];
+	const curatedList = await getCuratedListForTrek(trek);
 	const remainingYears = getRemainingYears(trek, rounds);
 	const rankedYears =
 		completedYears > 0 ? await getRankedConcludedYearsForTrek(trekId) : [];
@@ -360,7 +375,7 @@ export async function getTrekDetail(trekId: string, userId: string) {
 		membership,
 		participants,
 		curatedAlbums: curatedList,
-		rounds: trek.type === 'years' ? sortRoundsByYear(rounds) : rounds,
+		rounds: getDisplayRounds(trek, rounds),
 		rankedYears,
 		rankedYearsCount,
 		rankedAlbums,
@@ -373,18 +388,14 @@ export async function getTrekDetail(trekId: string, userId: string) {
 			participantCount: participants.length,
 			selectionCount: selections.length,
 			completedYears,
-			totalYears:
-				trek.type === 'curated'
-					? curatedList.length
-					: trek.type === 'named'
-						? rounds.length
-						: getYearRange(trek).length,
-			remainingYears:
-				trek.type === 'curated'
-					? curatedList.length - completedYears
-					: trek.type === 'named'
-						? rounds.filter((round) => round.status === 'pending').length
-						: remainingYears.length,
+			totalYears: getTrekRoundCountFromData(trek, rounds, curatedList.length),
+			remainingYears: getRemainingRoundCount(
+				trek,
+				rounds,
+				curatedList.length,
+				completedYears,
+				remainingYears.length
+			),
 			requiredRatingCount: currentRound
 				? participants.length * selections.length
 				: 0,
@@ -404,8 +415,15 @@ export async function getConcludedYearDetail(input: {
 }) {
 	const trek = await getTrek(input.trekId);
 
-	if (!trek || trek.type !== 'years') {
+	if (!trek) {
 		throw error(404, 'Trek not found.');
+	}
+	switch (trek.type) {
+		case 'years':
+			break;
+		case 'curated':
+		case 'named':
+			throw error(404, 'Trek not found.');
 	}
 
 	await assertMember(input.trekId, input.userId);
@@ -488,7 +506,7 @@ export async function removeParticipant(input: {
 	}
 
 	const trek = await getTrek(input.trekId);
-	if (trek?.type === 'curated') {
+	if (isCuratedTrek(trek)) {
 		await db.transaction(async (tx) => {
 			await lockCuratedTrek(tx, trek.id);
 			await tx
@@ -557,7 +575,7 @@ export async function selectAlbum(
 	input: AlbumInput
 ) {
 	await assertMember(trekId, userId);
-	if ((await getTrek(trekId))?.type === 'curated')
+	if (isCuratedTrek(await getTrek(trekId)))
 		throw error(409, 'Curated albums are fixed when the trek is created.');
 	validateAlbumInput(input);
 
@@ -604,7 +622,7 @@ export async function deleteOwnSelection(input: {
 }) {
 	await assertMember(input.trekId, input.userId);
 
-	if ((await getTrek(input.trekId))?.type === 'curated')
+	if (isCuratedTrek(await getTrek(input.trekId)))
 		throw error(409, 'Curated albums cannot be deleted.');
 
 	const round = await getActiveRound(input.trekId);
@@ -651,7 +669,7 @@ export async function rateSelection(input: {
 		throw new Error('Rating must be between 0 and 5.');
 	}
 
-	if ((await getTrek(input.trekId))?.type === 'curated') {
+	if (isCuratedTrek(await getTrek(input.trekId))) {
 		await db.transaction(async (tx) => {
 			const trek = await lockCuratedTrek(tx, input.trekId);
 			const [member] = await tx
@@ -763,32 +781,34 @@ export async function startNextRound(trekId: string) {
 		throw error(404, 'Trek not found.');
 	}
 
-	if (trek.type === 'curated') {
-		return db.transaction(async (tx) =>
-			advanceCuratedRound(tx, await lockCuratedTrek(tx, trekId))
-		);
-	}
-
-	if (trek.type === 'named') {
-		const activeRound = await getActiveRound(trekId);
-		if (activeRound) return activeRound;
-		const pendingRounds = (await getRounds(trekId)).filter(
-			(round) => round.status === 'pending'
-		);
-		if (!pendingRounds.length) {
-			await completeTrek(trekId);
-			return null;
+	switch (trek.type) {
+		case 'curated':
+			return db.transaction(async (tx) =>
+				advanceCuratedRound(tx, await lockCuratedTrek(tx, trekId))
+			);
+		case 'named': {
+			const activeRound = await getActiveRound(trekId);
+			if (activeRound) return activeRound;
+			const pendingRounds = (await getRounds(trekId)).filter(
+				(round) => round.status === 'pending'
+			);
+			if (!pendingRounds.length) {
+				await completeTrek(trekId);
+				return null;
+			}
+			const round =
+				trek.roundOrder === 'consecutive'
+					? pendingRounds[0]
+					: pendingRounds[Math.floor(Math.random() * pendingRounds.length)];
+			const [started] = await db
+				.update(trekRounds)
+				.set({ status: 'selecting' })
+				.where(eq(trekRounds.id, round.id))
+				.returning();
+			return started ?? null;
 		}
-		const round =
-			trek.roundOrder === 'consecutive'
-				? pendingRounds[0]
-				: pendingRounds[Math.floor(Math.random() * pendingRounds.length)];
-		const [started] = await db
-			.update(trekRounds)
-			.set({ status: 'selecting' })
-			.where(eq(trekRounds.id, round.id))
-			.returning();
-		return started ?? null;
+		case 'years':
+			break;
 	}
 
 	const activeRound = await getActiveRound(trekId);
@@ -924,6 +944,18 @@ async function getActiveRound(trekId: string) {
 
 function isActiveRound(round: TrekRound) {
 	return round.status === 'selecting' || round.status === 'rating';
+}
+
+function isCuratedTrek(trek: Trek | null) {
+	if (!trek) return false;
+
+	switch (trek.type) {
+		case 'years':
+		case 'named':
+			return false;
+		case 'curated':
+			return true;
+	}
 }
 
 async function getRatingCountForRound(roundId: string) {
@@ -1546,10 +1578,91 @@ function getRemainingYears(
 	return getYearRange(trek).filter((year) => !generatedYears.has(year));
 }
 
+async function getTrekRoundCount(trek: Trek, rounds: TrekRound[]) {
+	switch (trek.type) {
+		case 'years':
+			return getYearRange(trek).length;
+		case 'curated':
+			return (await getCuratedAlbums(trek.id)).length;
+		case 'named':
+			return rounds.length;
+	}
+}
+
+function getTrekRoundCountFromData(
+	trek: Trek,
+	rounds: TrekRound[],
+	curatedCount: number
+) {
+	switch (trek.type) {
+		case 'years':
+			return getYearRange(trek).length;
+		case 'curated':
+			return curatedCount;
+		case 'named':
+			return rounds.length;
+	}
+}
+
+function getRemainingRoundCount(
+	trek: Trek,
+	rounds: TrekRound[],
+	curatedCount: number,
+	completedCount: number,
+	remainingYearCount: number
+) {
+	switch (trek.type) {
+		case 'years':
+			return remainingYearCount;
+		case 'curated':
+			return curatedCount - completedCount;
+		case 'named':
+			return rounds.filter((round) => round.status === 'pending').length;
+	}
+}
+
+function getRatingParticipantIds(
+	trek: Trek,
+	participants: { userId: string }[]
+) {
+	switch (trek.type) {
+		case 'years':
+		case 'named':
+			return undefined;
+		case 'curated':
+			return participants.map((participant) => participant.userId);
+	}
+}
+
+async function getCuratedListForTrek(trek: Trek) {
+	switch (trek.type) {
+		case 'years':
+		case 'named':
+			return [];
+		case 'curated':
+			return getCuratedAlbums(trek.id);
+	}
+}
+
+function getDisplayRounds(trek: Trek, rounds: TrekRound[]) {
+	switch (trek.type) {
+		case 'years':
+			return sortRoundsByYear(rounds);
+		case 'curated':
+		case 'named':
+			return rounds;
+	}
+}
+
 function hasRemainingRounds(trek: Trek, rounds: TrekRound[]) {
-	return trek.type === 'named'
-		? rounds.some((round) => round.status === 'pending')
-		: getRemainingYears(trek, rounds).length > 0;
+	switch (trek.type) {
+		case 'years':
+			return getRemainingYears(trek, rounds).length > 0;
+		case 'curated':
+			return getRemainingYears(trek, rounds).length > 0;
+		case 'named':
+			return rounds.some((round) => round.status === 'pending');
+	}
 }
 
 function sortRoundsByYear(rounds: TrekRound[]) {
@@ -1578,9 +1691,14 @@ async function lockCuratedTrek(tx: TrekTransaction, trekId: string) {
 		.from(treks)
 		.where(eq(treks.id, trekId))
 		.for('update');
-	if (!trek || trek.type !== 'curated')
-		throw error(404, 'Curated trek not found.');
-	return trek;
+	if (!trek) throw error(404, 'Curated trek not found.');
+	switch (trek.type) {
+		case 'curated':
+			return trek;
+		case 'years':
+		case 'named':
+			throw error(404, 'Curated trek not found.');
+	}
 }
 
 async function getCuratedAlbums(trekId: string) {
@@ -1690,8 +1808,14 @@ export async function getConcludedAlbumRoundDetail(input: {
 				eq(trekRounds.status, 'completed')
 			)
 		);
-	if ((trek.type !== 'curated' && trek.type !== 'named') || !round)
-		throw error(404, 'Concluded album round not found.');
+	if (!round) throw error(404, 'Concluded album round not found.');
+	switch (trek.type) {
+		case 'curated':
+		case 'named':
+			break;
+		case 'years':
+			throw error(404, 'Concluded album round not found.');
+	}
 	const selections = await getSelectionsForConcludedRound(round.id);
 	const scores = selections.flatMap((selection) =>
 		selection.ratings.map((rating) => rating.scoreTenth)

@@ -5,6 +5,28 @@
 	import type { ActionData, PageData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
+
+	function getTrekDescription(type: 'years' | 'curated' | 'named') {
+		switch (type) {
+			case 'years':
+				return `${data.trek?.startYear}-${data.trek?.endYear}`;
+			case 'curated':
+				return 'Curated albums';
+			case 'named':
+				return 'Named rounds';
+		}
+	}
+
+	function getJoinMessage(type: 'years' | 'curated' | 'named') {
+		switch (type) {
+			case 'years':
+				return 'Sign in to join this trek and pick albums when the year opens.';
+			case 'curated':
+				return 'Sign in to rate the curated albums together. You will also rate any albums drawn before you join.';
+			case 'named':
+				return 'Sign in to join this trek and pick albums when each round opens.';
+		}
+	}
 </script>
 
 <svelte:head>
@@ -28,11 +50,7 @@
 				<div class="meta-row">
 					<span
 						><CalendarDays size={16} />
-						{data.trek.type === 'curated'
-							? 'Curated albums'
-							: data.trek.type === 'named'
-								? 'Named rounds'
-								: `${data.trek.startYear}-${data.trek.endYear}`}</span
+						{getTrekDescription(data.trek.type)}</span
 					>
 					<span><Users size={16} /> {data.trek.status}</span>
 				</div>
@@ -50,11 +68,7 @@
 						</form>
 					{:else}
 						<p class="lead">
-							{data.trek.type === 'curated'
-								? 'Sign in to rate the curated albums together. You will also rate any albums drawn before you join.'
-								: data.trek.type === 'named'
-									? 'Sign in to join this trek and pick albums when each round opens.'
-									: 'Sign in to join this trek and pick albums when the year opens.'}
+							{getJoinMessage(data.trek.type)}
 						</p>
 						<AuthButtons
 							providers={data.authProviders}
