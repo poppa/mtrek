@@ -1,4 +1,5 @@
 import { parseCuratedAlbums, type AlbumInput } from '$lib/curated-albums';
+import { parseNamedRounds } from '$lib/named-rounds';
 export type { AlbumInput } from '$lib/curated-albums';
 import { rankByScore } from '$lib/ranking';
 import type { SimpleAlbum } from '$lib/dbtypes';
@@ -22,7 +23,6 @@ import {
 	eq,
 	inArray,
 	isNotNull,
-	ne,
 	sql
 } from 'drizzle-orm';
 
@@ -118,21 +118,22 @@ export async function listTreksForUser(userId: string) {
 				getRounds(trek.id),
 				getParticipantCount(trek.id)
 			]);
-			const activeRound =
-				rounds.find((round) => round.status !== 'completed') ?? null;
+			const activeRound = rounds.find(isActiveRound) ?? null;
 			const completedYears = rounds.filter(
 				(round) => round.status === 'completed'
 			).length;
 			const totalYears =
 				trek.type === 'curated'
 					? (await getCuratedAlbums(trek.id)).length
-					: getYearRange(trek).length;
+					: trek.type === 'named'
+						? rounds.length
+						: getYearRange(trek).length;
 
 			return {
 				...trek,
 				role,
 				participantCount,
-				activeYear: activeRound?.year ?? null,
+				activeYear: activeRound?.name ?? activeRound?.year ?? null,
 				completedYears,
 				totalYears
 			};
@@ -148,13 +149,16 @@ export async function createTrek(
 	} & (
 		| { type?: 'years'; startYear: number; endYear: number }
 		| { type: 'curated'; albums: unknown }
+		| { type: 'named'; rounds: unknown }
 	)
 ) {
 	const name = input.name.trim();
 	if (!name) throw new Error('Trek name is required.');
 	const albums =
 		input.type === 'curated' ? parseCuratedAlbums(input.albums) : [];
-	if (input.type !== 'curated')
+	const namedRounds =
+		input.type === 'named' ? parseNamedRounds(input.rounds) : [];
+	if (input.type === 'years' || input.type === undefined)
 		validateTrekYears(input.startYear, input.endYear);
 	const trekId = crypto.randomUUID();
 	await db.transaction(async (tx) => {
@@ -164,8 +168,14 @@ export async function createTrek(
 				id: trekId,
 				name,
 				type: input.type ?? 'years',
-				startYear: input.type === 'curated' ? null : input.startYear,
-				endYear: input.type === 'curated' ? null : input.endYear,
+				startYear:
+					input.type === 'years' || input.type === undefined
+						? input.startYear
+						: null,
+				endYear:
+					input.type === 'years' || input.type === undefined
+						? input.endYear
+						: null,
 				roundOrder: input.roundOrder ?? 'random',
 				inviteCode: generateInviteCode(),
 				createdBy: input.userId
@@ -183,6 +193,17 @@ export async function createTrek(
 				}))
 			);
 			await advanceCuratedRound(tx, trek);
+		}
+		if (input.type === 'named') {
+			await tx.insert(trekRounds).values(
+				namedRounds.map((round, index) => ({
+					trekId,
+					position: index + 1,
+					name: round.name,
+					description: round.description ?? null,
+					status: 'pending' as const
+				}))
+			);
 		}
 	});
 	if (input.type !== 'curated') await startNextRound(trekId);
@@ -311,8 +332,7 @@ export async function getTrekDetail(trekId: string, userId: string) {
 	}));
 
 	const rounds = await getRounds(trekId);
-	const currentRound =
-		rounds.find((round) => round.status !== 'completed') ?? null;
+	const currentRound = rounds.find(isActiveRound) ?? null;
 	const selections = currentRound
 		? await getSelectionsForRound(
 				currentRound.id,
@@ -340,7 +360,7 @@ export async function getTrekDetail(trekId: string, userId: string) {
 		membership,
 		participants,
 		curatedAlbums: curatedList,
-		rounds: trek.type === 'curated' ? rounds : sortRoundsByYear(rounds),
+		rounds: trek.type === 'years' ? sortRoundsByYear(rounds) : rounds,
 		rankedYears,
 		rankedYearsCount,
 		rankedAlbums,
@@ -356,11 +376,15 @@ export async function getTrekDetail(trekId: string, userId: string) {
 			totalYears:
 				trek.type === 'curated'
 					? curatedList.length
-					: getYearRange(trek).length,
+					: trek.type === 'named'
+						? rounds.length
+						: getYearRange(trek).length,
 			remainingYears:
 				trek.type === 'curated'
 					? curatedList.length - completedYears
-					: remainingYears.length,
+					: trek.type === 'named'
+						? rounds.filter((round) => round.status === 'pending').length
+						: remainingYears.length,
 			requiredRatingCount: currentRound
 				? participants.length * selections.length
 				: 0,
@@ -745,6 +769,28 @@ export async function startNextRound(trekId: string) {
 		);
 	}
 
+	if (trek.type === 'named') {
+		const activeRound = await getActiveRound(trekId);
+		if (activeRound) return activeRound;
+		const pendingRounds = (await getRounds(trekId)).filter(
+			(round) => round.status === 'pending'
+		);
+		if (!pendingRounds.length) {
+			await completeTrek(trekId);
+			return null;
+		}
+		const round =
+			trek.roundOrder === 'consecutive'
+				? pendingRounds[0]
+				: pendingRounds[Math.floor(Math.random() * pendingRounds.length)];
+		const [started] = await db
+			.update(trekRounds)
+			.set({ status: 'selecting' })
+			.where(eq(trekRounds.id, round.id))
+			.returning();
+		return started ?? null;
+	}
+
 	const activeRound = await getActiveRound(trekId);
 
 	if (activeRound) {
@@ -865,12 +911,19 @@ async function getActiveRound(trekId: string) {
 		.select()
 		.from(trekRounds)
 		.where(
-			and(eq(trekRounds.trekId, trekId), ne(trekRounds.status, 'completed'))
+			and(
+				eq(trekRounds.trekId, trekId),
+				inArray(trekRounds.status, ['selecting', 'rating'])
+			)
 		)
 		.orderBy(asc(trekRounds.position))
 		.limit(1);
 
 	return rows[0] ?? null;
+}
+
+function isActiveRound(round: TrekRound) {
+	return round.status === 'selecting' || round.status === 'rating';
 }
 
 async function getRatingCountForRound(roundId: string) {
@@ -1457,7 +1510,7 @@ async function refreshRoundState(trekId: string, roundId: string) {
 			getRounds(trekId)
 		]);
 
-		if (trek && getRemainingYears(trek, rounds).length === 0) {
+		if (trek && !hasRemainingRounds(trek, rounds)) {
 			await completeTrek(trekId);
 		}
 	}
@@ -1491,6 +1544,12 @@ function getRemainingYears(
 	const generatedYears = new Set(rounds.map((round) => round.year));
 
 	return getYearRange(trek).filter((year) => !generatedYears.has(year));
+}
+
+function hasRemainingRounds(trek: Trek, rounds: TrekRound[]) {
+	return trek.type === 'named'
+		? rounds.some((round) => round.status === 'pending')
+		: getRemainingYears(trek, rounds).length > 0;
 }
 
 function sortRoundsByYear(rounds: TrekRound[]) {
@@ -1631,7 +1690,7 @@ export async function getConcludedAlbumRoundDetail(input: {
 				eq(trekRounds.status, 'completed')
 			)
 		);
-	if (trek.type !== 'curated' || !round)
+	if ((trek.type !== 'curated' && trek.type !== 'named') || !round)
 		throw error(404, 'Concluded album round not found.');
 	const selections = await getSelectionsForConcludedRound(round.id);
 	const scores = selections.flatMap((selection) =>

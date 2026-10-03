@@ -11,11 +11,11 @@ import {
 	uniqueIndex
 } from 'drizzle-orm/pg-core';
 
-export type TrekType = 'years' | 'curated';
+export type TrekType = 'years' | 'curated' | 'named';
 export type TrekStatus = 'active' | 'completed';
 export type RoundOrder = 'random' | 'consecutive';
 export type ParticipantRole = 'owner' | 'participant';
-export type RoundStatus = 'selecting' | 'rating' | 'completed';
+export type RoundStatus = 'pending' | 'selecting' | 'rating' | 'completed';
 
 const usersTable = pgTable('user', {
 	id: text('id')
@@ -210,6 +210,8 @@ export const trekRounds = pgTable(
 			.references(() => treks.id, { onDelete: 'cascade' }),
 		position: integer('position').notNull(),
 		year: integer('year'),
+		name: text('name'),
+		description: text('description'),
 		curatedAlbumId: text('curatedAlbumId').references(() => curatedAlbums.id),
 		status: text('status').$type<RoundStatus>().notNull().default('selecting'),
 		createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),

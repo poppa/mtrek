@@ -33,7 +33,9 @@
 						><CalendarDays size={16} />
 						{data.trek.type === 'curated'
 							? 'Curated albums'
-							: `${data.trek.startYear}-${data.trek.endYear}`}</span
+							: data.trek.type === 'named'
+								? 'Named rounds'
+								: `${data.trek.startYear}-${data.trek.endYear}`}</span
 					>
 
 					<span

@@ -30,7 +30,9 @@
 						><CalendarDays size={16} />
 						{data.trek.type === 'curated'
 							? 'Curated albums'
-							: `${data.trek.startYear}-${data.trek.endYear}`}</span
+							: data.trek.type === 'named'
+								? 'Named rounds'
+								: `${data.trek.startYear}-${data.trek.endYear}`}</span
 					>
 					<span><Users size={16} /> {data.trek.status}</span>
 				</div>
@@ -50,7 +52,9 @@
 						<p class="lead">
 							{data.trek.type === 'curated'
 								? 'Sign in to rate the curated albums together. You will also rate any albums drawn before you join.'
-								: 'Sign in to join this trek and pick albums when the year opens.'}
+								: data.trek.type === 'named'
+									? 'Sign in to join this trek and pick albums when each round opens.'
+									: 'Sign in to join this trek and pick albums when the year opens.'}
 						</p>
 						<AuthButtons
 							providers={data.authProviders}

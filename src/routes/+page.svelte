@@ -2,6 +2,8 @@
 	import { resolve } from '$app/paths';
 	import { enhance } from '$lib/form-enhance';
 	import CuratedAlbumPicker from '$lib/components/CuratedAlbumPicker.svelte';
+	import NamedRoundPicker from '$lib/components/NamedRoundPicker.svelte';
+	import { parseNamedRounds, type NamedRoundInput } from '$lib/named-rounds';
 	import { parseCuratedAlbums, type AlbumInput } from '$lib/curated-albums';
 	import AuthButtons from '$lib/components/AuthButtons.svelte';
 	import { CalendarDays, Disc3, Plus, Shuffle, Users } from '@lucide/svelte';
@@ -11,6 +13,7 @@
 	let trekType = $state('years');
 	let roundOrder = $state<'random' | 'consecutive'>('random');
 	let albums = $state<AlbumInput[]>([]);
+	let rounds = $state<NamedRoundInput[]>([{ name: '', description: '' }]);
 	$effect(() => {
 		if (form?.values) {
 			trekType = form.values.type;
@@ -20,6 +23,11 @@
 				albums = parseCuratedAlbums(JSON.parse(form.values.albums || '[]'));
 			} catch {
 				albums = [];
+			}
+			try {
+				rounds = parseNamedRounds(JSON.parse(form.values.rounds || '[]'));
+			} catch {
+				rounds = [{ name: '', description: '' }];
 			}
 		}
 	});
@@ -85,7 +93,7 @@
 									bind:value={trekType}
 									><option value="years">Year-based</option><option
 										value="curated">Curated albums</option
-									></select
+									><option value="named">Named rounds</option></select
 								>
 							</div>
 
@@ -100,7 +108,9 @@
 									<option value="consecutive">
 										{trekType === 'curated'
 											? 'Album list order'
-											: 'Chronological year order'}
+											: trekType === 'named'
+												? 'Round list order'
+												: 'Chronological year order'}
 									</option>
 								</select>
 							</div>
@@ -110,6 +120,8 @@
 									{roundOrder}
 									spotifySearchConfigured={data.spotifySearchConfigured}
 								/>
+							{:else if trekType === 'named'}
+								<NamedRoundPicker bind:rounds />
 							{:else}
 								<div class="two-col">
 									<div class="field">
@@ -142,7 +154,8 @@
 							<button
 								class="button primary"
 								type="submit"
-								disabled={trekType === 'curated' && albums.length === 0}
+								disabled={(trekType === 'curated' && albums.length === 0) ||
+									(trekType === 'named' && rounds.length === 0)}
 							>
 								<Shuffle size={18} />
 								<span
@@ -210,7 +223,11 @@
 										<span
 											><Disc3 size={15} />
 											{trek.completedYears}/{trek.totalYears}
-											{trek.type === 'curated' ? 'albums' : 'years'}</span
+											{trek.type === 'curated'
+												? 'albums'
+												: trek.type === 'named'
+													? 'rounds'
+													: 'years'}</span
 										>
 										{#if trek.activeYear}
 											<span><Shuffle size={15} /> {trek.activeYear}</span>

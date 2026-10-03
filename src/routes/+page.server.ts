@@ -1,5 +1,6 @@
 import { readString, requireUserId } from '$lib/server/session';
 import { hasSpotifySearchConfig } from '$lib/server/spotify';
+import { parseNamedRounds } from '$lib/named-rounds';
 import {
 	createTrek,
 	getLastConcludedYear,
@@ -29,10 +30,11 @@ export const actions: Actions = {
 		const type = readString(formData, 'type') || 'years';
 		const roundOrder = readString(formData, 'roundOrder') || 'random';
 		const albums = readString(formData, 'albums');
+		const rounds = readString(formData, 'rounds');
 		let trekId: string;
 
 		try {
-			if (type !== 'years' && type !== 'curated')
+			if (type !== 'years' && type !== 'curated' && type !== 'named')
 				throw new Error('Invalid trek type.');
 			if (roundOrder !== 'random' && roundOrder !== 'consecutive')
 				throw new Error('Invalid round order.');
@@ -45,16 +47,24 @@ export const actions: Actions = {
 							roundOrder,
 							albums: JSON.parse(albums || '[]')
 						})
-					: await createTrek({
-							name,
-							startYear: parseBoundedYear(
-								formData.get('startYear'),
-								'Start year'
-							),
-							endYear: parseBoundedYear(formData.get('endYear'), 'End year'),
-							userId,
-							roundOrder
-						});
+					: type === 'named'
+						? await createTrek({
+								name,
+								userId,
+								type,
+								roundOrder,
+								rounds: parseNamedRounds(JSON.parse(rounds || '[]'))
+							})
+						: await createTrek({
+								name,
+								startYear: parseBoundedYear(
+									formData.get('startYear'),
+									'Start year'
+								),
+								endYear: parseBoundedYear(formData.get('endYear'), 'End year'),
+								userId,
+								roundOrder
+							});
 		} catch (createError) {
 			return fail(400, {
 				createError:
@@ -66,6 +76,7 @@ export const actions: Actions = {
 					type,
 					roundOrder,
 					albums,
+					rounds,
 					startYear: readString(formData, 'startYear'),
 					endYear: readString(formData, 'endYear')
 				}

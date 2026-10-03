@@ -27,8 +27,10 @@
 
 <svelte:head>
 	<title
-		>{data.round.year ?? data.selections[0]?.albumName ?? 'Album round'} · {data
-			.trek.name} · MTrek</title
+		>{data.round.name ??
+			data.round.year ??
+			data.selections[0]?.albumName ??
+			'Album round'} · {data.trek.name} · MTrek</title
 	>
 </svelte:head>
 
@@ -45,11 +47,21 @@
 		<div class="trek-hero">
 			<div class="trek-title">
 				<p class="eyebrow">
-					{data.trek.type === 'curated' ? 'Concluded album' : 'Concluded year'}
+					{data.trek.type === 'curated'
+						? 'Concluded album'
+						: data.trek.type === 'named'
+							? 'Concluded round'
+							: 'Concluded year'}
 				</p>
 				<h1>
-					{data.round.year ?? data.selections[0]?.albumName ?? 'Album round'}
+					{data.round.name ??
+						data.round.year ??
+						data.selections[0]?.albumName ??
+						'Album round'}
 				</h1>
+				{#if data.round.description}<p class="footer-note">
+						{data.round.description}
+					</p>{/if}
 				<div class="meta-row">
 					<span><CalendarDays size={16} /> Round {data.round.position}</span>
 					<span><Disc3 size={16} /> {data.summary.albumCount} albums</span>

@@ -22,6 +22,13 @@
 			"when": 1789280460915,
 			"tag": "0002_powerful_shooting_star",
 			"breakpoints": true
+		},
+		{
+			"idx": 3,
+			"version": "7",
+			"when": 1791002754259,
+			"tag": "0003_spotty_guardsmen",
+			"breakpoints": true
 		}
 	]
 }

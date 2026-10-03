@@ -18,6 +18,7 @@ testUrl.pathname = `/${databaseName}`;
 let pool;
 let service;
 let parseCuratedAlbums;
+let parseNamedRounds;
 let databaseCreated = false;
 
 before(async () => {
@@ -47,8 +48,15 @@ before(async () => {
 			'utf8'
 		)
 	);
+	await pool.query(
+		await readFile(
+			new URL('../drizzle/0003_spotty_guardsmen.sql', import.meta.url),
+			'utf8'
+		)
+	);
 	service = await import('../src/lib/server/trek-service.ts');
 	({ parseCuratedAlbums } = await import('../src/lib/curated-albums.ts'));
+	({ parseNamedRounds } = await import('../src/lib/named-rounds.ts'));
 });
 
 after(async () => {
@@ -120,6 +128,17 @@ test('curated list validation rejects empty, malformed and duplicate albums', ()
 	);
 	assert.throws(() =>
 		parseCuratedAlbums([{ ...album, externalUrl: 'javascript:alert(1)' }])
+	);
+});
+
+test('named round validation requires a name and trims descriptions', () => {
+	assert.throws(() => parseNamedRounds([]));
+	assert.throws(() => parseNamedRounds([{}]));
+	assert.deepEqual(
+		parseNamedRounds([
+			{ name: '  Dream pop  ', description: '  Soft focus  ' }
+		]),
+		[{ name: 'Dream pop', description: 'Soft focus' }]
 	);
 });
 
@@ -338,6 +357,36 @@ test('consecutive Treks start rounds in year or curated-list order', async () =>
 	await rate(albumTrekId, albumOwner, albumDetail.selections[0].id);
 	albumDetail = await service.getTrekDetail(albumTrekId, albumOwner);
 	assert.equal(albumDetail.selections[0].albumName, 'Second');
+});
+
+test('named rounds are pre-created and advance in list order', async () => {
+	const owner = await user();
+	const id = await service.createTrek({
+		name: 'Themes',
+		userId: owner,
+		type: 'named',
+		roundOrder: 'consecutive',
+		rounds: [
+			{ name: 'First theme', description: 'Opening round' },
+			{ name: 'Second theme' }
+		]
+	});
+	let detail = await service.getTrekDetail(id, owner);
+	assert.equal(detail.rounds.length, 2);
+	assert.equal(detail.currentRound.name, 'First theme');
+	assert.equal(detail.currentRound.description, 'Opening round');
+	assert.equal(detail.rounds[1].status, 'pending');
+	await service.selectAlbum(id, owner, {
+		albumName: 'First album',
+		artistName: 'Artist'
+	});
+	detail = await service.getTrekDetail(id, owner);
+	await rate(id, owner, detail.selections[0].id);
+	detail = await service.getTrekDetail(id, owner);
+	assert.equal(detail.currentRound, null);
+	await service.advanceTrek(id, owner);
+	detail = await service.getTrekDetail(id, owner);
+	assert.equal(detail.currentRound.name, 'Second theme');
 });
 
 test('a returning participant reuses earlier ratings and does not leave completed rounds open', async () => {

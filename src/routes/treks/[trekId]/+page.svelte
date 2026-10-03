@@ -47,7 +47,8 @@
 	let searchMessage = $state('');
 
 	const isCurated = $derived(data.trek.type === 'curated');
-	const roundUnit = $derived(isCurated ? 'album' : 'year');
+	const isNamed = $derived(data.trek.type === 'named');
+	const roundUnit = $derived(isCurated ? 'album' : isNamed ? 'round' : 'year');
 	const nextRoundLabel = $derived(
 		data.trek.roundOrder === 'consecutive'
 			? `Start next ${roundUnit}`
@@ -84,7 +85,9 @@
 
 		const params = new URLSearchParams({
 			q: query,
-			year: String(data.currentRound.year)
+			...(data.currentRound.year
+				? { year: String(data.currentRound.year) }
+				: {})
 		});
 
 		try {
@@ -130,7 +133,9 @@
 						><CalendarDays size={16} />
 						{isCurated
 							? 'Curated albums'
-							: `${data.trek.startYear}-${data.trek.endYear}`}</span
+							: isNamed
+								? 'Named rounds'
+								: `${data.trek.startYear}-${data.trek.endYear}`}</span
 					>
 					<span
 						><Users size={16} />
@@ -181,7 +186,9 @@
 									{#if data.currentRound}
 										{isCurated
 											? (data.selections[0]?.albumName ?? 'Album round')
-											: data.currentRound.year}
+											: isNamed
+												? data.currentRound.name
+												: data.currentRound.year}
 									{:else if data.trek.status === 'completed'}
 										Trek complete
 									{:else}
@@ -193,6 +200,9 @@
 										Round {data.currentRound.position} · {data.currentRound
 											.status}
 									</p>
+									{#if data.currentRound.description}
+										<p class="footer-note">{data.currentRound.description}</p>
+									{/if}
 								{/if}
 							</div>
 
@@ -388,7 +398,9 @@
 											<input
 												id="releaseDate"
 												name="releaseDate"
-												placeholder={String(data.currentRound.year)}
+												placeholder={data.currentRound.year
+													? String(data.currentRound.year)
+													: ''}
 											/>
 										</div>
 										<div class="field">
@@ -513,12 +525,17 @@
 									<CircleCheck size={18} />
 									{isCurated
 										? 'Everyone has rated every album in the curated list.'
-										: 'All years in this range have been explored.'}
+										: isNamed
+											? 'All named rounds have been explored.'
+											: 'All years in this range have been explored.'}
 								</span>
 							</div>
 						{:else}
 							<div class="empty alert">
-								This trek is between rounds. Randomize the next {roundUnit} when ready.
+								This trek is between rounds. {data.trek.roundOrder ===
+								'consecutive'
+									? 'Start'
+									: 'Randomize'} the next {roundUnit} when ready.
 							</div>
 						{/if}
 					</div>
@@ -812,7 +829,7 @@
 										<a
 											class="round-chip"
 											data-status={round.status}
-											href={isCurated
+											href={isCurated || isNamed
 												? resolve('/treks/[trekId]/rounds/[roundId]', {
 														trekId: data.trek.id,
 														roundId: round.id
@@ -828,7 +845,9 @@
 													? data.curatedAlbums.find(
 															(album) => album.id === round.curatedAlbumId
 														)?.albumName
-													: round.year}
+													: isNamed
+														? round.name
+														: round.year}
 											</span>
 										</a>
 									{:else}
@@ -839,7 +858,9 @@
 													? data.curatedAlbums.find(
 															(album) => album.id === round.curatedAlbumId
 														)?.albumName
-													: round.year}
+													: isNamed
+														? round.name
+														: round.year}
 											</span>
 										</span>
 									{/if}
