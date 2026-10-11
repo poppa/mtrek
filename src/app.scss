@@ -1186,6 +1186,7 @@ button.button {
 
 .panel-footer {
 	margin-block-start: var(--gap);
+	overflow-x: auto;
 }
 
 .badge {
