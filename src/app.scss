@@ -813,9 +813,13 @@ a.round-chip:hover {
 
 .album-info strong,
 .album-info span {
-	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+
+	&.shrink,
+	&.label {
+		overflow: hidden;
+	}
 }
 
 .rating-form {
