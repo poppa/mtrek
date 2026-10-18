@@ -50,12 +50,7 @@
 <style lang="scss">
 	.round-fields {
 		display: grid;
-		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+		grid-template-columns: 1fr;
 		gap: var(--gap);
-		align-items: end;
-
-		@container app (width < 560px) {
-			grid-template-columns: 1fr;
-		}
 	}
 </style>
