@@ -15,6 +15,19 @@
 	let roundOrder = $state<'random' | 'consecutive'>('random');
 	let albums = $state<AlbumInput[]>([]);
 	let rounds = $state<NamedRoundInput[]>([{ name: '', description: '' }]);
+	let trekGroups = $derived([
+		{
+			title: 'Active treks',
+			treks: data.treks.filter((trek) => trek.status === 'active'),
+			emptyMessage: 'No active treks. Create one to start exploring.'
+		},
+		{
+			title: 'Completed treks',
+			treks: data.treks.filter((trek) => trek.status === 'completed'),
+			emptyMessage:
+				'No completed treks yet. Finish a trek and it will appear here.'
+		}
+	]);
 
 	$effect(() => {
 		if (form?.values) {
@@ -175,65 +188,76 @@
 					</div>
 				</section>
 
-				<section class="stack">
-					<div class="section-header">
-						<h2>Active treks</h2>
-						<span class="badge violet">{data.treks.length} total</span>
-					</div>
-
-					{#if data.treks.length === 0}
-						<p class="empty alert">
-							No treks yet. Create one to start exploring.
-						</p>
-					{:else}
-						<div class="trek-list">
-							{#each data.treks as trek (trek.id)}
-								<a
-									class="trek-card"
-									href={resolve('/treks/[trekId]', { trekId: trek.id })}
+				<div class="stack trek-sections">
+					{#each trekGroups as group (group.title)}
+						<section class="stack">
+							<div class="section-header">
+								<h2>{group.title}</h2>
+								<span
+									class="badge"
+									class:violet={group.title === 'Active treks'}
+									class:success={group.title === 'Completed treks'}
 								>
-									<div class="trek-card-top">
-										<div>
-											<h3>{trek.name}</h3>
-											<div class="meta-row">
+									{group.treks.length}
+									{group.treks.length === 1 ? 'trek' : 'treks'}
+								</span>
+							</div>
+
+							{#if group.treks.length === 0}
+								<p class="empty alert">{group.emptyMessage}</p>
+							{:else}
+								<div class="trek-list">
+									{#each group.treks as trek (trek.id)}
+										<a
+											class="trek-card"
+											href={resolve('/treks/[trekId]', { trekId: trek.id })}
+										>
+											<div class="trek-card-top">
+												<div>
+													<h3>{trek.name}</h3>
+													<div class="meta-row">
+														<span
+															><CalendarDays size={15} />
+															{getTrekTypeDescription(trek.type, trek)}</span
+														>
+														<span
+															><Users size={15} /> {trek.participantCount}</span
+														>
+													</div>
+												</div>
 												<span
-													><CalendarDays size={15} />
-													{getTrekTypeDescription(trek.type, trek)}</span
+													class:success={trek.status === 'completed'}
+													class="badge"
 												>
-												<span><Users size={15} /> {trek.participantCount}</span>
+													{trek.status}
+												</span>
 											</div>
-										</div>
-										<span
-											class:success={trek.status === 'completed'}
-											class="badge"
-										>
-											{trek.status}
-										</span>
-									</div>
 
-									<div class="progress-track" aria-hidden="true">
-										<div
-											class="progress-fill"
-											class:completed={trek.status === 'completed'}
-											style={`width: ${(trek.completedYears / trek.totalYears) * 100}%`}
-										></div>
-									</div>
+											<div class="progress-track" aria-hidden="true">
+												<div
+													class="progress-fill"
+													class:completed={trek.status === 'completed'}
+													style={`width: ${(trek.completedYears / trek.totalYears) * 100}%`}
+												></div>
+											</div>
 
-									<div class="metric-row">
-										<span
-											><Disc3 size={15} />
-											{trek.completedYears}/{trek.totalYears}
-											{getTrekRoundUnit(trek.type, true)}</span
-										>
-										{#if trek.activeYear}
-											<span><Shuffle size={15} /> {trek.activeYear}</span>
-										{/if}
-									</div>
-								</a>
-							{/each}
-						</div>
-					{/if}
-				</section>
+											<div class="metric-row">
+												<span
+													><Disc3 size={15} />
+													{trek.completedYears}/{trek.totalYears}
+													{getTrekRoundUnit(trek.type, true)}</span
+												>
+												{#if trek.activeYear}
+													<span><Shuffle size={15} /> {trek.activeYear}</span>
+												{/if}
+											</div>
+										</a>
+									{/each}
+								</div>
+							{/if}
+						</section>
+					{/each}
+				</div>
 			</div>
 		</div>
 	</section>
@@ -261,6 +285,10 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--gutter);
+	}
+
+	.trek-sections {
+		gap: calc(var(--gutter) * 2);
 	}
 
 	.trek-card {
