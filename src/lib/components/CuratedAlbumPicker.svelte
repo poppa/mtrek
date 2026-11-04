@@ -86,7 +86,7 @@
 	<p class="footer-note">
 		Add as many albums as you like. Each round uses one album
 		{roundOrder === 'consecutive' ? 'in this list order' : 'at random'}. The
-		list is fixed when you create the trek.
+		list can be edited until another participant joins.
 	</p>
 	<input type="hidden" name="albums" value={JSON.stringify(albums)} />
 	<div class="grid">

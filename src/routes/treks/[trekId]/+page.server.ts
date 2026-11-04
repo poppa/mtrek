@@ -12,8 +12,7 @@ import {
 	parseScoreTenth,
 	rateSelection,
 	removeParticipant,
-	selectAlbum,
-	updateTrekTitle
+	selectAlbum
 } from '$lib/server/trek-service';
 import { fail, redirect, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
@@ -29,29 +28,6 @@ export const load: PageServerLoad = async (event) => {
 };
 
 export const actions: Actions = {
-	updateTitle: async (event) => {
-		const userId = await requireUserId(event);
-		const trekId = requireTrekParam(event.params.trekId);
-		const formData = await event.request.formData();
-
-		try {
-			await updateTrekTitle({
-				trekId,
-				userId,
-				name: readString(formData, 'name')
-			});
-		} catch (updateError) {
-			return fail(400, {
-				actionError:
-					updateError instanceof Error
-						? updateError.message
-						: 'Could not update trek title.'
-			});
-		}
-
-		return { updatedTitle: true };
-	},
-
 	selectAlbum: async (event) => {
 		const userId = await requireUserId(event);
 		const trekId = requireTrekParam(event.params.trekId);

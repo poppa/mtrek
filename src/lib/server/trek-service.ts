@@ -475,20 +475,228 @@ export async function getConcludedYearDetail(input: {
 	};
 }
 
-export async function updateTrekTitle(input: {
+type TrekConfiguration =
+	| {
+			type: 'years';
+			startYear: number;
+			endYear: number;
+			roundOrder: 'random' | 'consecutive';
+	  }
+	| {
+			type: 'curated';
+			albums: unknown;
+			secret: boolean;
+			roundOrder: 'random' | 'consecutive';
+	  }
+	| {
+			type: 'named';
+			rounds: unknown;
+			roundOrder: 'random' | 'consecutive';
+	  };
+
+export async function getTrekEditData(trekId: string, userId: string) {
+	await assertOwner(trekId, userId);
+	const trek = await getTrek(trekId);
+	if (!trek) throw error(404, 'Trek not found.');
+	const [participantCount, rounds, albums] = await Promise.all([
+		getParticipantCount(trekId),
+		getRounds(trekId),
+		trek.type === 'curated' ? getCuratedAlbums(trekId) : []
+	]);
+
+	return {
+		trek,
+		canEditStructure: participantCount === 1,
+		albums,
+		rounds: rounds.map((round) => ({
+			name: round.name ?? '',
+			description: round.description
+		}))
+	};
+}
+
+export async function updateTrek(input: {
 	trekId: string;
 	userId: string;
 	name: string;
+	configuration?: TrekConfiguration;
 }) {
-	await assertOwner(input.trekId, input.userId);
-
 	const name = input.name.trim();
+	if (!name) throw new Error('Trek title is required.');
 
-	if (!name) {
-		throw new Error('Trek title is required.');
-	}
+	return db.transaction(async (tx) => {
+		const [trek] = await tx
+			.select()
+			.from(treks)
+			.where(eq(treks.id, input.trekId))
+			.for('update');
+		if (!trek) throw error(404, 'Trek not found.');
+		const [membership] = await tx
+			.select()
+			.from(trekParticipants)
+			.where(
+				and(
+					eq(trekParticipants.trekId, input.trekId),
+					eq(trekParticipants.userId, input.userId)
+				)
+			);
+		if (membership?.role !== 'owner') {
+			throw error(403, 'Only the trek owner can do that.');
+		}
+		const [{ value: participantCount }] = await tx
+			.select({ value: count() })
+			.from(trekParticipants)
+			.where(eq(trekParticipants.trekId, input.trekId));
 
-	await db.update(treks).set({ name }).where(eq(treks.id, input.trekId));
+		if (!input.configuration || participantCount > 1) {
+			await tx.update(treks).set({ name }).where(eq(treks.id, input.trekId));
+			return { structureUpdated: false };
+		}
+		if (input.configuration.type !== trek.type) {
+			throw new Error('The trek type cannot be changed.');
+		}
+		if (
+			input.configuration.roundOrder !== 'random' &&
+			input.configuration.roundOrder !== 'consecutive'
+		) {
+			throw new Error('Invalid round order.');
+		}
+
+		let albums: AlbumInput[] = [];
+		let namedRounds: ReturnType<typeof parseNamedRounds> = [];
+		let startYear: number | null = null;
+		let endYear: number | null = null;
+		let secret = false;
+		let structureChanged = trek.roundOrder !== input.configuration.roundOrder;
+		switch (input.configuration.type) {
+			case 'years':
+				startYear = input.configuration.startYear;
+				endYear = input.configuration.endYear;
+				validateTrekYears(startYear, endYear);
+				structureChanged ||=
+					trek.startYear !== startYear || trek.endYear !== endYear;
+				break;
+			case 'curated': {
+				albums = parseCuratedAlbums(input.configuration.albums);
+				secret = input.configuration.secret;
+				const existingAlbums = await tx
+					.select()
+					.from(curatedAlbums)
+					.where(eq(curatedAlbums.trekId, trek.id))
+					.orderBy(asc(curatedAlbums.position));
+				structureChanged ||=
+					trek.secret !== secret ||
+					JSON.stringify(albums.map(comparableAlbum)) !==
+						JSON.stringify(existingAlbums.map(comparableAlbum));
+				break;
+			}
+			case 'named': {
+				namedRounds = parseNamedRounds(input.configuration.rounds);
+				const existingRounds = await tx
+					.select({
+						name: trekRounds.name,
+						description: trekRounds.description
+					})
+					.from(trekRounds)
+					.where(eq(trekRounds.trekId, trek.id))
+					.orderBy(asc(trekRounds.position));
+				structureChanged ||=
+					JSON.stringify(namedRounds) !==
+					JSON.stringify(
+						existingRounds.map((round) => ({
+							name: round.name,
+							description: round.description
+						}))
+					);
+				break;
+			}
+		}
+		if (!structureChanged) {
+			await tx.update(treks).set({ name }).where(eq(treks.id, trek.id));
+			return { structureUpdated: false };
+		}
+
+		await tx.delete(trekRounds).where(eq(trekRounds.trekId, trek.id));
+		if (trek.type === 'curated') {
+			await tx.delete(curatedAlbums).where(eq(curatedAlbums.trekId, trek.id));
+		}
+		const [updatedTrek] = await tx
+			.update(treks)
+			.set({
+				name,
+				startYear,
+				endYear,
+				secret,
+				roundOrder: input.configuration.roundOrder,
+				status: 'active',
+				completedAt: null
+			})
+			.where(eq(treks.id, trek.id))
+			.returning();
+
+		switch (input.configuration.type) {
+			case 'years': {
+				const years = getYearRange(updatedTrek);
+				const year =
+					updatedTrek.roundOrder === 'consecutive'
+						? years[0]
+						: years[Math.floor(Math.random() * years.length)];
+				await tx.insert(trekRounds).values({
+					trekId: trek.id,
+					position: 1,
+					year,
+					status: 'selecting'
+				});
+				break;
+			}
+			case 'curated':
+				await tx.insert(curatedAlbums).values(
+					albums.map((album, index) => ({
+						...album,
+						trekId: trek.id,
+						position: index + 1
+					}))
+				);
+				await advanceCuratedRound(tx, updatedTrek);
+				break;
+			case 'named': {
+				const inserted = await tx
+					.insert(trekRounds)
+					.values(
+						namedRounds.map((round, index) => ({
+							trekId: trek.id,
+							position: index + 1,
+							name: round.name,
+							description: round.description ?? null,
+							status: 'pending' as const
+						}))
+					)
+					.returning();
+				const next =
+					updatedTrek.roundOrder === 'consecutive'
+						? inserted[0]
+						: inserted[Math.floor(Math.random() * inserted.length)];
+				await tx
+					.update(trekRounds)
+					.set({ status: 'selecting' })
+					.where(eq(trekRounds.id, next.id));
+				break;
+			}
+		}
+
+		return { structureUpdated: true };
+	});
+}
+
+function comparableAlbum(album: AlbumInput) {
+	return {
+		spotifyAlbumId: album.spotifyAlbumId ?? null,
+		albumName: album.albumName,
+		artistName: album.artistName,
+		releaseDate: album.releaseDate ?? null,
+		imageUrl: album.imageUrl ?? null,
+		externalUrl: album.externalUrl ?? null
+	};
 }
 
 export async function removeParticipant(input: {

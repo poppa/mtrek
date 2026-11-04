@@ -11,7 +11,7 @@
 		ExternalLink,
 		Link,
 		Music2,
-		Save,
+		Pencil,
 		Search,
 		Shuffle,
 		Star,
@@ -740,26 +740,15 @@
 							</button>
 
 							<div class="panel-content">
-								<form
-									class="form-grid"
-									method="post"
-									action="?/updateTitle"
-									use:enhance
+								<a
+									class="button"
+									href={resolve('/treks/[trekId]/edit', {
+										trekId: data.trek.id
+									})}
 								>
-									<div class="field">
-										<label for="trek-name">Title</label>
-										<input
-											id="trek-name"
-											name="name"
-											value={data.trek.name}
-											required
-										/>
-									</div>
-									<button class="button" type="submit">
-										<Save size={16} />
-										<span>Save title</span>
-									</button>
-								</form>
+									<Pencil size={16} />
+									<span>Edit trek</span>
+								</a>
 
 								{#if data.progress.participantCount === 1}
 									<form method="post" action="?/deleteTrek" use:enhance>

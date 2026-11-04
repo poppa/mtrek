@@ -275,6 +275,160 @@ test('secret curated albums are concealed from participants until revealed', asy
 	);
 });
 
+test('owners can edit trek configuration before another participant joins', async () => {
+	const { id, owner, detail } = await curated(2);
+	const titleOnly = await service.updateTrek({
+		trekId: id,
+		userId: owner,
+		name: 'Title without reset',
+		configuration: {
+			type: 'curated',
+			albums: detail.curatedAlbums,
+			secret: detail.trek.secret,
+			roundOrder: detail.trek.roundOrder
+		}
+	});
+	assert.equal(titleOnly.structureUpdated, false);
+	assert.equal(
+		(await service.getTrekDetail(id, owner)).selections[0].id,
+		detail.selections[0].id
+	);
+	await assert.rejects(
+		service.updateTrek({
+			trekId: id,
+			userId: owner,
+			name: 'Changed type',
+			configuration: {
+				type: 'years',
+				startYear: 2000,
+				endYear: 2001,
+				roundOrder: 'consecutive'
+			}
+		}),
+		/The trek type cannot be changed/
+	);
+
+	const albums = [
+		{ albumName: 'First replacement', artistName: 'New artist' },
+		{ albumName: 'Second replacement', artistName: 'Other artist' },
+		{ albumName: 'Third replacement', artistName: 'Final artist' }
+	];
+	const result = await service.updateTrek({
+		trekId: id,
+		userId: owner,
+		name: 'Edited curated trek',
+		configuration: {
+			type: 'curated',
+			albums,
+			secret: true,
+			roundOrder: 'consecutive'
+		}
+	});
+	assert.equal(result.structureUpdated, true);
+
+	const edited = await service.getTrekDetail(id, owner);
+	assert.equal(edited.trek.name, 'Edited curated trek');
+	assert.equal(edited.trek.type, 'curated');
+	assert.equal(edited.trek.secret, true);
+	assert.equal(edited.trek.roundOrder, 'consecutive');
+	assert.equal(edited.curatedAlbums.length, 3);
+	assert.deepEqual(
+		edited.curatedAlbums.map((album) => album.albumName),
+		albums.map((album) => album.albumName)
+	);
+	assert.equal(edited.rounds.length, 1);
+	assert.equal(edited.selections[0].albumName, 'First replacement');
+	assert.notEqual(edited.selections[0].id, detail.selections[0].id);
+	assert.equal(edited.progress.ratingCount, 0);
+});
+
+test('after a participant joins trek edits only change the title', async () => {
+	const { id, owner, invite } = await curated(2);
+	const friend = await user();
+	await service.joinTrek(invite, friend);
+	const before = await service.getTrekEditData(id, owner);
+	assert.equal(before.canEditStructure, false);
+	await assert.rejects(service.getTrekEditData(id, friend));
+	await assert.rejects(
+		service.updateTrek({ trekId: id, userId: friend, name: 'Not allowed' })
+	);
+
+	const result = await service.updateTrek({
+		trekId: id,
+		userId: owner,
+		name: 'Title only',
+		configuration: {
+			type: 'curated',
+			albums: [{ albumName: 'Should not appear', artistName: 'Nobody' }],
+			secret: true,
+			roundOrder: 'consecutive'
+		}
+	});
+	assert.equal(result.structureUpdated, false);
+
+	const after = await service.getTrekEditData(id, owner);
+	assert.equal(after.trek.name, 'Title only');
+	assert.equal(after.trek.secret, before.trek.secret);
+	assert.equal(after.trek.roundOrder, before.trek.roundOrder);
+	assert.deepEqual(
+		after.albums.map((album) => album.albumName),
+		before.albums.map((album) => album.albumName)
+	);
+});
+
+test('year and named trek settings can be edited before participants join', async () => {
+	const owner = await user();
+	const yearsId = await service.createTrek({
+		name: 'Years',
+		userId: owner,
+		startYear: 2000,
+		endYear: 2002
+	});
+	await service.updateTrek({
+		trekId: yearsId,
+		userId: owner,
+		name: 'Edited years',
+		configuration: {
+			type: 'years',
+			startYear: 2010,
+			endYear: 2012,
+			roundOrder: 'consecutive'
+		}
+	});
+	const years = await service.getTrekDetail(yearsId, owner);
+	assert.equal(years.trek.startYear, 2010);
+	assert.equal(years.trek.endYear, 2012);
+	assert.equal(years.currentRound.year, 2010);
+	assert.equal(years.rounds.length, 1);
+
+	const namedId = await service.createTrek({
+		name: 'Named',
+		type: 'named',
+		userId: owner,
+		rounds: [{ name: 'Old round' }]
+	});
+	await service.updateTrek({
+		trekId: namedId,
+		userId: owner,
+		name: 'Edited named',
+		configuration: {
+			type: 'named',
+			rounds: [
+				{ name: 'Opening', description: 'Start here' },
+				{ name: 'Closing', description: 'Finish here' }
+			],
+			roundOrder: 'consecutive'
+		}
+	});
+	const named = await service.getTrekDetail(namedId, owner);
+	assert.equal(named.currentRound.name, 'Opening');
+	assert.equal(named.currentRound.description, 'Start here');
+	assert.deepEqual(
+		named.rounds.map((round) => round.name),
+		['Opening', 'Closing']
+	);
+});
+
 function textShape(value) {
 	return [...value]
 		.map((character) => {
