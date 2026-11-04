@@ -20,6 +20,12 @@ MTrek is a SvelteKit music-exploration app. Users create year-based or curated-a
 - Keep business rules in the Trek service rather than duplicating them in route handlers or components.
 - Use the `$lib` alias for imports from `src/lib`.
 
+## Code conventions
+
+- Don't use magic values, create constants with descriptive names, and add descriptive TSDoc.
+- Add TSDoc to public symbols.
+- Always add curly braces around statements, even when not strictly necessary.
+
 ## Validation
 
 Run the relevant checks before handing off changes:
