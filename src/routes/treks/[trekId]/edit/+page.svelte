@@ -35,7 +35,7 @@
 						ratings. Title-only changes preserve progress.
 					</p>
 				{:else}
-					<p class="footer-note alert">
+					<p class="footer-note notice alert">
 						Only the title can be changed after another participant joins.
 					</p>
 				{/if}

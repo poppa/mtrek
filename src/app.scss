@@ -1115,6 +1115,8 @@ a.round-chip:hover {
 	background-color: var(--button-bg);
 	cursor: default;
 	justify-content: center;
+	line-height: 1.1;
+	white-space: nowrap;
 
 	&.primary {
 		--button-bg: var(--brand);
