@@ -809,6 +809,12 @@ a.round-chip:hover {
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
+
+	.inline-row {
+		.badge {
+			margin-block-start: var(--gap);
+		}
+	}
 }
 
 .album-info strong,

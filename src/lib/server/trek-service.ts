@@ -143,7 +143,7 @@ export async function createTrek(
 		roundOrder?: 'random' | 'consecutive';
 	} & (
 		| { type?: 'years'; startYear: number; endYear: number }
-		| { type: 'curated'; albums: unknown }
+		| { type: 'curated'; albums: unknown; secret?: boolean }
 		| { type: 'named'; rounds: unknown }
 	)
 ) {
@@ -154,6 +154,7 @@ export async function createTrek(
 	let namedRounds: ReturnType<typeof parseNamedRounds> = [];
 	let startYear: number | null = null;
 	let endYear: number | null = null;
+	let secret = false;
 
 	switch (input.type) {
 		case undefined:
@@ -164,6 +165,7 @@ export async function createTrek(
 			break;
 		case 'curated':
 			albums = parseCuratedAlbums(input.albums);
+			secret = Boolean(input.secret);
 			break;
 		case 'named':
 			namedRounds = parseNamedRounds(input.rounds);
@@ -179,6 +181,7 @@ export async function createTrek(
 				type,
 				startYear,
 				endYear,
+				secret,
 				roundOrder: input.roundOrder ?? 'random',
 				inviteCode: generateInviteCode(),
 				createdBy: input.userId
@@ -361,7 +364,11 @@ export async function getTrekDetail(trekId: string, userId: string) {
 	const completedYears = rounds.filter(
 		(round) => round.status === 'completed'
 	).length;
-	const curatedList = await getCuratedListForTrek(trek);
+	const curatedList = await getCuratedListForTrek(
+		trek,
+		membership.role === 'owner',
+		rounds
+	);
 	const remainingYears = getRemainingYears(trek, rounds);
 	const rankedYears =
 		completedYears > 0 ? await getRankedConcludedYearsForTrek(trekId) : [];
@@ -1634,14 +1641,91 @@ function getRatingParticipantIds(
 	}
 }
 
-async function getCuratedListForTrek(trek: Trek) {
+async function getCuratedListForTrek(
+	trek: Trek,
+	isOwner: boolean,
+	rounds: TrekRound[]
+) {
 	switch (trek.type) {
 		case 'years':
 		case 'named':
 			return [];
-		case 'curated':
-			return getCuratedAlbums(trek.id);
+		case 'curated': {
+			const albums = await getCuratedAlbums(trek.id);
+			const revealedIds = new Set(
+				rounds.map((round) => round.curatedAlbumId).filter(Boolean)
+			);
+
+			return albums.map((album) => {
+				const isRevealed = !trek.secret || isOwner || revealedIds.has(album.id);
+
+				return isRevealed
+					? { ...album, isRevealed }
+					: {
+							...album,
+							spotifyAlbumId: null,
+							albumName: obfuscateTextShape(
+								album.albumName,
+								`${album.id}:album`
+							),
+							artistName: obfuscateTextShape(
+								album.artistName,
+								`${album.id}:artist`
+							),
+							releaseDate: null,
+							imageUrl: null,
+							externalUrl: null,
+							isRevealed
+						};
+			});
+		}
 	}
+}
+
+function obfuscateTextShape(value: string, seed: string) {
+	let state = hashString(seed);
+	const nextIndex = (length: number) => {
+		state ^= state << 13;
+		state ^= state >>> 17;
+		state ^= state << 5;
+		return (state >>> 0) % length;
+	};
+	const replacement = (character: string, alphabet: string) => {
+		let index = nextIndex(alphabet.length);
+		if (alphabet[index]?.toLowerCase() === character.toLowerCase()) {
+			index = (index + 1) % alphabet.length;
+		}
+		return alphabet[index];
+	};
+
+	return [...value]
+		.map((character) => {
+			if (/\p{Lu}/u.test(character)) {
+				if (/[MW]/.test(character)) return replacement(character, 'MW');
+				if (character === 'I') return 'I';
+				return replacement(character, 'ABCDEFGHJKLNOPQRSTUVXYZ');
+			}
+			if (/\p{Ll}/u.test(character)) {
+				if (/[mw]/.test(character)) return replacement(character, 'mw');
+				if (/[il]/.test(character)) return replacement(character, 'il');
+				return replacement(character, 'abcdefghjknopqrstuvxyz');
+			}
+			if (/\p{L}/u.test(character)) {
+				return replacement(character, 'abcdefghjknopqrstuvxyz');
+			}
+			if (/\p{N}/u.test(character)) return replacement(character, '0123456789');
+			return character;
+		})
+		.join('');
+}
+
+function hashString(value: string) {
+	let hash = 2166136261;
+	for (const character of value) {
+		hash ^= character.codePointAt(0) ?? 0;
+		hash = Math.imul(hash, 16777619);
+	}
+	return hash >>> 0 || 1;
 }
 
 function getDisplayRounds(trek: Trek, rounds: TrekRound[]) {

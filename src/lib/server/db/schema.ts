@@ -131,6 +131,7 @@ export const treks = pgTable(
 		startYear: integer('startYear'),
 		endYear: integer('endYear'),
 		status: text('status').$type<TrekStatus>().notNull().default('active'),
+		secret: boolean('secret').notNull().default(false),
 		roundOrder: text('roundOrder')
 			.$type<RoundOrder>()
 			.notNull()

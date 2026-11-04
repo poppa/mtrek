@@ -130,6 +130,14 @@
 								</select>
 							</div>
 							{#if trekType === 'curated'}
+								<label class="inline-row">
+									<input
+										type="checkbox"
+										name="secret"
+										checked={form?.values?.secret === 'true'}
+									/>
+									<span>Keep albums secret until their round begins</span>
+								</label>
 								<CuratedAlbumPicker
 									bind:albums
 									{roundOrder}

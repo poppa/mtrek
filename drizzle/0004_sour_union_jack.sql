@@ -1,0 +1,1 @@
+ALTER TABLE "trek" ADD COLUMN "secret" boolean DEFAULT false NOT NULL;

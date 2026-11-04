@@ -30,6 +30,7 @@ export const actions: Actions = {
 		const type = readString(formData, 'type') || 'years';
 		const roundOrder = readString(formData, 'roundOrder') || 'random';
 		const albums = readString(formData, 'albums');
+		const secret = readString(formData, 'secret') === 'on';
 		const rounds = readString(formData, 'rounds');
 		let trekId: string;
 
@@ -57,6 +58,7 @@ export const actions: Actions = {
 						userId,
 						type,
 						roundOrder,
+						secret,
 						albums: JSON.parse(albums || '[]')
 					});
 					break;
@@ -80,6 +82,7 @@ export const actions: Actions = {
 					name,
 					type,
 					roundOrder,
+					secret: String(secret),
 					albums,
 					rounds,
 					startYear: readString(formData, 'startYear'),

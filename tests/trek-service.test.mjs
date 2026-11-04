@@ -54,6 +54,12 @@ before(async () => {
 			'utf8'
 		)
 	);
+	await pool.query(
+		await readFile(
+			new URL('../drizzle/0004_sour_union_jack.sql', import.meta.url),
+			'utf8'
+		)
+	);
 	service = await import('../src/lib/server/trek-service.ts');
 	({ parseCuratedAlbums } = await import('../src/lib/curated-albums.ts'));
 	({ parseNamedRounds } = await import('../src/lib/named-rounds.ts'));
@@ -74,7 +80,7 @@ async function user() {
 	return id;
 }
 
-async function curated(size = 3) {
+async function curated(size = 3, secret = false) {
 	const owner = await user();
 	const albums = Array.from({ length: size }, (_, n) => ({
 		albumName: `Album ${n}`,
@@ -86,6 +92,7 @@ async function curated(size = 3) {
 		name: 'Curated test',
 		type: 'curated',
 		userId: owner,
+		secret,
 		albums
 	});
 	const detail = await service.getTrekDetail(id, owner);
@@ -101,6 +108,7 @@ test('migration preserves existing year-based Treks', async () => {
 		rows: [trek]
 	} = await pool.query('SELECT * FROM trek WHERE id = $1', ['legacy-trek']);
 	assert.equal(trek.type, 'years');
+	assert.equal(trek.secret, false);
 	assert.equal(trek.roundOrder, 'random');
 	assert.equal(trek.startYear, 1990);
 	assert.equal(trek.endYear, 1999);
@@ -216,6 +224,68 @@ test('creation starts one album, all participants must rate, final ratings advan
 	);
 	await assert.rejects(service.joinTrek(invite, await user()));
 });
+
+test('secret curated albums are concealed from participants until revealed', async () => {
+	const { owner, invite, detail } = await curated(3, true);
+	const friend = await user();
+	const id = await service.joinTrek(invite, friend);
+	const participantDetail = await service.getTrekDetail(id, friend);
+	const revealedId = participantDetail.currentRound.curatedAlbumId;
+
+	assert.equal(detail.trek.secret, true);
+	assert.equal(
+		detail.curatedAlbums.every((album) => album.isRevealed),
+		true
+	);
+	assert.equal(
+		participantDetail.curatedAlbums.find((album) => album.id === revealedId)
+			.isRevealed,
+		true
+	);
+	for (const album of participantDetail.curatedAlbums.filter(
+		(album) => album.id !== revealedId
+	)) {
+		const realAlbum = detail.curatedAlbums.find(
+			(candidate) => candidate.id === album.id
+		);
+		assert.equal(album.isRevealed, false);
+		assert.notEqual(album.albumName, realAlbum.albumName);
+		assert.notEqual(album.artistName, realAlbum.artistName);
+		assert.equal(textShape(album.albumName), textShape(realAlbum.albumName));
+		assert.equal(textShape(album.artistName), textShape(realAlbum.artistName));
+		assert.equal(album.spotifyAlbumId, null);
+		assert.equal(album.imageUrl, null);
+		assert.equal(album.externalUrl, null);
+	}
+
+	await rate(id, owner, participantDetail.selections[0].id);
+	await rate(id, friend, participantDetail.selections[0].id);
+	const advancedDetail = await service.getTrekDetail(id, friend);
+	assert.equal(
+		advancedDetail.curatedAlbums.filter((album) => album.isRevealed).length,
+		2
+	);
+	assert.notEqual(
+		advancedDetail.curatedAlbums.find(
+			(album) => album.id === advancedDetail.currentRound.curatedAlbumId
+		).albumName,
+		participantDetail.curatedAlbums.find(
+			(album) => album.id === advancedDetail.currentRound.curatedAlbumId
+		).albumName
+	);
+});
+
+function textShape(value) {
+	return [...value]
+		.map((character) => {
+			if (/\p{Lu}/u.test(character)) return 'U';
+			if (/\p{Ll}/u.test(character)) return 'l';
+			if (/\p{L}/u.test(character)) return 'a';
+			if (/\p{N}/u.test(character)) return '0';
+			return character;
+		})
+		.join('');
+}
 
 test('late joiners rate earlier albums without losing existing ratings', async () => {
 	const { id, owner, invite, detail } = await curated(2);

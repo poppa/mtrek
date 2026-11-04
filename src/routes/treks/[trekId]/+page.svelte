@@ -595,32 +595,43 @@
 								<span class="badge">{data.curatedAlbums.length} albums</span>
 							</div>
 							<p class="footer-note">
-								Everyone rates each album. The next album is drawn automatically
-								when all open rounds are complete. New participants also rate
-								earlier albums.
+								{data.trek.secret && !isOwner
+									? 'Unrevealed albums remain a surprise until their round begins. '
+									: ''}Everyone rates each album. The next album is drawn
+								automatically when all open rounds are complete. New
+								participants also rate earlier albums.
 							</p>
 							<div class="album-grid">
 								{#each data.curatedAlbums as album (album.id)}
 									{@const round = data.rounds.find(
 										(round) => round.curatedAlbumId === album.id
 									)}
-									<div class="album-card">
+									<div
+										class="album-card"
+										class:secret-album={!album.isRevealed}
+									>
 										<div class="cover" class:noimage={!album.imageUrl}>
-											{#if album.imageUrl}<img
-													src={album.imageUrl}
-													alt=""
-												/>{:else}{initials(album.albumName)}{/if}
+											{#if album.imageUrl}
+												<img src={album.imageUrl} alt="" />
+											{:else if album.isRevealed}
+												{initials(album.albumName)}
+											{:else}
+												?
+											{/if}
 										</div>
 										<div class="album-info">
-											<strong>{album.albumName}</strong><Label label="Album by"
-												>{album.artistName}</Label
-											>
-											<div class="inline-row">
-												<span
-													class="badge"
-													class:success={round?.status === 'completed'}
-													>{round?.status ?? 'Not drawn'}</span
-												>
+											<div>
+												<strong>{album.albumName}</strong>
+												<div>
+													<Label label="Album by">{album.artistName}</Label>
+												</div>
+												<div class="inline-row">
+													<span
+														class="badge"
+														class:success={round?.status === 'completed'}
+														>{round?.status ?? 'Not drawn'}</span
+													>
+												</div>
 											</div>
 										</div>
 									</div>
