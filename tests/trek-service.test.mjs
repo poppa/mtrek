@@ -212,6 +212,13 @@ test('creation starts one album, all participants must rate, final ratings advan
 		0
 	);
 	assert.equal((await service.getRankedAlbumsForUser(owner)).length, 3);
+	const stats = await service.getPersonalStats(owner);
+	assert.equal(stats.completedTreks, 1);
+	assert.equal(stats.ratedAlbums, 3);
+	assert.equal(stats.averageRating, '4');
+	assert.equal(stats.communityAverageRating, '4');
+	assert.equal(stats.ratingDifference, 0);
+	assert.deepEqual(stats.topArtists, [{ artistName: 'Artist', albumCount: 3 }]);
 	assert.equal(
 		(
 			await service.getConcludedAlbumRoundDetail({
@@ -223,6 +230,21 @@ test('creation starts one album, all participants must rate, final ratings advan
 		2
 	);
 	await assert.rejects(service.joinTrek(invite, await user()));
+});
+
+test('personal stats compare a listener with all ratings on the same albums', async () => {
+	const { id, owner, invite, detail } = await curated(1);
+	const friend = await user();
+	await service.joinTrek(invite, friend);
+	await rate(id, owner, detail.selections[0].id, 50);
+	await rate(id, friend, detail.selections[0].id, 30);
+
+	const stats = await service.getPersonalStats(owner);
+	assert.equal(stats.completedTreks, 1);
+	assert.equal(stats.ratedAlbums, 1);
+	assert.equal(stats.averageRating, '5');
+	assert.equal(stats.communityAverageRating, '4');
+	assert.equal(stats.ratingDifference, 1);
 });
 
 test('secret curated albums are concealed from participants until revealed', async () => {

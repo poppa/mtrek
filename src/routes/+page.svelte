@@ -2,8 +2,20 @@
 	import { resolve } from '$app/paths';
 	import AuthButtons from '$lib/components/AuthButtons.svelte';
 	import { getTrekRoundUnit, getTrekTypeDescription } from '$lib/trek-types';
-	import { CalendarDays, Disc3, Plus, Shuffle, Users } from '@lucide/svelte';
+	import {
+		CalendarDays,
+		CheckCircle2,
+		Disc3,
+		Music2,
+		Plus,
+		Shuffle,
+		Star,
+		TrendingUp,
+		Users
+	} from '@lucide/svelte';
 	import type { PageData } from './$types';
+
+	const RATING_DIFFERENCE_EPSILON = 0.05;
 
 	let { data }: { data: PageData } = $props();
 	let trekGroups = $derived([
@@ -19,6 +31,22 @@
 				'No completed treks yet. Finish a trek and it will appear here.'
 		}
 	]);
+	let ratingComparison = $derived.by(() => {
+		const difference = data.personalStats?.ratingDifference;
+
+		if (difference === null || difference === undefined) {
+			return '—';
+		}
+
+		if (Math.abs(difference) < RATING_DIFFERENCE_EPSILON) {
+			return 'Even';
+		}
+
+		return `${difference > 0 ? '+' : ''}${difference.toFixed(1)}`;
+	});
+	let mostRankedArtistCount = $derived(
+		data.personalStats?.topArtists[0]?.albumCount ?? 0
+	);
 </script>
 
 {#if !data.session?.user}
@@ -47,6 +75,101 @@
 					<Plus size={18} /> New trek
 				</a>
 			</div>
+
+			{#if data.personalStats}
+				<section
+					class="dashboard-stats stack"
+					aria-labelledby="personal-stats-title"
+				>
+					<div class="section-header">
+						<div>
+							<p class="eyebrow">By the numbers</p>
+							<h2 id="personal-stats-title">Your listening stats</h2>
+						</div>
+					</div>
+
+					<div class="stats-layout">
+						<div class="stat-grid">
+							<article class="stat-card">
+								<div class="stat-icon">
+									<CheckCircle2 size={20} aria-hidden="true" />
+								</div>
+								<strong>{data.personalStats.completedTreks}</strong>
+								<span>Treks finished</span>
+							</article>
+
+							<article class="stat-card">
+								<div class="stat-icon">
+									<Disc3 size={20} aria-hidden="true" />
+								</div>
+								<strong>{data.personalStats.ratedAlbums}</strong>
+								<span>Albums ranked</span>
+							</article>
+
+							<article class="stat-card">
+								<div class="stat-icon">
+									<Star size={20} aria-hidden="true" />
+								</div>
+								<strong>{data.personalStats.averageRating ?? '—'}</strong>
+								<span
+									>Average rating{data.personalStats.averageRating
+										? ' / 5'
+										: ''}</span
+								>
+							</article>
+
+							<article class="stat-card comparison">
+								<div class="stat-icon">
+									<TrendingUp size={20} aria-hidden="true" />
+								</div>
+								<strong>{ratingComparison}</strong>
+								<span>
+									{#if data.personalStats.communityAverageRating}
+										vs {data.personalStats.communityAverageRating} from everyone
+									{:else}
+										Compared with everyone
+									{/if}
+								</span>
+							</article>
+						</div>
+
+						<article class="artist-card">
+							<div class="artist-heading">
+								<div class="artist-icon">
+									<Music2 size={20} aria-hidden="true" />
+								</div>
+								<div>
+									<h3>Most-ranked artists</h3>
+									<p>Artists you keep coming back to</p>
+								</div>
+							</div>
+
+							{#if data.personalStats.topArtists.length > 0}
+								<ol class="artist-list">
+									{#each data.personalStats.topArtists as artist (artist.artistName)}
+										<li>
+											<div class="artist-label">
+												<span>{artist.artistName}</span>
+												<small>{artist.albumCount}</small>
+											</div>
+											<div class="artist-track" aria-hidden="true">
+												<div
+													class="artist-fill"
+													style={`width: ${(artist.albumCount / mostRankedArtistCount) * 100}%`}
+												></div>
+											</div>
+										</li>
+									{/each}
+								</ol>
+							{:else}
+								<p class="artist-empty">
+									Your favorite regulars will appear here.
+								</p>
+							{/if}
+						</article>
+					</div>
+				</section>
+			{/if}
 
 			{#each trekGroups as group (group.title)}
 				<section class="stack">
@@ -134,6 +257,135 @@
 
 	.trek-sections {
 		gap: calc(var(--gutter) * 2);
+	}
+
+	.dashboard-stats {
+		gap: var(--gap);
+	}
+
+	.stats-layout {
+		display: grid;
+		grid-template-columns: minmax(0, 2fr) minmax(17rem, 1fr);
+		gap: var(--gutter);
+	}
+
+	.stat-grid {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: var(--gutter);
+	}
+
+	.stat-card,
+	.artist-card {
+		border: 1px solid var(--line);
+		border-radius: var(--border-radius);
+		background: var(--surface);
+	}
+
+	.stat-card {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		align-items: start;
+		padding: var(--gutter);
+
+		.stat-icon {
+			grid-column: 2;
+			grid-row: 1;
+			line-height: 0;
+			color: var(--brand);
+		}
+
+		strong {
+			grid-column: 1;
+			font-size: clamp(2rem, 5vw, 3.1rem);
+			line-height: 1;
+		}
+
+		span {
+			grid-column: 1 / -1;
+			margin-block-start: var(--gap);
+			color: var(--muted);
+			font-size: var(--fs-small);
+		}
+	}
+
+	.artist-card {
+		padding: var(--gutter);
+	}
+
+	.artist-heading {
+		display: flex;
+		align-items: start;
+		gap: var(--gap);
+
+		.artist-icon {
+			flex: 0 0 auto;
+			line-height: 0;
+			color: var(--brand);
+		}
+
+		p {
+			margin: 0;
+			color: var(--muted);
+			font-size: var(--fs-small);
+		}
+	}
+
+	.artist-list {
+		display: grid;
+		gap: var(--gap);
+		margin: var(--gutter) 0 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.artist-label {
+		display: flex;
+		justify-content: space-between;
+		gap: var(--gap);
+		margin-block-end: var(--text-gap);
+		font-size: var(--fs-small);
+
+		small {
+			color: var(--muted);
+		}
+	}
+
+	.artist-track {
+		height: 0.3rem;
+		overflow: hidden;
+		border-radius: 999px;
+		background: var(--surface-soft);
+	}
+
+	.artist-fill {
+		height: 100%;
+		border-radius: inherit;
+		background: var(--brand);
+	}
+
+	.artist-empty {
+		margin: var(--gutter) 0 0;
+		color: var(--muted);
+		font-size: var(--fs-small);
+	}
+
+	@container app (width < 834px) {
+		.stats-layout {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	@container app (width < 480px) {
+		.stat-grid {
+			gap: var(--gap);
+		}
+
+		.stat-card {
+			strong {
+				font-size: 2rem;
+			}
+		}
 	}
 
 	.trek-card {

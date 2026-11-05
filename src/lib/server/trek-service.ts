@@ -29,6 +29,8 @@ import {
 type Trek = typeof treks.$inferSelect;
 type TrekRound = typeof trekRounds.$inferSelect;
 
+const DASHBOARD_TOP_ARTIST_LIMIT = 5;
+
 export function getLastConcludedYear(referenceDate = new Date()) {
 	return referenceDate.getFullYear() - 1;
 }
@@ -134,6 +136,86 @@ export async function listTreksForUser(userId: string) {
 			};
 		})
 	);
+}
+
+/**
+ * Returns a listener's dashboard totals and rating trends.
+ *
+ * The community average only includes albums the listener has rated, keeping
+ * the comparison relevant to their own listening history.
+ */
+export async function getPersonalStats(userId: string) {
+	const userSelectionIds = db
+		.select({ selectionId: ratings.selectionId })
+		.from(ratings)
+		.where(eq(ratings.userId, userId));
+	const averageScoreTenth = sql<string | null>`avg(${ratings.scoreTenth})`;
+	const normalizedArtistName = sql<string>`lower(trim(${albumSelections.artistName}))`;
+	const artistAlbumCount = count();
+
+	const [
+		completedTrekRows,
+		personalRatingRows,
+		communityRatingRows,
+		topArtists
+	] = await Promise.all([
+		db
+			.select({ count: count() })
+			.from(trekParticipants)
+			.innerJoin(treks, eq(trekParticipants.trekId, treks.id))
+			.where(
+				and(eq(trekParticipants.userId, userId), eq(treks.status, 'completed'))
+			),
+		db
+			.select({
+				count: count(),
+				averageScoreTenth
+			})
+			.from(ratings)
+			.where(eq(ratings.userId, userId)),
+		db
+			.select({ averageScoreTenth })
+			.from(ratings)
+			.where(inArray(ratings.selectionId, userSelectionIds)),
+		db
+			.select({
+				artistName: sql<string>`min(${albumSelections.artistName})`,
+				albumCount: artistAlbumCount
+			})
+			.from(ratings)
+			.innerJoin(albumSelections, eq(ratings.selectionId, albumSelections.id))
+			.where(eq(ratings.userId, userId))
+			.groupBy(normalizedArtistName)
+			.orderBy(desc(artistAlbumCount), asc(normalizedArtistName))
+			.limit(DASHBOARD_TOP_ARTIST_LIMIT)
+	]);
+
+	const personalAverageScoreTenth = parseNullableNumber(
+		personalRatingRows[0]?.averageScoreTenth
+	);
+	const communityAverageScoreTenth = parseNullableNumber(
+		communityRatingRows[0]?.averageScoreTenth
+	);
+
+	return {
+		completedTreks: completedTrekRows[0]?.count ?? 0,
+		ratedAlbums: personalRatingRows[0]?.count ?? 0,
+		averageRating: formatScore(personalAverageScoreTenth),
+		communityAverageRating: formatScore(communityAverageScoreTenth),
+		ratingDifference:
+			personalAverageScoreTenth !== null && communityAverageScoreTenth !== null
+				? (personalAverageScoreTenth - communityAverageScoreTenth) / 10
+				: null,
+		topArtists
+	};
+}
+
+function parseNullableNumber(value: string | null | undefined) {
+	if (value === null || value === undefined) {
+		return null;
+	}
+
+	return Number(value);
 }
 
 export async function createTrek(
