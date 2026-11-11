@@ -7,6 +7,8 @@
 	import NamedRoundPicker from './NamedRoundPicker.svelte';
 	import { Save, Shuffle } from '@lucide/svelte';
 	import { untrack } from 'svelte';
+	import { Button } from '$lib/components/ui/button';
+	import { Input } from '$lib/components/ui/input';
 
 	type FormValues = {
 		name?: string;
@@ -90,7 +92,7 @@
 <form class="form-grid" method="post" {action} use:enhance>
 	<div class="field">
 		<label for="name">Name</label>
-		<input
+		<Input
 			id="name"
 			name="name"
 			autocomplete="off"
@@ -140,7 +142,7 @@
 			<div class="two-col">
 				<div class="field">
 					<label for="startYear">Start year</label>
-					<input
+					<Input
 						id="startYear"
 						name="startYear"
 						type="number"
@@ -154,7 +156,7 @@
 				</div>
 				<div class="field">
 					<label for="endYear">End year</label>
-					<input
+					<Input
 						id="endYear"
 						name="endYear"
 						type="number"
@@ -168,16 +170,16 @@
 		{/if}
 	{/if}
 
-	<button
-		class="button primary"
+	<Button
 		type="submit"
+		size="lg"
 		disabled={structureEditable &&
 			((trekType === 'curated' && albums.length === 0) ||
 				(trekType === 'named' && rounds.length === 0))}
 	>
 		{#if mode === 'create'}<Shuffle size={18} />{:else}<Save size={18} />{/if}
 		<span>{mode === 'create' ? 'Create and start' : 'Save changes'}</span>
-	</button>
+	</Button>
 </form>
 
 {#if structureEditable && trekType === 'years'}

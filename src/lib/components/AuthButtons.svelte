@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { LogIn, Music2 } from '@lucide/svelte';
 	import { enhance } from '$lib/form-enhance';
+	import { Button } from '$lib/components/ui/button';
 
 	type ProviderStatus = {
 		google: boolean;
@@ -26,10 +27,10 @@
 		>
 			<input type="hidden" name="providerId" value="google" />
 			<input type="hidden" name="redirectTo" value={redirectTo} />
-			<button class="button primary" type="submit">
+			<Button type="submit" size="lg">
 				<LogIn size={18} />
 				<span>Continue with Google</span>
-			</button>
+			</Button>
 		</form>
 	{/if}
 
@@ -42,10 +43,10 @@
 		>
 			<input type="hidden" name="providerId" value="spotify" />
 			<input type="hidden" name="redirectTo" value={redirectTo} />
-			<button class="button spotify" type="submit">
+			<Button type="submit" variant="outline" size="lg" class="spotify">
 				<Music2 size={18} />
 				<span>Continue with Spotify</span>
-			</button>
+			</Button>
 		</form>
 	{/if}
 
@@ -62,11 +63,5 @@
 		flex-wrap: wrap;
 		gap: var(--gap);
 		margin-block-start: var(--gutter);
-	}
-
-	.spotify {
-		--button-bg: #1db954;
-		--button-fg: #191414;
-		--button-line: light-dark(#268246, #4fd27d);
 	}
 </style>

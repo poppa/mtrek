@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import AuthButtons from '$lib/components/AuthButtons.svelte';
+	import { Button } from '$lib/components/ui/button';
+	import { Progress } from '$lib/components/ui/progress';
 	import { getTrekRoundUnit, getTrekTypeDescription } from '$lib/trek-types';
 	import {
 		CalendarDays,
@@ -51,15 +53,38 @@
 
 {#if !data.session?.user}
 	<section class="page auth-screen">
-		<div class="contents">
+		<div class="contents landing-grid">
 			<div class="auth-copy">
-				<p class="eyebrow">Music exploration with friends</p>
-				<h1><span class="brand-color">M</span>Trek</h1>
+				<p class="eyebrow">Your next favorite record is out there</p>
+				<h1>
+					Listen wider.<br /><span class="brand-color">Rank together.</span>
+				</h1>
 				<p class="lead">
-					Explore a year range or a curated album list with friends. Draw a year
-					or album at random, listen, and rate together.
+					Turn music discovery into a shared ritual. Draw a year or album,
+					listen with friends, then build the ranking that settles the debate.
 				</p>
+				<div class="feature-pills" aria-label="MTrek features">
+					<span><Shuffle size={15} /> Discover</span>
+					<span><Users size={15} /> Listen together</span>
+					<span><Star size={15} /> Rank everything</span>
+				</div>
 				<AuthButtons providers={data.authProviders} redirectTo="/" />
+			</div>
+
+			<div class="vinyl-stage" aria-hidden="true">
+				<div class="record">
+					<div class="record-label">
+						<Music2 size={34} />
+						<strong>MTREK</strong>
+						<small>Side A</small>
+					</div>
+				</div>
+				<div class="now-spinning">
+					<span class="live-dot"></span>
+					<div>
+						<small>Now spinning</small><strong>A world of music</strong>
+					</div>
+				</div>
 			</div>
 		</div>
 	</section>
@@ -71,9 +96,9 @@
 					<p class="eyebrow">Dashboard</p>
 					<h1>Your music treks</h1>
 				</div>
-				<a class="button primary" href={resolve('/treks/new')}>
+				<Button href={resolve('/treks/new')} size="lg">
 					<Plus size={18} /> New trek
-				</a>
+				</Button>
 			</div>
 
 			{#if data.personalStats}
@@ -213,13 +238,11 @@
 										</span>
 									</div>
 
-									<div class="progress-track" aria-hidden="true">
-										<div
-											class="progress-fill"
-											class:completed={trek.status === 'completed'}
-											style={`width: ${(trek.completedYears / trek.totalYears) * 100}%`}
-										></div>
-									</div>
+									<Progress
+										value={(trek.completedYears / trek.totalYears) * 100}
+										aria-label={`${trek.completedYears} of ${trek.totalYears} complete`}
+										class="trek-progress"
+									/>
 
 									<div class="metric-row">
 										<span>
@@ -247,6 +270,144 @@
 		min-height: calc(100vh - 4.25rem);
 		align-items: center;
 		gap: 2rem;
+	}
+
+	.landing-grid {
+		display: grid;
+		min-width: 0;
+		grid-template-columns: minmax(0, 1.25fr) minmax(18rem, 0.75fr);
+		align-items: center;
+		gap: clamp(2rem, 7vw, 7rem);
+	}
+
+	.landing-grid > * {
+		min-width: 0;
+	}
+
+	.auth-copy {
+		width: 100%;
+		min-width: 0;
+	}
+
+	.feature-pills {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.55rem;
+		margin-top: 1.35rem;
+
+		span {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.4rem;
+			padding: 0.4rem 0.65rem;
+			border: 1px solid var(--line);
+			border-radius: 999px;
+			color: var(--muted);
+			background: var(--surface-soft);
+			font-size: 0.78rem;
+			font-weight: 700;
+		}
+	}
+
+	.vinyl-stage {
+		position: relative;
+		display: grid;
+		place-items: center;
+		padding: 2rem;
+	}
+
+	.record {
+		display: grid;
+		width: min(100%, 27rem);
+		aspect-ratio: 1;
+		place-items: center;
+		border-radius: 50%;
+		background:
+			repeating-radial-gradient(
+				circle,
+				transparent 0 7px,
+				rgb(255 255 255 / 0.07) 8px 9px
+			),
+			radial-gradient(circle, #303530 0 17%, #101311 18% 100%);
+		box-shadow:
+			0 3rem 6rem rgb(0 0 0 / 0.28),
+			inset 0 0 0 2px rgb(255 255 255 / 0.06);
+		animation: spin 18s linear infinite;
+	}
+
+	.record-label {
+		display: grid;
+		width: 34%;
+		aspect-ratio: 1;
+		place-items: center;
+		align-content: center;
+		gap: 0.2rem;
+		border-radius: 50%;
+		color: var(--accent-ink);
+		background: var(--accent);
+		box-shadow: 0 0 0 5px #101311;
+
+		strong {
+			font-size: clamp(0.7rem, 2vw, 1rem);
+			letter-spacing: 0.12em;
+		}
+
+		small {
+			font-size: 0.62rem;
+			text-transform: uppercase;
+		}
+	}
+
+	.now-spinning {
+		position: absolute;
+		right: 0;
+		bottom: 1rem;
+		display: flex;
+		align-items: center;
+		gap: 0.7rem;
+		padding: 0.75rem 0.9rem;
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		background: var(--surface);
+		box-shadow: var(--shadow);
+
+		div {
+			display: grid;
+		}
+
+		small {
+			color: var(--muted);
+			font-size: 0.65rem;
+			text-transform: uppercase;
+			letter-spacing: 0.1em;
+		}
+
+		strong {
+			font-size: 0.82rem;
+		}
+	}
+
+	.live-dot {
+		width: 0.65rem;
+		height: 0.65rem;
+		border-radius: 50%;
+		background: var(--brand);
+		box-shadow: 0 0 0 5px var(--brand-soft);
+	}
+
+	:global(.trek-progress) {
+		height: 0.45rem;
+		background: var(--progress-track);
+	}
+
+	:global(.trek-progress [data-slot='progress-indicator']) {
+		background: linear-gradient(90deg, var(--brand), var(--accent));
+	}
+
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
 	}
 
 	.trek-list {
@@ -371,12 +532,39 @@
 	}
 
 	@container app (width < 834px) {
+		.landing-grid {
+			grid-template-columns: 1fr;
+		}
+
+		.vinyl-stage {
+			width: min(100%, 28rem);
+			margin-inline: auto;
+		}
+
 		.stats-layout {
 			grid-template-columns: 1fr;
 		}
 	}
 
+	@media (prefers-reduced-motion: reduce) {
+		.record {
+			animation: none;
+		}
+	}
+
 	@container app (width < 480px) {
+		.auth-copy h1 {
+			font-size: clamp(2.6rem, 12vw, 3.2rem);
+		}
+
+		.vinyl-stage {
+			padding-inline: 1rem;
+		}
+
+		.record {
+			width: min(82vw, 22rem);
+		}
+
 		.stat-grid {
 			gap: var(--gap);
 		}

@@ -1,3 +1,30 @@
+import { clsx, type ClassValue } from 'clsx';
+import type { Snippet } from 'svelte';
+import { twMerge } from 'tailwind-merge';
+
+/** Adds an optional bindable element reference to component HTML attributes. */
+export type WithElementRef<T, U extends HTMLElement = HTMLElement> = T & {
+	ref?: U | null;
+};
+
+/** Removes the Bits UI child snippet from a primitive's public properties. */
+export type WithoutChild<T> = T extends { child?: Snippet }
+	? Omit<T, 'child'>
+	: T;
+
+/** Removes the default children snippet from HTML component properties. */
+export type WithoutChildren<T> = T extends { children?: Snippet }
+	? Omit<T, 'children'>
+	: T;
+
+/** Removes both children APIs from a primitive's public properties. */
+export type WithoutChildrenOrChild<T> = WithoutChildren<WithoutChild<T>>;
+
+/** Merges conditional class names while resolving Tailwind conflicts. */
+export function cn(...inputs: ClassValue[]) {
+	return twMerge(clsx(inputs));
+}
+
 export function initials(value: string) {
 	if (!value.trim()) {
 		return '...';
