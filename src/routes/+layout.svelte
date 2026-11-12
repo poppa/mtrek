@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import favicon from '$lib/assets/favicon.svg';
+	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
 	import { Button } from '$lib/components/ui/button';
-	import { House, Plus, UserRound } from '@lucide/svelte';
+	import { House, UserRound } from '@lucide/svelte';
 	import type { Snippet } from 'svelte';
 	import type { LayoutData } from './$types';
 	import '../app.css';
@@ -41,42 +42,37 @@
 				<span class="brand-tagline">Listen deeper.</span>
 			</a>
 
-			{#if data.session?.user}
-				<nav class="primary-nav" aria-label="Primary navigation">
-					<Button
-						href={resolve('/')}
-						variant="ghost"
-						size="sm"
-						class="nav-button"
-					>
-						<House aria-hidden="true" />
-						<span class="nav-label">Dashboard</span>
-					</Button>
-					<Button
-						href={resolve('/treks/new')}
-						size="sm"
-						class="nav-button new-trek"
-					>
-						<Plus aria-hidden="true" />
-						<span class="nav-label">New trek</span>
-					</Button>
-					<Button
-						href={resolve('/user/[userId]', { userId: data.session.user.id })}
-						variant="outline"
-						size="sm"
-						class="profile-button"
-					>
-						{#if data.session.user.image}
-							<img class="nav-avatar" src={data.session.user.image} alt="" />
-						{:else}
-							<UserRound aria-hidden="true" />
-						{/if}
-						<span class="user-name">
-							{data.session.user.name ?? data.session.user.email}
-						</span>
-					</Button>
-				</nav>
-			{/if}
+			<div class="header-actions">
+				{#if data.session?.user}
+					<nav class="primary-nav" aria-label="Primary navigation">
+						<Button
+							href={resolve('/')}
+							variant="ghost"
+							size="sm"
+							class="nav-button"
+						>
+							<House aria-hidden="true" />
+							<span class="nav-label">Dashboard</span>
+						</Button>
+						<Button
+							href={resolve('/user/[userId]', { userId: data.session.user.id })}
+							variant="outline"
+							size="sm"
+							class="profile-button"
+						>
+							{#if data.session.user.image}
+								<img class="nav-avatar" src={data.session.user.image} alt="" />
+							{:else}
+								<UserRound aria-hidden="true" />
+							{/if}
+							<span class="user-name">
+								{data.session.user.name ?? data.session.user.email}
+							</span>
+						</Button>
+					</nav>
+				{/if}
+				<ThemeToggle />
+			</div>
 		</div>
 	</header>
 
@@ -145,6 +141,13 @@
 	}
 
 	.primary-nav {
+		display: flex;
+		min-width: 0;
+		align-items: center;
+		gap: 0.4rem;
+	}
+
+	.header-actions {
 		display: flex;
 		min-width: 0;
 		align-items: center;
