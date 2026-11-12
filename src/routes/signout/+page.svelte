@@ -12,7 +12,7 @@
 </svelte:head>
 
 <section class="page auth-screen">
-	<div class="contents">
+	<div class="content-frame">
 		<div class="auth-copy">
 			<p class="eyebrow">Sign out</p>
 			<h1>Leave MTrek</h1>

@@ -17,7 +17,7 @@
 	<title>{data.trek.name} · Year Ranking · MTrek</title>
 </svelte:head>
 <section class="page stack">
-	<div class="contents">
+	<div class="content-frame">
 		<a
 			class="button ghost back-link"
 			href={resolve('/treks/[trekId]', { trekId: data.trek.id })}

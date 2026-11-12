@@ -24,7 +24,7 @@
 </svelte:head>
 
 <section class="page auth-screen">
-	<div class="contents">
+	<div class="content-frame">
 		<div class="trek-hero">
 			<div class="trek-title">
 				<p class="eyebrow">User Profile</p>

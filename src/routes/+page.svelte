@@ -53,7 +53,7 @@
 
 {#if !data.session?.user}
 	<section class="page auth-screen">
-		<div class="contents landing-grid">
+		<div class="content-frame landing-grid">
 			<div class="auth-copy">
 				<p class="eyebrow">Your next favorite record is out there</p>
 				<h1>
@@ -90,7 +90,7 @@
 	</section>
 {:else}
 	<section class="page stack">
-		<div class="contents stack trek-sections">
+		<div class="content-frame stack trek-sections">
 			<div class="section-header main-header">
 				<div>
 					<p class="eyebrow">Dashboard</p>

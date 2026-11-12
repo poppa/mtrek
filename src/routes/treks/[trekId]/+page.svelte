@@ -126,7 +126,7 @@
 </svelte:head>
 
 <section class="page stack">
-	<div class="contents">
+	<div class="content-frame">
 		<div class="trek-hero">
 			<div class="trek-title">
 				<p class="eyebrow">Music trek</p>

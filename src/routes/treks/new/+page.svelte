@@ -10,7 +10,7 @@
 <svelte:head><title>Create trek · MTrek</title></svelte:head>
 
 <section class="page stack">
-	<div class="contents narrow stack">
+	<div class="content-frame narrow stack">
 		<a class="button ghost back-link" href={resolve('/')}
 			><ArrowLeft size={16} /> Dashboard</a
 		>
@@ -36,9 +36,3 @@
 		</section>
 	</div>
 </section>
-
-<style>
-	.narrow {
-		max-width: 52rem;
-	}
-</style>

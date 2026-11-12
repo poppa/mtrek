@@ -33,7 +33,7 @@
 
 <div class="app-shell">
 	<header class="topbar">
-		<div class="topbar-contents">
+		<div class="content-frame topbar-contents">
 			<a class="brand" href={resolve('/')} aria-label="MTrek dashboard">
 				<span class="brand-mark">
 					<img src={favicon} alt="" />
@@ -87,19 +87,15 @@
 		top: 0;
 		z-index: 50;
 		border-bottom: 1px solid var(--line);
-		background: var(--topbar-bg);
 		backdrop-filter: blur(18px) saturate(140%);
 	}
 
 	.topbar-contents {
 		display: flex;
-		width: min(100%, 80rem);
 		min-height: 4.75rem;
 		align-items: center;
 		justify-content: space-between;
 		gap: 1rem;
-		margin-inline: auto;
-		padding-inline: var(--gutter);
 	}
 
 	.brand {

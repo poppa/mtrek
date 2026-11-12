@@ -13,7 +13,7 @@
 </svelte:head>
 
 <section class="page auth-screen">
-	<div class="contents">
+	<div class="content-frame">
 		{#if !data.trek}
 			<div class="auth-copy">
 				<p class="eyebrow">Invite</p>
