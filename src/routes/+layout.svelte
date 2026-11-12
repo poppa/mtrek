@@ -144,6 +144,7 @@
 	}
 
 	.header-actions {
+		--surface-raised: transparent;
 		display: flex;
 		min-width: 0;
 		align-items: center;
