@@ -323,6 +323,11 @@ h3 {
 	gap: var(--gutter);
 }
 
+.sidebar {
+	max-width: 100%;
+	overflow: hidden;
+}
+
 .inline-row,
 .meta-row,
 .metric-row {

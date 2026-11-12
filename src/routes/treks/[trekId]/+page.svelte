@@ -724,7 +724,7 @@
 				{/if}
 			</div>
 
-			<aside class="stack">
+			<aside class="stack sidebar">
 				{#if isOwner}
 					<section class="panel">
 						<div

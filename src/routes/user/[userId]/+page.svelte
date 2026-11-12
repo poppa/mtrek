@@ -103,7 +103,7 @@
 				</section>
 			</div>
 
-			<aside class="treks stack">
+			<aside class="treks stack sidebar">
 				<section class="panel stack">
 					<div class="panel-header">
 						<h2>User Treks</h2>
