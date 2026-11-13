@@ -92,13 +92,13 @@
 	<section class="page stack">
 		<div class="content-frame stack trek-sections">
 			<div class="section-header main-header">
-				<div>
+				<div class="actions">
 					<p class="eyebrow">Dashboard</p>
-					<h1>Your music treks</h1>
+					<Button href={resolve('/treks/new')} size="lg">
+						<Plus size={18} /> New trek
+					</Button>
 				</div>
-				<Button href={resolve('/treks/new')} size="lg">
-					<Plus size={18} /> New trek
-				</Button>
+				<h1>Your Treks</h1>
 			</div>
 
 			{#if data.personalStats}
