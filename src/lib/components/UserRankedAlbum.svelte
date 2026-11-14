@@ -151,11 +151,14 @@
 	}
 
 	.note {
+		// display: flex;
+		// align-items: baseline;
 		margin-block: calc(var(--gap) / 1.5);
 
 		:global(.lucide-icon) {
-			margin-block-start: 1px;
-			margin-block-end: -2px;
+			display: inline;
+			margin-block-start: -2px;
+			margin-inline-end: 2px;
 		}
 	}
 </style>
