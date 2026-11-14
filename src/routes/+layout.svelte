@@ -28,18 +28,21 @@
 		content="#f6f0e6"
 		media="(prefers-color-scheme: light)"
 	/>
-	<title>MTrek</title>
+	<title>MusicTrek</title>
 </svelte:head>
 
 <div class="app-shell">
 	<header class="topbar">
 		<div class="content-frame topbar-contents">
-			<a class="brand" href={resolve('/')} aria-label="MTrek dashboard">
+			<a class="brand" href={resolve('/')} aria-label="MusicTrek dashboard">
 				<span class="brand-mark">
 					<img src={favicon} alt="" />
 				</span>
-				<span class="brand-wordmark">MTrek</span>
-				<span class="brand-tagline">Listen deeper.</span>
+				<div class="text">
+					<span class="brand-wordmark"><span>Music</span><span>Trek</span></span
+					>
+					<span class="brand-tagline">Listen deeper</span>
+				</div>
 			</a>
 
 			<div class="header-actions">
@@ -105,6 +108,10 @@
 		gap: 0.65rem;
 	}
 
+	.brand .text {
+		line-height: 1.2;
+	}
+
 	.brand-mark {
 		display: grid;
 		width: 2.5rem;
@@ -128,12 +135,16 @@
 		letter-spacing: -0.055em;
 	}
 
+	.brand-wordmark span:last-child {
+		color: var(--brand);
+	}
+
 	.brand-tagline {
-		margin-left: 0.15rem;
 		color: var(--muted);
 		font-size: 0.75rem;
-		font-weight: 700;
+		/* font-weight: 700; */
 		letter-spacing: 0.03em;
+		display: block;
 	}
 
 	.primary-nav {

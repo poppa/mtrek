@@ -20,7 +20,7 @@
 </script>
 
 <svelte:head>
-	<title>{data.user.name} · MTrek</title>
+	<title>{data.user.name} · MusicTrek</title>
 </svelte:head>
 
 <section class="page auth-screen">

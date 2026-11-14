@@ -7,7 +7,7 @@
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 </script>
 
-<svelte:head><title>Create trek · MTrek</title></svelte:head>
+<svelte:head><title>Create trek · MusicTrek</title></svelte:head>
 
 <section class="page stack">
 	<div class="content-frame narrow stack">

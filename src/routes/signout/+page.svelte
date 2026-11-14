@@ -8,17 +8,17 @@
 </script>
 
 <svelte:head>
-	<title>Sign out · MTrek</title>
+	<title>Sign out · MusicTrek</title>
 </svelte:head>
 
 <section class="page auth-screen">
 	<div class="content-frame">
 		<div class="auth-copy">
 			<p class="eyebrow">Sign out</p>
-			<h1>Leave MTrek</h1>
+			<h1>Leave MusicTrek</h1>
 
 			{#if data.session?.user}
-				<p class="lead">End your current MTrek session on this device.</p>
+				<p class="lead">End your current MusicTrek session on this device.</p>
 				<form method="post" use:enhance>
 					<input type="hidden" name="redirectTo" value="/" />
 					<button class="button primary" type="submit">

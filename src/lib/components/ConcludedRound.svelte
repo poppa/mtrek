@@ -31,7 +31,7 @@
 		>{data.round.name ??
 			data.round.year ??
 			data.selections[0]?.albumName ??
-			'Album round'} · {data.trek.name} · MTrek</title
+			'Album round'} · {data.trek.name} · MusicTrek</title
 	>
 </svelte:head>
 

@@ -8,7 +8,7 @@
 </script>
 
 <svelte:head
-	><title>{data.user.name} · Album Ranking · MTrek</title></svelte:head
+	><title>{data.user.name} · Album Ranking · MusicTrek</title></svelte:head
 >
 <section class="page stack">
 	<div class="content-frame">

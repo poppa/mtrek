@@ -122,7 +122,7 @@
 </script>
 
 <svelte:head>
-	<title>{data.trek.name} · MTrek</title>
+	<title>{data.trek.name} · MusicTrek</title>
 </svelte:head>
 
 <section class="page stack">

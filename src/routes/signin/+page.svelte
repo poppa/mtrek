@@ -8,14 +8,14 @@
 </script>
 
 <svelte:head>
-	<title>Sign in · MTrek</title>
+	<title>Sign in · MusicTrek</title>
 </svelte:head>
 
 <section class="page auth-screen">
 	<div class="content-frame">
 		<div class="auth-copy">
 			<p class="eyebrow">Sign in</p>
-			<h1>Continue to MTrek</h1>
+			<h1>Continue to MusicTrek</h1>
 
 			{#if data.session?.user}
 				<p class="lead">You are already signed in.</p>

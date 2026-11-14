@@ -14,7 +14,7 @@
 </script>
 
 <svelte:head>
-	<title>{data.trek.name} · Year Ranking · MTrek</title>
+	<title>{data.trek.name} · Year Ranking · MusicTrek</title>
 </svelte:head>
 <section class="page stack">
 	<div class="content-frame">

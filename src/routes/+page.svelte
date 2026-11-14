@@ -63,7 +63,7 @@
 					Turn music discovery into a shared ritual. Draw a year or album,
 					listen with friends, then build the ranking that settles the debate.
 				</p>
-				<div class="feature-pills" aria-label="MTrek features">
+				<div class="feature-pills" aria-label="MusicTrek features">
 					<span><Shuffle size={15} /> Discover</span>
 					<span><Users size={15} /> Listen together</span>
 					<span><Star size={15} /> Rank everything</span>
@@ -75,7 +75,7 @@
 				<div class="record">
 					<div class="record-label">
 						<Music2 size={34} />
-						<strong>MTREK</strong>
+						<strong>MUSICTREK</strong>
 						<small>Side A</small>
 					</div>
 				</div>
@@ -348,7 +348,7 @@
 		box-shadow: 0 0 0 5px #101311;
 
 		strong {
-			font-size: clamp(0.7rem, 2vw, 1rem);
+			font-size: clamp(0.8rem, 1vw, 0.8rem);
 			letter-spacing: 0.12em;
 		}
 

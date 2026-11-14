@@ -7,7 +7,8 @@
 	let { data }: { data: PageData } = $props();
 </script>
 
-<svelte:head><title>{data.user.name} · Year Ranking · MTrek</title></svelte:head
+<svelte:head
+	><title>{data.user.name} · Year Ranking · MusicTrek</title></svelte:head
 >
 <section class="page stack">
 	<div class="content-frame">

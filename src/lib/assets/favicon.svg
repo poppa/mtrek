@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-	<title>MTrek</title>
+	<title>MusicTrek</title>
 	<rect width="64" height="64" rx="14" fill="#E84D36" />
 	<circle cx="23" cy="23" r="3" fill="#E84D36" />
 	<path d="M14 45V19h8.2L32 34.1 41.6 19H50v26h-7.1V31.9L34.7 44h-5.3l-8.2-12.1V45z" fill="#fff" />

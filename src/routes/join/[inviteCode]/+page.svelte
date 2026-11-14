@@ -9,7 +9,7 @@
 </script>
 
 <svelte:head>
-	<title>Join trek · MTrek</title>
+	<title>Join trek · MusicTrek</title>
 </svelte:head>
 
 <section class="page auth-screen">
@@ -19,7 +19,7 @@
 				<p class="eyebrow">Invite</p>
 				<h1>Invite not found</h1>
 				<p class="lead notice alert margin-gutter-block-start">
-					This MTrek invite link does not match an active trek.
+					This MusicTrek invite link does not match an active trek.
 				</p>
 			</div>
 		{:else}

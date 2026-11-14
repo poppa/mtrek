@@ -11,7 +11,7 @@
 </script>
 
 <svelte:head>
-	<title>{data.trek.name} · Album Ranking · MTrek</title>
+	<title>{data.trek.name} · Album Ranking · MusicTrek</title>
 </svelte:head>
 
 <section class="page stack">
