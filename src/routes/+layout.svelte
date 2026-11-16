@@ -188,7 +188,6 @@
 	}
 
 	@media (max-width: 50rem) {
-		.brand-tagline,
 		.user-name {
 			display: none;
 		}
