@@ -150,7 +150,7 @@
 		z-index: 60;
 		width: min(
 			var(--floating-navbar-max-width),
-			calc(100% - (var(--floating-navbar-offset) * 2))
+			calc(100% - (var(--content-inline-gutter) * 2))
 		);
 		border: 1px solid var(--line);
 		border-radius: calc(var(--radius) * 100);
