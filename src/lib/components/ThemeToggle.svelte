@@ -4,6 +4,10 @@
 	import { onMount } from 'svelte';
 
 	type ThemePreference = 'system' | 'light' | 'dark';
+	type ThemeToggleProps = {
+		/** The current preference, bindable when multiple controls share the same state. */
+		theme?: ThemePreference;
+	};
 
 	const THEME_STORAGE_KEY = 'mtrek-theme';
 	const DARK_THEME_QUERY = '(prefers-color-scheme: dark)';
@@ -14,7 +18,8 @@
 		dark: 'Dark theme'
 	};
 
-	let theme = $state<ThemePreference>('system');
+	let { theme = $bindable<ThemePreference>('system') }: ThemeToggleProps =
+		$props();
 	let nextTheme = $derived(
 		THEME_PREFERENCES[
 			(THEME_PREFERENCES.indexOf(theme) + 1) % THEME_PREFERENCES.length

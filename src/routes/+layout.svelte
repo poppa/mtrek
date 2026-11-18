@@ -4,12 +4,24 @@
 	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { House, UserRound } from '@lucide/svelte';
-	import type { Snippet } from 'svelte';
+	import { onMount, type Snippet } from 'svelte';
 	import type { LayoutData } from './$types';
 	import '../app.css';
 
+	const FLOATING_NAVBAR_SCROLL_THRESHOLD = 30;
+
 	let { children, data }: { children: Snippet; data: LayoutData } = $props();
+	let showFloatingNavbar = $state(false);
+	let themePreference = $state<'system' | 'light' | 'dark'>('system');
+
+	function updateNavbarVisibility(): void {
+		showFloatingNavbar = window.scrollY > FLOATING_NAVBAR_SCROLL_THRESHOLD;
+	}
+
+	onMount(updateNavbarVisibility);
 </script>
+
+<svelte:window onscroll={updateNavbarVisibility} />
 
 <svelte:head>
 	<link rel="icon" href={favicon} type="image/svg+xml" />
@@ -31,52 +43,73 @@
 	<title>MusicTrek</title>
 </svelte:head>
 
-<div class="app-shell">
-	<header class="topbar">
-		<div class="content-frame topbar-contents">
-			<a class="brand" href={resolve('/')} aria-label="MusicTrek dashboard">
-				<span class="brand-mark">
-					<img src={favicon} alt="" />
-				</span>
-				<div class="text">
-					<span class="brand-wordmark"><span>Music</span><span>Trek</span></span
-					>
-					<span class="brand-tagline">Listen deeper</span>
-				</div>
-			</a>
-
-			<div class="header-actions">
-				{#if data.session?.user}
-					<nav class="primary-nav" aria-label="Primary navigation">
-						<Button
-							href={resolve('/')}
-							variant="ghost"
-							size="sm"
-							class="nav-button"
-						>
-							<House aria-hidden="true" />
-							<span class="nav-label">Dashboard</span>
-						</Button>
-						<Button
-							href={resolve('/user/[userId]', { userId: data.session.user.id })}
-							variant="outline"
-							size="sm"
-							class="profile-button"
-						>
-							{#if data.session.user.image}
-								<img class="nav-avatar" src={data.session.user.image} alt="" />
-							{:else}
-								<UserRound aria-hidden="true" />
-							{/if}
-							<span class="user-name">
-								{data.session.user.name ?? data.session.user.email}
-							</span>
-						</Button>
-					</nav>
-				{/if}
-				<ThemeToggle />
+{#snippet navbarContents(floating: boolean)}
+	<div
+		class={floating
+			? 'topbar-contents floating-contents'
+			: 'content-frame topbar-contents'}
+	>
+		<a class="brand" href={resolve('/')} aria-label="MusicTrek dashboard">
+			<span class="brand-mark">
+				<img src={favicon} alt="" />
+			</span>
+			<div class="text">
+				<span class="brand-wordmark"><span>Music</span><span>Trek</span></span>
+				<span class="brand-tagline">Listen deeper</span>
 			</div>
+		</a>
+
+		<div class="header-actions">
+			{#if data.session?.user}
+				<nav class="primary-nav" aria-label="Primary navigation">
+					<Button
+						href={resolve('/')}
+						variant="ghost"
+						size="sm"
+						class="nav-button"
+					>
+						<House aria-hidden="true" />
+						<span class="nav-label">Dashboard</span>
+					</Button>
+					<Button
+						href={resolve('/user/[userId]', { userId: data.session.user.id })}
+						variant="outline"
+						size="sm"
+						class="profile-button"
+					>
+						{#if data.session.user.image}
+							<img class="nav-avatar" src={data.session.user.image} alt="" />
+						{:else}
+							<UserRound aria-hidden="true" />
+						{/if}
+						<span class="user-name">
+							{data.session.user.name ?? data.session.user.email}
+						</span>
+					</Button>
+				</nav>
+			{/if}
+			<ThemeToggle bind:theme={themePreference} />
 		</div>
+	</div>
+{/snippet}
+
+<div class="app-shell">
+	<header
+		class="topbar"
+		class:is-hidden={showFloatingNavbar}
+		aria-hidden={showFloatingNavbar}
+		inert={showFloatingNavbar}
+	>
+		{@render navbarContents(false)}
+	</header>
+
+	<header
+		class="floating-topbar"
+		class:is-visible={showFloatingNavbar}
+		aria-hidden={!showFloatingNavbar}
+		inert={!showFloatingNavbar}
+	>
+		{@render navbarContents(true)}
 	</header>
 
 	<main>
@@ -86,11 +119,57 @@
 
 <style>
 	.topbar {
+		--navbar-fade-duration: 160ms;
+		--navbar-swap-delay: 140ms;
+
 		position: sticky;
 		top: 0;
 		z-index: 50;
 		border-bottom: 1px solid var(--line);
 		backdrop-filter: blur(18px) saturate(140%);
+		transition:
+			opacity var(--navbar-fade-duration) ease var(--navbar-swap-delay),
+			visibility 0s linear 0s;
+	}
+
+	.topbar.is-hidden {
+		opacity: 0;
+		visibility: hidden;
+		transition-delay: 0s, var(--navbar-fade-duration);
+	}
+
+	.floating-topbar {
+		--floating-navbar-max-width: 31.25rem;
+		--floating-navbar-offset: 1rem;
+		--navbar-fade-duration: 160ms;
+		--navbar-swap-delay: 140ms;
+
+		position: fixed;
+		top: var(--floating-navbar-offset);
+		left: 50%;
+		z-index: 60;
+		width: min(
+			var(--floating-navbar-max-width),
+			calc(100% - (var(--floating-navbar-offset) * 2))
+		);
+		border: 1px solid var(--line);
+		border-radius: calc(var(--radius) * 100);
+		box-shadow: var(--shadow);
+		opacity: 0;
+		transform: translate(-50%, -0.5rem);
+		visibility: hidden;
+		backdrop-filter: blur(18px) saturate(140%);
+		transition:
+			opacity var(--navbar-fade-duration) ease 0s,
+			transform var(--navbar-fade-duration) ease 0s,
+			visibility 0s linear var(--navbar-fade-duration);
+	}
+
+	.floating-topbar.is-visible {
+		opacity: 1;
+		transform: translate(-50%, 0);
+		visibility: visible;
+		transition-delay: var(--navbar-swap-delay), var(--navbar-swap-delay), 0s;
 	}
 
 	.topbar-contents {
@@ -99,6 +178,15 @@
 		align-items: center;
 		justify-content: space-between;
 		gap: 1rem;
+	}
+
+	.floating-contents {
+		min-height: auto;
+		padding: 0.5rem 0.75rem;
+	}
+
+	.floating-topbar .nav-label {
+		display: none;
 	}
 
 	.brand {
@@ -194,6 +282,10 @@
 	}
 
 	@media (max-width: 36rem) {
+		.floating-topbar {
+			--floating-navbar-offset: 0.5rem;
+		}
+
 		.topbar-contents {
 			min-height: 4.25rem;
 		}
@@ -210,6 +302,24 @@
 
 		.brand-mark {
 			width: 2.2rem;
+		}
+
+		.floating-contents.topbar-contents {
+			min-height: 0;
+		}
+
+		/* .floating-topbar .brand .text {
+			display: none;
+		} */
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.topbar,
+		.topbar.is-hidden,
+		.floating-topbar,
+		.floating-topbar.is-visible {
+			transition-duration: 0s;
+			transition-delay: 0s;
 		}
 	}
 </style>
