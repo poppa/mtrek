@@ -185,8 +185,17 @@
 		padding: 0.5rem 0.75rem;
 	}
 
-	.floating-topbar .nav-label {
+	.floating-topbar .nav-label,
+	.floating-topbar .user-name {
 		display: none;
+	}
+
+	.floating-topbar :global(.nav-button) {
+		width: 2.35rem;
+	}
+
+	.floating-topbar :global(.profile-button) {
+		padding-inline: 0.4em;
 	}
 
 	.brand {
