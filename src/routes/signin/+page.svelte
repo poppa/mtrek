@@ -3,19 +3,20 @@
 	import AuthButtons from '$lib/components/AuthButtons.svelte';
 	import { LogIn } from '@lucide/svelte';
 	import type { PageData } from './$types';
+	import { AppName } from '$lib/trek-types';
 
 	let { data }: { data: PageData } = $props();
 </script>
 
 <svelte:head>
-	<title>Sign in · MusicTrek</title>
+	<title>Sign in · {AppName}</title>
 </svelte:head>
 
 <section class="page auth-screen">
 	<div class="content-frame">
 		<div class="auth-copy">
 			<p class="eyebrow">Sign in</p>
-			<h1>Continue to MusicTrek</h1>
+			<h1>Continue to {AppName}</h1>
 
 			{#if data.session?.user}
 				<p class="lead">You are already signed in.</p>

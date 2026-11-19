@@ -3,7 +3,7 @@
 	import { resolve } from '$app/paths';
 	import PageNav from '$lib/components/PageNav.svelte';
 	import RankedAlbum from '$lib/components/RankedAlbum.svelte';
-	import { getTrekTypeDescription } from '$lib/trek-types';
+	import { AppName, getTrekTypeDescription } from '$lib/trek-types';
 	import { ArrowLeft, CalendarDays, Disc3 } from '@lucide/svelte';
 	import type { PageData } from './$types';
 
@@ -11,7 +11,7 @@
 </script>
 
 <svelte:head>
-	<title>{data.trek.name} · Album Ranking · MusicTrek</title>
+	<title>{data.trek.name} · Album Ranking · {AppName}</title>
 </svelte:head>
 
 <section class="page stack">

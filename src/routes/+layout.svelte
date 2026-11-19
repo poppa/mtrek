@@ -7,6 +7,7 @@
 	import { onMount, type Snippet } from 'svelte';
 	import type { LayoutData } from './$types';
 	import '../app.css';
+	import { AppName } from '$lib/trek-types';
 
 	const FLOATING_NAVBAR_SCROLL_THRESHOLD = 30;
 
@@ -40,7 +41,7 @@
 		content="#f6f0e6"
 		media="(prefers-color-scheme: light)"
 	/>
-	<title>MusicTrek</title>
+	<title>{AppName}</title>
 </svelte:head>
 
 {#snippet navbarContents(floating: boolean)}
@@ -49,12 +50,12 @@
 			? 'topbar-contents floating-contents'
 			: 'content-frame topbar-contents'}
 	>
-		<a class="brand" href={resolve('/')} aria-label="MusicTrek dashboard">
+		<a class="brand" href={resolve('/')} aria-label="{AppName} dashboard">
 			<span class="brand-mark">
 				<img src={favicon} alt="" />
 			</span>
 			<div class="text">
-				<span class="brand-wordmark"><span>Music</span><span>Trek</span></span>
+				<span class="brand-wordmark"><span>Sound</span><span>Trek</span></span>
 				<span class="brand-tagline">Listen deeper</span>
 			</div>
 		</a>
@@ -215,9 +216,10 @@
 		aspect-ratio: 1;
 		flex: 0 0 auto;
 		place-items: center;
-		border-radius: 50%;
-		background: var(--brand);
-		box-shadow: 0 0 0 5px color-mix(in oklch, var(--brand) 12%, transparent);
+		border-radius: 100%;
+		background: #fff;
+		border: 1px solid #fff;
+		box-shadow: 0 0 0 5px color-mix(in oklch, var(--brand) 20%, transparent);
 	}
 
 	.brand-mark img {
@@ -229,19 +231,27 @@
 	.brand-wordmark {
 		font-size: 1.2rem;
 		font-weight: 850;
-		letter-spacing: -0.055em;
+		letter-spacing: -0.025em;
+	}
+	.brand-wordmark span:first-child {
+		font-family: 'Great Vibes', serif;
+		margin-inline-end: 4px;
 	}
 
 	.brand-wordmark span:last-child {
 		color: var(--brand);
+		font-family: 'Arial', sans-serif;
+		font-style: italic;
 	}
 
 	.brand-tagline {
 		color: var(--muted);
 		font-size: 0.75rem;
 		/* font-weight: 700; */
-		letter-spacing: 0.03em;
+		letter-spacing: 0.06em;
 		display: block;
+		font-style: italic;
+		margin-block-start: -3px;
 	}
 
 	.primary-nav {

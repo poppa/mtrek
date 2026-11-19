@@ -1,6 +1,6 @@
-# MusicTrek
+# SoundTrek
 
-MusicTrek is a music exploration app. Participants can explore a year range, a fixed curated album list, or a creator-defined set of named rounds. In each round, they select or rate albums together and build rankings as the trek progresses.
+SoundTrek is a music exploration app. Participants can explore a year range, a fixed curated album list, or a creator-defined set of named rounds. In each round, they select or rate albums together and build rankings as the trek progresses.
 
 ## Tech
 

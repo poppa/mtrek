@@ -11,7 +11,7 @@
 		Users
 	} from '@lucide/svelte';
 	import type { getConcludedYearDetail } from '$lib/server/trek-service';
-	import { getConcludedRoundLabel } from '$lib/trek-types';
+	import { AppName, getConcludedRoundLabel } from '$lib/trek-types';
 	type PageData = Awaited<ReturnType<typeof getConcludedYearDetail>>;
 
 	let { data }: { data: PageData } = $props();
@@ -31,7 +31,7 @@
 		>{data.round.name ??
 			data.round.year ??
 			data.selections[0]?.albumName ??
-			'Album round'} · {data.trek.name} · MusicTrek</title
+			'Album round'} · {data.trek.name} · {AppName}</title
 	>
 </svelte:head>
 

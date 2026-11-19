@@ -23,7 +23,7 @@
 	import { initials } from '$lib/utils';
 	import RankedAlbum from '$lib/components/RankedAlbum.svelte';
 	import RankedYear from '$lib/components/RankedYear.svelte';
-	import { getTrekMode } from '$lib/trek-types';
+	import { AppName, getTrekMode } from '$lib/trek-types';
 
 	type AlbumSearchResult = {
 		spotifyAlbumId: string;
@@ -122,7 +122,7 @@
 </script>
 
 <svelte:head>
-	<title>{data.trek.name} · MusicTrek</title>
+	<title>{data.trek.name} · {AppName}</title>
 </svelte:head>
 
 <section class="page stack">

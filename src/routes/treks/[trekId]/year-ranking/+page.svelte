@@ -5,6 +5,7 @@
 	import { ArrowLeft, CalendarDays, Disc3 } from '@lucide/svelte';
 	import type { PageData } from './$types';
 	import RankedYear from '$lib/components/RankedYear.svelte';
+	import { AppName } from '$lib/trek-types';
 
 	let { data }: { data: PageData } = $props();
 
@@ -14,7 +15,7 @@
 </script>
 
 <svelte:head>
-	<title>{data.trek.name} · Year Ranking · MusicTrek</title>
+	<title>{data.trek.name} · Year Ranking · {AppName}</title>
 </svelte:head>
 <section class="page stack">
 	<div class="content-frame">

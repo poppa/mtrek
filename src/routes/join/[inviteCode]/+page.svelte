@@ -1,15 +1,19 @@
 <script lang="ts">
-	import { CalendarDays, LogIn, Users } from '@lucide/svelte';
 	import AuthButtons from '$lib/components/AuthButtons.svelte';
 	import { enhance } from '$lib/form-enhance';
-	import { getJoinTrekMessage, getTrekTypeDescription } from '$lib/trek-types';
+	import {
+		AppName,
+		getJoinTrekMessage,
+		getTrekTypeDescription
+	} from '$lib/trek-types';
+	import { CalendarDays, LogIn, Users } from '@lucide/svelte';
 	import type { ActionData, PageData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 </script>
 
 <svelte:head>
-	<title>Join trek · MusicTrek</title>
+	<title>Join trek · {AppName}</title>
 </svelte:head>
 
 <section class="page auth-screen">
@@ -19,7 +23,7 @@
 				<p class="eyebrow">Invite</p>
 				<h1>Invite not found</h1>
 				<p class="lead notice alert margin-gutter-block-start">
-					This MusicTrek invite link does not match an active trek.
+					This {AppName} invite link does not match an active trek.
 				</p>
 			</div>
 		{:else}

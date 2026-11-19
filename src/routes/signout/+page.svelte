@@ -3,22 +3,23 @@
 	import { enhance } from '$lib/form-enhance';
 	import { LogOut } from '@lucide/svelte';
 	import type { PageData } from './$types';
+	import { AppName } from '$lib/trek-types';
 
 	let { data }: { data: PageData } = $props();
 </script>
 
 <svelte:head>
-	<title>Sign out · MusicTrek</title>
+	<title>Sign out · {AppName}</title>
 </svelte:head>
 
 <section class="page auth-screen">
 	<div class="content-frame">
 		<div class="auth-copy">
 			<p class="eyebrow">Sign out</p>
-			<h1>Leave MusicTrek</h1>
+			<h1>Leave {AppName}</h1>
 
 			{#if data.session?.user}
-				<p class="lead">End your current MusicTrek session on this device.</p>
+				<p class="lead">End your current {AppName} session on this device.</p>
 				<form method="post" use:enhance>
 					<input type="hidden" name="redirectTo" value="/" />
 					<button class="button primary" type="submit">

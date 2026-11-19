@@ -3,7 +3,11 @@
 	import AuthButtons from '$lib/components/AuthButtons.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { Progress } from '$lib/components/ui/progress';
-	import { getTrekRoundUnit, getTrekTypeDescription } from '$lib/trek-types';
+	import {
+		AppName,
+		getTrekRoundUnit,
+		getTrekTypeDescription
+	} from '$lib/trek-types';
 	import {
 		CalendarDays,
 		CheckCircle2,
@@ -63,7 +67,7 @@
 					Turn music discovery into a shared ritual. Draw a year or album,
 					listen with friends, then build the ranking that settles the debate.
 				</p>
-				<div class="feature-pills" aria-label="MusicTrek features">
+				<div class="feature-pills" aria-label="{AppName} features">
 					<span><Shuffle size={15} /> Discover</span>
 					<span><Users size={15} /> Listen together</span>
 					<span><Star size={15} /> Rank everything</span>
@@ -75,7 +79,7 @@
 				<div class="record">
 					<div class="record-label">
 						<Music2 size={34} />
-						<strong>MUSICTREK</strong>
+						<strong>SOUNDTREK</strong>
 						<small>Side A</small>
 					</div>
 				</div>

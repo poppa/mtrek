@@ -4,11 +4,12 @@
 	import UserRankedAlbum from '$lib/components/UserRankedAlbum.svelte';
 	import { ArrowLeft } from '@lucide/svelte';
 	import type { PageData } from './$types';
+	import { AppName } from '$lib/trek-types';
 	let { data }: { data: PageData } = $props();
 </script>
 
 <svelte:head
-	><title>{data.user.name} · Album Ranking · MusicTrek</title></svelte:head
+	><title>{data.user.name} · Album Ranking · {AppName}</title></svelte:head
 >
 <section class="page stack">
 	<div class="content-frame">

@@ -3,11 +3,12 @@
 	import TrekForm from '$lib/components/TrekForm.svelte';
 	import { ArrowLeft } from '@lucide/svelte';
 	import type { ActionData, PageData } from './$types';
+	import { AppName } from '$lib/trek-types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 </script>
 
-<svelte:head><title>Create trek · MusicTrek</title></svelte:head>
+<svelte:head><title>Create trek · {AppName}</title></svelte:head>
 
 <section class="page stack">
 	<div class="content-frame narrow stack">

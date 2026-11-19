@@ -1,3 +1,5 @@
+export const AppName = 'SoundTrek';
+
 export type TrekType = 'years' | 'curated' | 'named';
 
 type TrekDateRange = {

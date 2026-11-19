@@ -5,6 +5,7 @@
 	import UserRankedAlbum from '$lib/components/UserRankedAlbum.svelte';
 	import { ChevronsRight, LogOut } from '@lucide/svelte';
 	import type { PageData } from './$types';
+	import { AppName } from '$lib/trek-types';
 
 	let { data }: { data: PageData } = $props();
 
@@ -20,7 +21,7 @@
 </script>
 
 <svelte:head>
-	<title>{data.user.name} · MusicTrek</title>
+	<title>{data.user.name} · {AppName}</title>
 </svelte:head>
 
 <section class="page auth-screen">
