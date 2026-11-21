@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { enhance } from '$lib/form-enhance';
-	import Label from '$lib/components/Label.svelte';
+	import AlbumCard from '$lib/components/AlbumCard.svelte';
 	import {
 		CalendarDays,
 		ChevronsRight,
@@ -20,7 +20,6 @@
 		Users
 	} from '@lucide/svelte';
 	import type { ActionData, PageData } from './$types';
-	import { initials } from '$lib/utils';
 	import RankedAlbum from '$lib/components/RankedAlbum.svelte';
 	import RankedYear from '$lib/components/RankedYear.svelte';
 	import { AppName, getTrekMode } from '$lib/trek-types';
@@ -232,24 +231,9 @@
 							</div>
 
 							{#if data.mySelection}
-								<div class="album-card">
-									<div class="cover" class:noimage={!data.mySelection.imageUrl}>
-										{#if data.mySelection.imageUrl}
-											<img src={data.mySelection.imageUrl} alt="" />
-										{:else}
-											{initials(data.mySelection.albumName)}
-										{/if}
-									</div>
-									<div class="album-info">
-										<div>
-											<div class="grid-line">
-												<strong>{data.mySelection.albumName}</strong>
-												<span class="badge violet">Your pick</span>
-											</div>
-											<Label label="Album by" small
-												>{data.mySelection.artistName}</Label
-											>
-										</div>
+								<AlbumCard album={data.mySelection}>
+									<div class="album-actions">
+										<span class="badge violet">Your pick</span>
 										{#if canDeleteSelection}
 											<form
 												method="post"
@@ -263,7 +247,7 @@
 											</form>
 										{/if}
 									</div>
-								</div>
+								</AlbumCard>
 							{:else}
 								<div class="stack">
 									<div class="section-header">
@@ -311,7 +295,7 @@
 										<div class="search-results">
 											{#each results as album (album.spotifyAlbumId)}
 												<form
-													class="album-card wide"
+													class="search-result"
 													method="post"
 													action="?/selectAlbum"
 													use:enhance
@@ -347,29 +331,23 @@
 														value={album.externalUrl ?? ''}
 													/>
 
-													<div class="cover" class:noimage={!album.imageUrl}>
-														{#if album.imageUrl}
-															<img src={album.imageUrl} alt="" />
-														{:else}
-															{initials(album.albumName)}
-														{/if}
-													</div>
-													<div class="album-info">
-														<strong>{album.albumName}</strong>
-														<Label label="Album by" small
-															>{album.artistName}</Label
-														>
-														<div class="inline-row">
-															<span
-																>{album.releaseDate ??
-																	data.currentRound.year}</span
-															>
+													<AlbumCard
+														album={{
+															...album,
+															releaseDate:
+																album.releaseDate ??
+																(data.currentRound.year
+																	? String(data.currentRound.year)
+																	: null)
+														}}
+													>
+														<div class="album-actions">
 															<button class="button small" type="submit">
 																<Music2 size={16} />
 																<span>Select</span>
 															</button>
 														</div>
-													</div>
+													</AlbumCard>
 												</form>
 											{/each}
 										</div>
@@ -425,60 +403,41 @@
 
 							<div class="album-grid">
 								{#each data.selections as selection (selection.id)}
-									<div class="album-card wide">
-										<div class="cover" class:noimage={!selection.imageUrl}>
-											{#if selection.imageUrl}
-												<img src={selection.imageUrl} alt="" />
-											{:else}
-												{initials(selection.albumName)}
+									<AlbumCard
+										album={selection}
+										pickedBy={{
+											name: selection.submittedBy,
+											userId: selection.userId
+										}}
+										score={undefined}
+									>
+										<div class="album-actions">
+											{#if selection.userId === data.session?.user?.id && canDeleteSelection}
+												<form
+													method="post"
+													action="?/deleteSelection"
+													use:enhance
+												>
+													<button class="button danger small" type="submit">
+														<Trash2 size={15} />
+														<span>Delete pick</span>
+													</button>
+												</form>
+											{/if}
+											{#if selection.externalUrl}
+												<a
+													class="button small"
+													href={selection.externalUrl}
+													target="_blank"
+													rel="external noreferrer"
+												>
+													<ExternalLink size={15} />
+													<span>Open</span>
+												</a>
 											{/if}
 										</div>
-										<div class="album-info">
-											<div>
-												<strong>{selection.albumName}</strong>
-												<Label label="Album by">{selection.artistName}</Label>
-												<div class="inline-row">
-													<Label label="Picked by" small>
-														<a
-															class="underline"
-															href={resolve('/user/[userId]', {
-																userId: selection.userId
-															})}
-														>
-															{selection.submittedBy}
-														</a>
-													</Label>
-													&bull;
-													<span
-														><Star size={15} />
-														{selection.averageScore ?? 'Unrated'}</span
-													>
-													{#if selection.userId === data.session?.user?.id && canDeleteSelection}
-														<form
-															method="post"
-															action="?/deleteSelection"
-															use:enhance
-														>
-															<button class="button danger small" type="submit">
-																<Trash2 size={15} />
-																<span>Delete pick</span>
-															</button>
-														</form>
-													{/if}
-													{#if selection.externalUrl}
-														<a
-															class="button small"
-															href={selection.externalUrl}
-															target="_blank"
-															rel="external noreferrer"
-														>
-															<ExternalLink size={15} />
-															<span>Open</span>
-														</a>
-													{/if}
-												</div>
-											</div>
 
+										{#snippet footer()}
 											<form
 												class="rating-form"
 												method="post"
@@ -518,8 +477,8 @@
 													</button>
 												</div>
 											</form>
-										</div>
-									</div>
+										{/snippet}
+									</AlbumCard>
 								{/each}
 							</div>
 						{:else if data.trek.status === 'completed'}
@@ -555,33 +514,13 @@
 						</div>
 						<div class="album-grid">
 							{#each data.selections as selection (selection.id)}
-								<div class="album-card">
-									<div class="cover" class:noimage={!selection.imageUrl}>
-										{#if selection.imageUrl}
-											<img src={selection.imageUrl} alt="" />
-										{:else}
-											{initials(selection.albumName)}
-										{/if}
-									</div>
-									<div class="album-info">
-										<div>
-											<strong>{selection.albumName}</strong>
-											<Label label="Album by" small
-												>{selection.artistName}</Label
-											>
-											<Label label="Picked by" small>
-												<a
-													href={resolve('/user/[userId]', {
-														userId: selection.userId
-													})}
-													class="underline"
-												>
-													{selection.submittedBy}
-												</a>
-											</Label>
-										</div>
-									</div>
-								</div>
+								<AlbumCard
+									album={selection}
+									pickedBy={{
+										name: selection.submittedBy,
+										userId: selection.userId
+									}}
+								/>
 							{/each}
 						</div>
 					</section>
@@ -606,35 +545,18 @@
 									{@const round = data.rounds.find(
 										(round) => round.curatedAlbumId === album.id
 									)}
-									<div
-										class="album-card"
-										class:secret-album={!album.isRevealed}
+									<AlbumCard
+										{album}
+										coverFallback={album.isRevealed ? undefined : '?'}
 									>
-										<div class="cover" class:noimage={!album.imageUrl}>
-											{#if album.imageUrl}
-												<img src={album.imageUrl} alt="" />
-											{:else if album.isRevealed}
-												{initials(album.albumName)}
-											{:else}
-												?
-											{/if}
+										<div class="album-actions">
+											<span
+												class="badge"
+												class:success={round?.status === 'completed'}
+												>{round?.status ?? 'Not drawn'}</span
+											>
 										</div>
-										<div class="album-info">
-											<div>
-												<strong>{album.albumName}</strong>
-												<div>
-													<Label label="Album by">{album.artistName}</Label>
-												</div>
-												<div class="inline-row">
-													<span
-														class="badge"
-														class:success={round?.status === 'completed'}
-														>{round?.status ?? 'Not drawn'}</span
-													>
-												</div>
-											</div>
-										</div>
-									</div>
+									</AlbumCard>
 								{/each}
 							</div>
 						</div>
@@ -919,6 +841,13 @@
 
 	.search-results {
 		margin-block-start: var(--gutter);
+	}
+
+	.album-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: calc(var(--gap) / 1.5);
+		margin-block-start: var(--gap);
 	}
 
 	.invite-box {

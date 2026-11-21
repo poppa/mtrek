@@ -3,7 +3,6 @@
 	import type { RankedYear, SimpleAlbum } from '$lib/dbtypes';
 	import { initials } from '$lib/utils';
 	import { Disc3, Star } from '@lucide/svelte';
-	import Label from './Label.svelte';
 
 	interface Props {
 		rank: number;
@@ -57,11 +56,7 @@
 					{/if}
 					<div>
 						<div class="album-name"><small>{album.albumName}</small></div>
-						<div class="artist-name">
-							<Label label="Album by" small>
-								{album.artistName}
-							</Label>
-						</div>
+						<small class="artist-name muted">{album.artistName}</small>
 					</div>
 				</div>
 			{/each}

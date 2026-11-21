@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import Label from '$lib/components/Label.svelte';
+	import AlbumCard from '$lib/components/AlbumCard.svelte';
 	import {
 		ArrowLeft,
 		CalendarDays,
@@ -15,15 +15,6 @@
 	type PageData = Awaited<ReturnType<typeof getConcludedYearDetail>>;
 
 	let { data }: { data: PageData } = $props();
-
-	function initials(value: string) {
-		return value
-			.split(/\s+/)
-			.filter(Boolean)
-			.slice(0, 2)
-			.map((part) => part[0]?.toUpperCase())
-			.join('');
-	}
 </script>
 
 <svelte:head>
@@ -76,56 +67,27 @@
 		{:else}
 			<div class="history-list">
 				{#each data.selections as selection (selection.id)}
-					<article class="card history-card">
-						<div class="cover" class:noimage={!selection.imageUrl}>
-							{#if selection.imageUrl}
-								<img src={selection.imageUrl} alt="" />
-							{:else}
-								{initials(selection.albumName)}
-							{/if}
-						</div>
+					<AlbumCard
+						album={selection}
+						pickedBy={{ name: selection.submittedBy, userId: selection.userId }}
+						score={{
+							value: selection.averageScore,
+							label: `${selection.ratingCount} rating${selection.ratingCount === 1 ? '' : 's'}`
+						}}
+					>
+						{#if selection.externalUrl}
+							<a
+								class="button small album-link"
+								href={selection.externalUrl}
+								target="_blank"
+								rel="external noreferrer"
+							>
+								<ExternalLink size={15} />
+								<span>Open album</span>
+							</a>
+						{/if}
 
-						<div class="history-main">
-							<div class="history-heading">
-								<div>
-									<h2>{selection.albumName}</h2>
-									<div class="meta-row">
-										<Label label="Album by">{selection.artistName}</Label>
-										{#if selection.releaseDate}
-											<span>@{selection.releaseDate}</span>
-										{/if}
-										&bull;
-										<Label label="Picked by">
-											<a
-												href={resolve('/user/[userId]', {
-													userId: selection.userId
-												})}
-												class="underline"
-											>
-												{selection.submittedBy}
-											</a>
-										</Label>
-									</div>
-								</div>
-
-								<div class="score-box">
-									<span>{selection.averageScore ?? '-'}</span>
-									<small>{selection.ratingCount} ratings</small>
-								</div>
-							</div>
-
-							{#if selection.externalUrl}
-								<a
-									class="button small album-link"
-									href={selection.externalUrl}
-									target="_blank"
-									rel="external noreferrer"
-								>
-									<ExternalLink size={15} />
-									<span>Open album</span>
-								</a>
-							{/if}
-
+						{#snippet footer()}
 							<div class="rating-breakdown">
 								{#each selection.ratings as rating (`${selection.id}-${rating.userId}`)}
 									<a
@@ -150,8 +112,8 @@
 									</a>
 								{/each}
 							</div>
-						</div>
-					</article>
+						{/snippet}
+					</AlbumCard>
 				{/each}
 			</div>
 		{/if}
@@ -164,37 +126,14 @@
 		gap: var(--gutter);
 	}
 
-	.history-card {
-		display: grid;
-		grid-template-columns: 7rem minmax(0, 1fr);
-		gap: var(--gutter);
-		background: var(--surface);
-
-		@container app (width < 600px) {
-			grid-template-columns: 1fr;
-		}
-	}
-
-	.history-card .cover {
-		width: 7rem;
-	}
-
-	.history-main {
-		display: grid;
-		gap: 0.85rem;
-		min-width: 0;
-	}
-
-	.history-heading {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) auto;
-		gap: 1rem;
-		align-items: start;
-	}
-
 	.rating-breakdown {
 		display: grid;
 		gap: var(--gap);
+		margin-block-start: var(--gap);
+	}
+
+	.album-link {
+		margin-block-start: var(--gap);
 	}
 
 	.rating-item {

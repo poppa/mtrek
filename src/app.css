@@ -804,20 +804,6 @@ option:disabled {
 	gap: var(--gap);
 }
 
-.album-card {
-	display: grid;
-	grid-template-columns: 5rem minmax(0, 1fr);
-	gap: 1rem;
-	padding: 1rem;
-	border: 1px solid var(--line);
-	border-radius: var(--radius);
-	background: var(--surface-soft);
-}
-
-.album-card.wide {
-	grid-template-columns: 6rem minmax(0, 1fr);
-}
-
 .cover {
 	display: grid;
 	width: 5rem;
@@ -837,31 +823,10 @@ option:disabled {
 	border: 1px solid var(--line-strong);
 }
 
-.album-card.wide .cover {
-	width: 6rem;
-}
-
 .cover img {
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
-}
-
-.album-info {
-	display: grid;
-	align-content: start;
-	gap: var(--gap);
-	min-width: 0;
-}
-
-.album-info > div {
-	min-width: 0;
-}
-
-.album-info strong,
-.album-info span {
-	overflow: hidden;
-	text-overflow: ellipsis;
 }
 
 .rating-form {
@@ -874,8 +839,6 @@ option:disabled {
 	container: ranked-list / inline-size;
 }
 
-.ranked-album,
-.user-ranked-album,
 .ranked-year {
 	display: grid;
 	align-items: center;
@@ -884,14 +847,6 @@ option:disabled {
 	border: 1px solid var(--line);
 	border-radius: var(--radius);
 	background: var(--surface-soft);
-}
-
-.ranked-album {
-	grid-template-columns: 2.4rem 4rem minmax(0, 1fr) auto;
-}
-
-.ranked-album .cover {
-	width: 4rem;
 }
 
 .ranked-year {
@@ -1130,33 +1085,6 @@ form[aria-busy='true'] button[type='submit'] {
 	}
 }
 
-@container ranked-list (width < 38rem) {
-	.ranked-album {
-		grid-template-columns: 3.75rem minmax(0, 1fr) auto;
-	}
-
-	.ranked-album .rank-number {
-		grid-column: 1;
-		grid-row: 1;
-	}
-
-	.ranked-album .cover {
-		grid-column: 1;
-		grid-row: 2;
-		width: 3.75rem;
-	}
-
-	.ranked-album .album-info {
-		grid-column: 2 / -1;
-		grid-row: 2;
-	}
-
-	.ranked-album .score-box {
-		grid-column: 3;
-		grid-row: 1;
-	}
-}
-
 @container app (width < 52rem) {
 	.page {
 		padding-top: 1.5rem;
@@ -1197,13 +1125,7 @@ form[aria-busy='true'] button[type='submit'] {
 		width: 100%;
 	}
 
-	.album-card,
-	.album-card.wide {
-		grid-template-columns: 4.5rem minmax(0, 1fr);
-	}
-
-	.cover,
-	.album-card.wide .cover {
+	.cover {
 		width: 4.5rem;
 	}
 
