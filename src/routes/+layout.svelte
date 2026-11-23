@@ -25,8 +25,8 @@
 <svelte:window onscroll={updateNavbarVisibility} />
 
 <svelte:head>
-	<link rel="icon" href={favicon} type="image/svg+xml" />
-	<link rel="alternate icon" href="/favicon.ico" />
+	<link rel="icon" href="/favicon.ico?v=2" type="image/svg+xml" />
+	<link rel="alternate icon" href="/favicon.ico?v=2" />
 	<meta
 		name="description"
 		content="Explore albums together, rate every listen, and find the records that stay with you."
