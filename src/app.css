@@ -821,6 +821,7 @@ option:disabled {
 
 .cover.noimage {
 	border: 1px solid var(--line-strong);
+	color: #fff;
 }
 
 .cover img {

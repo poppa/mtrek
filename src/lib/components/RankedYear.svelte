@@ -52,7 +52,7 @@
 					{#if album.imageUrl}
 						<img src={album.imageUrl} alt="" class="cover" />
 					{:else}
-						<div class="cover">{initials(album.albumName)}</div>
+						<div class="cover noimage">{initials(album.albumName)}</div>
 					{/if}
 					<div>
 						<div class="album-name"><small>{album.albumName}</small></div>

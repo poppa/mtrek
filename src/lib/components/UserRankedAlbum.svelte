@@ -36,51 +36,55 @@
 			{album.ratingNote}
 		</div>
 	{/if}
-	<div class="links">
-		{#if album.externalUrl}<a
-				href={album.externalUrl}
-				class="button small"
-				target="_blank"
-				rel="external noreferrer"
-			>
-				<ExternalLink size={15} />
-				Open
-			</a>{/if}
-		{#if canAccessTrek}
-			<a
-				class="button small"
-				href={resolve('/treks/[trekId]', {
-					trekId: album.trekId
-				})}
-			>
-				<Music2 size={15} />
-				{album.trekName}
-			</a>
-
-			{#if album.roundStatus === 'completed'}
+	{#if album.externalUrl}
+		<a
+			href={album.externalUrl}
+			class="button small align-top"
+			target="_blank"
+			rel="external noreferrer"
+		>
+			<ExternalLink size={15} />
+			Open
+		</a>
+	{/if}
+	{#snippet footer()}
+		<div class="links">
+			{#if canAccessTrek}
 				<a
 					class="button small"
-					href={album.year === null
-						? resolve('/treks/[trekId]/rounds/[roundId]', {
-								trekId: album.trekId,
-								roundId: album.roundId
-							})
-						: resolve('/treks/[trekId]/years/[year]', {
-								trekId: album.trekId,
-								year: String(album.year)
-							})}
+					href={resolve('/treks/[trekId]', {
+						trekId: album.trekId
+					})}
 				>
-					<CircleCheck size={15} />
-					{album.year ?? `Round ${album.roundPosition}`}
+					<Music2 size={15} />
+					{album.trekName}
 				</a>
-			{:else}
-				<span class="small button muted">
-					<CircleDashed size={15} />
-					{album.year ?? `Round ${album.roundPosition}`}
-				</span>
+
+				{#if album.roundStatus === 'completed'}
+					<a
+						class="button small"
+						href={album.year === null
+							? resolve('/treks/[trekId]/rounds/[roundId]', {
+									trekId: album.trekId,
+									roundId: album.roundId
+								})
+							: resolve('/treks/[trekId]/years/[year]', {
+									trekId: album.trekId,
+									year: String(album.year)
+								})}
+					>
+						<CircleCheck size={15} />
+						{album.year ?? `Round ${album.roundPosition}`}
+					</a>
+				{:else}
+					<span class="small button muted">
+						<CircleDashed size={15} />
+						{album.year ?? `Round ${album.roundPosition}`}
+					</span>
+				{/if}
 			{/if}
-		{/if}
-	</div>
+		</div>
+	{/snippet}
 </AlbumCard>
 
 <style lang="scss">

@@ -411,6 +411,17 @@
 										}}
 										score={undefined}
 									>
+										{#if selection.externalUrl}
+											<a
+												class="button small align-top"
+												href={selection.externalUrl}
+												target="_blank"
+												rel="external noreferrer"
+											>
+												<ExternalLink size={15} />
+												<span>Open</span>
+											</a>
+										{/if}
 										<div class="album-actions">
 											{#if selection.userId === data.session?.user?.id && canDeleteSelection}
 												<form
@@ -423,17 +434,6 @@
 														<span>Delete pick</span>
 													</button>
 												</form>
-											{/if}
-											{#if selection.externalUrl}
-												<a
-													class="button small"
-													href={selection.externalUrl}
-													target="_blank"
-													rel="external noreferrer"
-												>
-													<ExternalLink size={15} />
-													<span>Open</span>
-												</a>
 											{/if}
 										</div>
 

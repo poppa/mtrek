@@ -77,13 +77,13 @@
 					>
 						{#if selection.externalUrl}
 							<a
-								class="button small album-link"
+								class="button small album-link align-top"
 								href={selection.externalUrl}
 								target="_blank"
 								rel="external noreferrer"
 							>
 								<ExternalLink size={15} />
-								<span>Open album</span>
+								<span>Open</span>
 							</a>
 						{/if}
 
@@ -129,10 +129,6 @@
 	.rating-breakdown {
 		display: grid;
 		gap: var(--gap);
-		margin-block-start: var(--gap);
-	}
-
-	.album-link {
 		margin-block-start: var(--gap);
 	}
 
